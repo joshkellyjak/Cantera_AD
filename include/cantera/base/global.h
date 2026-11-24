@@ -190,7 +190,7 @@ void writelog(const string& fmt, const Args&... args) {
  */
 template <typename... Args>
 void writelogf(const char* fmt, const Args& ... args) {
-    writelog_direct(fmt::sprintf(fmt, args...));
+    writelog_direct(sprintfOverload(fmt, args...));
 }
 
 //! Write an end of line character to the screen and flush output
@@ -329,10 +329,29 @@ inline T clip(const T& value, const T& lower, const T& upper)
     return std::max(lower, std::min(upper, value));
 }
 
+#if AD_ENABLED
+//! Clip *value* such that lower <= value <= upper, for AD values and expressions,
+//! possibly mixed with plain doubles
+//! @ingroup mathTemplates
+inline CanteraDouble clip(const CanteraDouble& value, const CanteraDouble& lower,
+                          const CanteraDouble& upper)
+{
+    return std::max(lower, std::min(upper, value));
+}
+#endif
+
 //! Sign of a number. Returns -1 if x < 0, 1 if x > 0 and 0 if x == 0.
 //! @ingroup mathTemplates
 template <typename T> int sign(T x) {
-    return (T(0) < x) - (x < T(0));
+#if AD_ENABLED
+    if constexpr (codi::ExpressionTraits::IsExpression<T>::value) {
+        // The sign is piecewise constant; only the value matters
+        return sign(codi::RealTraits::getPassiveValue(x));
+    } else
+#endif
+    {
+        return (T(0) < x) - (x < T(0));
+    }
 }
 
 //! Convert a type name to a human readable string, using `boost::core::demangle` if

@@ -244,7 +244,7 @@ void MoleReactorSurface::updateDefaultTolerances(span<CanteraDouble> atol, Cante
 {
     vector<CanteraDouble> y(neq());
     getState(y);
-    CanteraDouble totalMoles = std::accumulate(y.begin(), y.end(), 0.0);
+    CanteraDouble totalMoles = std::accumulate(y.begin(), y.end(), CanteraDouble(0.0));
     if (totalMoles <= 0.0) {
         return;
     }

@@ -95,7 +95,7 @@ inline auto dot5(const X& x, const Y& y)
 template<class InputIter, class InputIter2>
 inline CanteraDouble dot(InputIter x_begin, InputIter x_end, InputIter2 y_begin)
 {
-    return std::inner_product(x_begin, x_end, y_begin, 0.0);
+    return std::inner_product(x_begin, x_end, y_begin, CanteraDouble(0.0));
 }
 
 //! Multiply elements of an array by a scale factor.

@@ -67,7 +67,7 @@ void MoleReactor::updateDefaultTolerances(span<CanteraDouble> atol, CanteraDoubl
     getState(y);
     size_t sidx = speciesOffset();
     CanteraDouble totalMoles = std::accumulate(y.begin() + sidx,
-                                        y.begin() + sidx + m_nsp, 0.0);
+                                        y.begin() + sidx + m_nsp, CanteraDouble(0.0));
     if (totalMoles <= 0.0) {
         return;
     }

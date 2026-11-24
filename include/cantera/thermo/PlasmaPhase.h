@@ -181,7 +181,7 @@ public:
     //! Get electron energy levels.
     //! @param  levels The vector of electron energy levels [eV]. Length: #m_nPoints
     void getElectronEnergyLevels(span<CanteraDouble> levels) const {
-        Eigen::Map<Eigen::ArrayXd>(levels.data(), levels.size()) = m_electronEnergyLevels;
+        Eigen::Map<ArrayXd>(levels.data(), levels.size()) = m_electronEnergyLevels;
     }
 
     //! Set discretized electron energy distribution.
@@ -196,7 +196,7 @@ public:
     //! @param  distrb The vector of electron energy distribution.
     //!                Length: #m_nPoints.
     void getElectronEnergyDistribution(span<CanteraDouble> distrb) const {
-        Eigen::Map<Eigen::ArrayXd>(distrb.data(), distrb.size()) = m_electronEnergyDist;
+        Eigen::Map<ArrayXd>(distrb.data(), distrb.size()) = m_electronEnergyDist;
     }
 
     //! Set the shape factor of isotropic electron energy distribution.
@@ -911,11 +911,11 @@ protected:
     size_t m_nPoints = 1001;
 
     //! electron energy levels [ev]. Length: #m_nPoints
-    Eigen::ArrayXd m_electronEnergyLevels;
+    ArrayXd m_electronEnergyLevels;
 
     //! Normalized electron energy distribution vector [-]
     //! Length: #m_nPoints
-    Eigen::ArrayXd m_electronEnergyDist;
+    ArrayXd m_electronEnergyDist;
 
     //! Index of electron species.
     size_t m_electronSpeciesIndex = npos;
@@ -956,7 +956,7 @@ protected:
     //double m_ionDegree = 0.0;
 
     //! Electron energy distribution Difference dF/dε (V^-5/2)
-    Eigen::ArrayXd m_electronEnergyDistDiff;
+    ArrayXd m_electronEnergyDistDiff;
 
     //! Elastic electron energy loss coefficients (eV m3/s)
     /*! The elastic electron energy loss coefficient for species k is,

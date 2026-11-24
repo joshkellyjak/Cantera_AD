@@ -47,7 +47,7 @@ CanteraDouble linearInterp(CanteraDouble x, span<const CanteraDouble> xpts, span
  * @param  x vector of function coordinate
  * @ingroup mathUtils
  */
-CanteraDouble trapezoidal(const Eigen::ArrayXd& f, const Eigen::ArrayXd& x);
+CanteraDouble trapezoidal(const ArrayXd& f, const ArrayXd& x);
 
 //! Numerical integration of a function using Simpson's rule
 //! with flexibility of taking odd and even number of points.
@@ -62,7 +62,7 @@ CanteraDouble trapezoidal(const Eigen::ArrayXd& f, const Eigen::ArrayXd& x);
  * @param  x vector of function coordinate
  * @ingroup mathUtils
  */
-CanteraDouble simpson(const Eigen::ArrayXd& f, const Eigen::ArrayXd& x);
+CanteraDouble simpson(const ArrayXd& f, const ArrayXd& x);
 
 //! Numerical integration of a function.
 /*!
@@ -76,7 +76,7 @@ CanteraDouble simpson(const Eigen::ArrayXd& f, const Eigen::ArrayXd& x);
  * @ingroup mathUtils
  */
 CanteraDouble numericalQuadrature(const string& method,
-                           const Eigen::ArrayXd& f,
-                           const Eigen::ArrayXd& x);
+                           const ArrayXd& f,
+                           const ArrayXd& x);
 }
 #endif

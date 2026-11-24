@@ -755,7 +755,7 @@ int ChemEquil::equilibrate(ThermoPhase& s, const char* XYstr,
                 // along directions the Jacobian cannot resolve are dropped.
                 MappedMatrix J(const_cast<CanteraDouble*>(jac.data().data()),
                                jac.nRows(), jac.nColumns());
-                Eigen::JacobiSVD<Eigen::MatrixXd> svd(
+                Eigen::JacobiSVD<MatrixXd> svd(
                     J, Eigen::ComputeThinU | Eigen::ComputeThinV);
                 // The Jacobian is evaluated by forward differences with a relative
                 // perturbation of 1e-7 (see equilJacobian()), so its elements are

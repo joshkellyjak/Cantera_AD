@@ -304,8 +304,8 @@ void BulkKinetics::getRevRatesOfProgress_ddT(span<CanteraDouble> drop)
     // reverse rop times scaled inverse equilibrium constant derivatives
     copy(m_ropr.begin(), m_ropr.end(), m_rbuf2.begin());
     applyEquilibriumConstants_ddT(m_rbuf2);
-    Eigen::Map<Eigen::VectorXd> dRevRop(drop.data(), nReactions());
-    Eigen::Map<Eigen::VectorXd> dRevRop2(m_rbuf2.data(), nReactions());
+    Eigen::Map<VectorXd> dRevRop(drop.data(), nReactions());
+    Eigen::Map<VectorXd> dRevRop2(m_rbuf2.data(), nReactions());
     dRevRop += dRevRop2;
 }
 
@@ -318,8 +318,8 @@ void BulkKinetics::getNetRatesOfProgress_ddT(span<CanteraDouble> drop)
     // reverse rop times scaled inverse equilibrium constant derivatives
     copy(m_ropr.begin(), m_ropr.end(), m_rbuf2.begin());
     applyEquilibriumConstants_ddT(m_rbuf2);
-    Eigen::Map<Eigen::VectorXd> dNetRop(drop.data(), nReactions());
-    Eigen::Map<Eigen::VectorXd> dNetRop2(m_rbuf2.data(), nReactions());
+    Eigen::Map<VectorXd> dNetRop(drop.data(), nReactions());
+    Eigen::Map<VectorXd> dNetRop2(m_rbuf2.data(), nReactions());
     dNetRop -= dNetRop2;
 }
 
@@ -377,10 +377,10 @@ void BulkKinetics::getNetRatesOfProgress_ddC(span<CanteraDouble> drop)
     assertDerivativesValid("BulkKinetics::getNetRatesOfProgress_ddC");
     updateROP();
     process_ddC(m_reactantStoich, m_ropf, drop);
-    Eigen::Map<Eigen::VectorXd> dNetRop(drop.data(), nReactions());
+    Eigen::Map<VectorXd> dNetRop(drop.data(), nReactions());
 
     process_ddC(m_revProductStoich, m_ropr, m_rbuf2);
-    Eigen::Map<Eigen::VectorXd> dNetRop2(m_rbuf2.data(), nReactions());
+    Eigen::Map<VectorXd> dNetRop2(m_rbuf2.data(), nReactions());
     dNetRop -= dNetRop2;
 }
 
@@ -627,7 +627,7 @@ void BulkKinetics::process_ddP(span<const CanteraDouble> in, span<CanteraDouble>
 void BulkKinetics::process_ddC(StoichManagerN& stoich, span<const CanteraDouble> in,
                                span<CanteraDouble> drop, bool mass_action)
 {
-    Eigen::Map<Eigen::VectorXd> out(drop.data(), nReactions());
+    Eigen::Map<VectorXd> out(drop.data(), nReactions());
     out.setZero();
     CanteraDouble ctot_inv = 1. / thermo().molarDensity();
 
@@ -640,7 +640,7 @@ void BulkKinetics::process_ddC(StoichManagerN& stoich, span<const CanteraDouble>
     }
 
     // derivatives due to third-body colliders in law of mass action
-    Eigen::Map<Eigen::VectorXd> outM(m_rbuf1.data(), nReactions());
+    Eigen::Map<VectorXd> outM(m_rbuf1.data(), nReactions());
     if (mass_action) {
         outM.fill(0.);
         m_multi_concm.scale(in, asSpan(outM), ctot_inv);

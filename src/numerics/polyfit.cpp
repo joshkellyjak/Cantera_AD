@@ -27,12 +27,12 @@ CanteraDouble polyfit(size_t deg, span<const CanteraDouble> x, span<const Canter
     }
 
     ConstMappedVector xx(x.data(), n);
-    Eigen::VectorXd yy = ConstMappedVector(y.data(), n);
+    VectorXd yy = ConstMappedVector(y.data(), n);
     MappedVector pp(p.data(), deg + 1);
 
     // Construct A such that each row i of A has the elements
     // 1, x[i], x[i]^2, x[i]^3 ... + x[i]^deg
-    Eigen::MatrixXd A(n, deg+1);
+    MatrixXd A(n, deg+1);
     A.col(0).setConstant(1.0);
 
     if (deg > 0) {
@@ -45,7 +45,7 @@ CanteraDouble polyfit(size_t deg, span<const CanteraDouble> x, span<const Canter
     if (!w.empty() && w[0] > 0) {
         // For compatibility with old Fortran dpolft, input weights are the
         // squares of the weight vector used in this algorithm
-        Eigen::VectorXd ww = ConstMappedVector(w.data(), n).cwiseSqrt().eval();
+        VectorXd ww = ConstMappedVector(w.data(), n).cwiseSqrt().eval();
 
         // Multiply by the weights on both sides
         A = ww.asDiagonal() * A;

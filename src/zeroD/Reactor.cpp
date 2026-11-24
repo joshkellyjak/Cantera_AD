@@ -233,13 +233,13 @@ vector<size_t> Reactor::initializeSteady()
 Eigen::SparseMatrix<CanteraDouble> Reactor::finiteDifferenceJacobian()
 {
     vector<Eigen::Triplet<CanteraDouble>> trips;
-    Eigen::ArrayXd yCurrent(m_nv);
+    ArrayXd yCurrent(m_nv);
     getState(asSpan(yCurrent));
     CanteraDouble time = (m_net != nullptr) ? m_net->time() : 0.0;
 
-    Eigen::ArrayXd yPerturbed = yCurrent;
-    Eigen::ArrayXd lhsPerturbed(m_nv), lhsCurrent(m_nv);
-    Eigen::ArrayXd rhsPerturbed(m_nv), rhsCurrent(m_nv);
+    ArrayXd yPerturbed = yCurrent;
+    ArrayXd lhsPerturbed(m_nv), lhsCurrent(m_nv);
+    ArrayXd rhsPerturbed(m_nv), rhsCurrent(m_nv);
     lhsCurrent = 1.0;
     rhsCurrent = 0.0;
     updateState(asSpan(yCurrent));

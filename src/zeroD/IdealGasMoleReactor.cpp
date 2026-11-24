@@ -224,9 +224,9 @@ void IdealGasMoleReactor::getJacobianElements(vector<Eigen::Triplet<CanteraDoubl
                                (ydotPerturbed - ydotCurrent) / deltaTemp);
         }
         // d T_dot/dnj
-        Eigen::VectorXd netProductionRates = Eigen::VectorXd::Zero(m_nsp);
-        Eigen::VectorXd internal_energy = Eigen::VectorXd::Zero(m_nsp);
-        Eigen::VectorXd specificHeat = Eigen::VectorXd::Zero(m_nsp);
+        VectorXd netProductionRates = VectorXd::Zero(m_nsp);
+        VectorXd internal_energy = VectorXd::Zero(m_nsp);
+        VectorXd specificHeat = VectorXd::Zero(m_nsp);
         // getting species data
         m_thermo->getPartialMolarIntEnergies(asSpan(internal_energy));
         m_kin->getNetProductionRates(asSpan(netProductionRates));
@@ -237,7 +237,7 @@ void IdealGasMoleReactor::getJacobianElements(vector<Eigen::Triplet<CanteraDoubl
         // scale net production rates by  volume to get molar rate
         CanteraDouble qdot = internal_energy.dot(netProductionRates);
         CanteraDouble denom = 1 / (m_TotalCv * m_TotalCv);
-        Eigen::VectorXd uk_dnkdnj_sums = dnk_dnj.transpose() * internal_energy;
+        VectorXd uk_dnkdnj_sums = dnk_dnj.transpose() * internal_energy;
         // add derivatives to jacobian
         for (size_t j = 0; j < m_nsp; j++) {
             trips.emplace_back(m_offset, static_cast<int>(j + m_offset + m_sidx),

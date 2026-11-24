@@ -68,8 +68,8 @@ void AdaptivePreconditioner::prunePreconditioner()
 void AdaptivePreconditioner::solve(span<const CanteraDouble> rhs_vector, span<CanteraDouble> output)
 {
     // creating vectors in the form of Ax=b
-    Eigen::Map<const Eigen::VectorXd> bVector(rhs_vector.data(), rhs_vector.size());
-    Eigen::Map<Eigen::VectorXd> xVector(output.data(), output.size());
+    Eigen::Map<const VectorXd> bVector(rhs_vector.data(), rhs_vector.size());
+    Eigen::Map<VectorXd> xVector(output.data(), output.size());
     // solve for xVector
     xVector = m_solver.solve(bVector);
     if (m_solver.info() != Eigen::Success) {

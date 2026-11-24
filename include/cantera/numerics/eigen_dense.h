@@ -23,12 +23,22 @@ namespace Cantera
 //! @addtogroup matrices
 //! @{
 
-typedef Eigen::Map<Eigen::MatrixXd> MappedMatrix;
-typedef Eigen::Map<const Eigen::MatrixXd> ConstMappedMatrix;
-typedef Eigen::Map<Eigen::VectorXd> MappedVector;
-typedef Eigen::Map<const Eigen::VectorXd> ConstMappedVector;
-typedef Eigen::Map<Eigen::RowVectorXd> MappedRowVector;
-typedef Eigen::Map<const Eigen::RowVectorXd> ConstMappedRowVector;
+//! @name Dense Eigen types with CanteraDouble scalars
+//! Equal to Eigen's VectorXd, RowVectorXd, ArrayXd and MatrixXd in a normal build;
+//! with AD enabled, their scalar type is the AD type.
+//! @{
+using VectorXd = Eigen::Matrix<CanteraDouble, Eigen::Dynamic, 1>;
+using RowVectorXd = Eigen::Matrix<CanteraDouble, 1, Eigen::Dynamic>;
+using ArrayXd = Eigen::Array<CanteraDouble, Eigen::Dynamic, 1>;
+using MatrixXd = Eigen::Matrix<CanteraDouble, Eigen::Dynamic, Eigen::Dynamic>;
+//! @}
+
+typedef Eigen::Map<MatrixXd> MappedMatrix;
+typedef Eigen::Map<const MatrixXd> ConstMappedMatrix;
+typedef Eigen::Map<VectorXd> MappedVector;
+typedef Eigen::Map<const VectorXd> ConstMappedVector;
+typedef Eigen::Map<RowVectorXd> MappedRowVector;
+typedef Eigen::Map<const RowVectorXd> ConstMappedRowVector;
 
 //! @}
 

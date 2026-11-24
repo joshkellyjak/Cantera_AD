@@ -152,9 +152,9 @@ void IdealGasConstPressureMoleReactor::getJacobianElements(SparseTriplets& trips
         }
         // d T_dot/dnj
         // allocate vectors for whole system
-        Eigen::VectorXd netProductionRates = Eigen::VectorXd::Zero(m_nsp);
-        Eigen::VectorXd enthalpy = Eigen::VectorXd::Zero(m_nsp);
-        Eigen::VectorXd specificHeat = Eigen::VectorXd::Zero(m_nsp);
+        VectorXd netProductionRates = VectorXd::Zero(m_nsp);
+        VectorXd enthalpy = VectorXd::Zero(m_nsp);
+        VectorXd specificHeat = VectorXd::Zero(m_nsp);
         // gas phase
         m_thermo->getPartialMolarCp(asSpan(specificHeat));
         m_thermo->getPartialMolarEnthalpies(asSpan(enthalpy));
@@ -165,7 +165,7 @@ void IdealGasConstPressureMoleReactor::getJacobianElements(SparseTriplets& trips
         }
         CanteraDouble qdot = enthalpy.dot(netProductionRates);
         CanteraDouble denom = 1 / (m_TotalCp * m_TotalCp);
-        Eigen::VectorXd hk_dnkdnj_sums = dnk_dnj.transpose() * enthalpy;
+        VectorXd hk_dnkdnj_sums = dnk_dnj.transpose() * enthalpy;
         // Add derivatives to jac by spanning columns
         for (size_t j = 0; j < m_nsp; j++) {
             trips.emplace_back(m_offset, static_cast<int>(j + m_offset + m_sidx),

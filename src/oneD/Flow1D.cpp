@@ -1547,9 +1547,9 @@ void Flow1D::computeWdotDerivatives(size_t j)
     CanteraDouble wbar = m_wtm[j];
     vector<CanteraDouble>& conc = m_jacColWork;
     m_thermo->getConcentrations(conc); // state was set by caller via setGas
-    Eigen::Map<Eigen::MatrixXd> JY(m_dwdY.data(), K, K);
-    Eigen::Map<const Eigen::VectorXd> c(conc.data(), K);
-    Eigen::VectorXd g = m_ddC * c;
+    Eigen::Map<MatrixXd> JY(m_dwdY.data(), K, K);
+    Eigen::Map<const VectorXd> c(conc.data(), K);
+    VectorXd g = m_ddC * c;
     // dense rank-1 part for every column
     for (size_t m = 0; m < K; m++) {
         JY.col(m) = (-wbar / m_wt[m]) * g;

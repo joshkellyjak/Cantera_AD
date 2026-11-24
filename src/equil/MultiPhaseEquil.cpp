@@ -143,20 +143,20 @@ MultiPhaseEquil::MultiPhaseEquil(MultiPhase* mix, bool start, int loglevel) : m_
             // moles of component j. Note that b_missing must be computed after
             // computeN(), since computeN() may reorder m_element or reduce m_nel.
             computeN();
-            Eigen::VectorXd b_missing = Eigen::VectorXd::Zero(m_nel);
+            VectorXd b_missing = VectorXd::Zero(m_nel);
             for (size_t k : excluded_with_nonzero_moles) {
                 for (size_t m = 0; m < m_nel; m++) {
                     b_missing[m] += m_mix->speciesMoles(k) *
                                     m_mix->nAtoms(k, m_element[m]);
                 }
             }
-            Eigen::MatrixXd B(m_nel, m_nel);
+            MatrixXd B(m_nel, m_nel);
             for (size_t i = 0; i < m_nel; i++) {
                 for (size_t j = 0; j < m_nel; j++) {
                     B(i, j) = m_mix->nAtoms(m_species[m_order[j]], m_element[i]);
                 }
             }
-            Eigen::VectorXd delta = B.colPivHouseholderQr().solve(b_missing);
+            VectorXd delta = B.colPivHouseholderQr().solve(b_missing);
             for (size_t j = 0; j < m_nel; j++) {
                 m_moles[m_order[j]] += delta[j];
             }

@@ -210,10 +210,10 @@ protected:
     PlasmaPhase* m_phase;
 
     //! Iterate f0 (EEDF) until convergence
-    void converge(Eigen::VectorXd& f0);
+    void converge(VectorXd& f0);
 
     //! An iteration of solving electron energy distribution function
-    Eigen::VectorXd iterate(const Eigen::VectorXd& f0, CanteraDouble delta);
+    VectorXd iterate(const VectorXd& f0, CanteraDouble delta);
 
     //! The integral in [a, b] of \f$x u(x) \exp[g (x_0 - x)]\f$
     //! assuming that u is linear with u(a) = u0 and u(b) = u1
@@ -226,7 +226,7 @@ protected:
      * g_i = \frac{1}{\epsilon_{i+1} - \epsilon_{i-1}} \ln(\frac{F_{0, i+1}}{F_{0, i-1}})
      * \f]
      */
-    vector<CanteraDouble> vector_g(const Eigen::VectorXd& f0);
+    vector<CanteraDouble> vector_g(const VectorXd& f0);
 
     //! The matrix of scattering-out.
     /**
@@ -266,18 +266,18 @@ protected:
      * \f]
      * where \f$ z_{i+1/2} = \tilde{w}_{i+1/2} / \tilde{D}_{i+1/2} \f$ (Peclet number).
      */
-    Eigen::SparseMatrix<CanteraDouble> matrix_A(const Eigen::VectorXd& f0);
+    Eigen::SparseMatrix<CanteraDouble> matrix_A(const VectorXd& f0);
 
     //! Reduced net production frequency. Equation (10) of ref. [1]
     //! divided by N.
     //! @param f0 EEDF
-    CanteraDouble netProductionFrequency(const Eigen::VectorXd& f0);
+    CanteraDouble netProductionFrequency(const VectorXd& f0);
 
     //! Diffusivity
-    CanteraDouble electronDiffusivity(const Eigen::VectorXd& f0);
+    CanteraDouble electronDiffusivity(const VectorXd& f0);
 
     //! Mobility
-    CanteraDouble electronMobility(const Eigen::VectorXd& f0);
+    CanteraDouble electronMobility(const VectorXd& f0);
 
     //! Initialize species indices associated with cross-section data
     void initSpeciesIndexCrossSections();
@@ -298,13 +298,13 @@ protected:
     //!
     //! @param f     Vector representing the function values (EEDF)
     //! @param grid  Vector representing the energy grid corresponding to f
-    CanteraDouble norm(const Eigen::VectorXd& f, const Eigen::VectorXd& grid);
+    CanteraDouble norm(const VectorXd& f, const VectorXd& grid);
 
     //! Electron mobility [m²/V·s]
     CanteraDouble m_electronMobility;
 
     //! Grid of electron energy (cell center) [eV]
-    Eigen::VectorXd m_gridCenter;
+    VectorXd m_gridCenter;
 
     //! Grid of electron energy (cell boundary i-1/2) [eV]
     vector<CanteraDouble> m_gridEdge;
@@ -322,7 +322,7 @@ protected:
     vector<vector<vector<CanteraDouble>>> m_eps;
 
     //! Normalized electron energy distribution function
-    Eigen::VectorXd m_f0;
+    VectorXd m_f0;
 
     //! EEDF at grid edges (cell boundaries)
     vector<CanteraDouble> m_f0_edge;
@@ -409,8 +409,8 @@ protected:
     //! Projects a previously converged EEDF onto the current energy grid.
     //! Used as first guess after grid adaptation when Maxwellian reset is disabled.
     //! @since New in %Cantera 4.0
-    void projectPreviousEEDFOnCurrentGrid(const Eigen::VectorXd& oldGridCenter,
-                                          const Eigen::VectorXd& oldF0);
+    void projectPreviousEEDFOnCurrentGrid(const VectorXd& oldGridCenter,
+                                          const VectorXd& oldF0);
 
     //! An extension of the linearInterp function that returns specified values when the
     //! input is out of bounds instead of returning one of the extremities of the list.

@@ -415,18 +415,18 @@ protected:
 
     //! Current temperature-dependent value of @f$ a_{jk} @f$ for each species pair.
     //! Size #m_kk by #m_kk.
-    Eigen::MatrixXd m_a;
+    MatrixXd m_a;
 
     //! Coefficients @f$ b_k @f$ for each species. Size #m_kk.
-    Eigen::ArrayXd m_b;
+    ArrayXd m_b;
 
     //! Constant term in the expression for @f$ a_{jk} @f$ for each species pair.
     //! Size #m_kk by #m_kk.
-    Eigen::MatrixXd m_a0;
+    MatrixXd m_a0;
 
     //! Temperature coefficient in the expression for @f$ a_{jk} @f$.
     //! Size #m_kk by #m_kk.
-    Eigen::MatrixXd m_a1;
+    MatrixXd m_a1;
 
     //! Explicitly-specified binary interaction parameters
     map<string, map<string, pair<CanteraDouble, CanteraDouble>>> m_binaryParameters;
@@ -440,13 +440,13 @@ protected:
     CanteraDouble Vroot_[3] = {0.0, 0.0, 0.0};
 
     //! @f$ A_k = \sum_i X_i a_{ki} @f$. Length #m_kk.
-    mutable Eigen::ArrayXd m_Ak;
+    mutable ArrayXd m_Ak;
 
     // Partial molar volumes of the species
     mutable vector<CanteraDouble> m_partialMolarVolumes;
 
     //! @f$ A'_k = dA_k/dT = \sum_i X_i a_{ki,1} @f$. Length #m_kk.
-    mutable Eigen::ArrayXd m_dAkdT;
+    mutable ArrayXd m_dAkdT;
 
     //! The derivative of the pressure wrt the volume
     /*!
@@ -467,7 +467,7 @@ protected:
      *  Calculated at the current conditions. Total volume, temperature and
      *  other mole number kept constant
      */
-    mutable Eigen::ArrayXd m_dpdni;
+    mutable ArrayXd m_dpdni;
 
 private:
     //! Omega constant for a -> value of a in terms of critical properties

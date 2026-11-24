@@ -236,7 +236,7 @@ CanteraDouble EEDFTwoTermApproximation::linearInterpBounded(
 }
 
 void EEDFTwoTermApproximation::projectPreviousEEDFOnCurrentGrid(
-    const Eigen::VectorXd& oldGridCenter, const Eigen::VectorXd& oldF0)
+    const VectorXd& oldGridCenter, const VectorXd& oldF0)
 {
     if (oldGridCenter.size() != oldF0.size() || oldGridCenter.size() < 2) {
         throw CanteraError("EEDFTwoTermApproximation::projectPreviousEEDFOnCurrentGrid",
@@ -282,8 +282,8 @@ void EEDFTwoTermApproximation::adaptEnergyGrid() {
         if (decades < m_minEedfDecay) {
             // The right boundary is too low: the tail has not decayed enough.
             CanteraDouble newMaxEnergy = m_kTeMax * (1.0 + m_gridUpdateFactor);
-            Eigen::VectorXd oldGridCenter = m_gridCenter;
-            Eigen::VectorXd oldF0 = m_f0;
+            VectorXd oldGridCenter = m_gridCenter;
+            VectorXd oldF0 = m_f0;
             updateGrid(newMaxEnergy);
             if (m_maxwellianReset) {
                 setMaxwellianDistribution(m_init_kTe);
@@ -296,8 +296,8 @@ void EEDFTwoTermApproximation::adaptEnergyGrid() {
         } else if (decades > m_maxEedfDecay) {
             // The right boundary is unnecessarily high.
             CanteraDouble newMaxEnergy = m_kTeMax / (1.0 + m_gridUpdateFactor);
-            Eigen::VectorXd oldGridCenter = m_gridCenter;
-            Eigen::VectorXd oldF0 = m_f0;
+            VectorXd oldGridCenter = m_gridCenter;
+            VectorXd oldF0 = m_f0;
             updateGrid(newMaxEnergy);
             if (m_maxwellianReset) {
                 setMaxwellianDistribution(m_init_kTe);
@@ -336,7 +336,7 @@ void EEDFTwoTermApproximation::setMaxwellianDistribution(CanteraDouble kTe)
     m_f0 /= fNorm;
 }
 
-void EEDFTwoTermApproximation::converge(Eigen::VectorXd& f0)
+void EEDFTwoTermApproximation::converge(VectorXd& f0)
 {
     CanteraDouble err0 = 0.0;
     CanteraDouble err1 = 0.0;
@@ -360,12 +360,12 @@ void EEDFTwoTermApproximation::converge(Eigen::VectorXd& f0)
             delta *= log(m_factorM) / (log(err0) - log(err1));
         }
 
-        Eigen::VectorXd f0_old = f0;
+        VectorXd f0_old = f0;
         f0 = iterate(f0_old, delta);
         checkFinite("EEDFTwoTermApproximation::converge: f0", asSpan(f0));
 
         err0 = err1;
-        Eigen::VectorXd Df0 = (f0_old - f0).cwiseAbs();
+        VectorXd Df0 = (f0_old - f0).cwiseAbs();
         err1 = norm(Df0, m_gridCenter);
         if (err1 < m_rtol) {
             break;
@@ -375,7 +375,7 @@ void EEDFTwoTermApproximation::converge(Eigen::VectorXd& f0)
     }
 }
 
-Eigen::VectorXd EEDFTwoTermApproximation::iterate(const Eigen::VectorXd& f0, CanteraDouble delta)
+VectorXd EEDFTwoTermApproximation::iterate(const VectorXd& f0, CanteraDouble delta)
 {
     // CQM multiple call to vector_* and matrix_*
     // probably extremely ineficient
@@ -415,7 +415,7 @@ Eigen::VectorXd EEDFTwoTermApproximation::iterate(const Eigen::VectorXd& f0, Can
     }
 
     // solve f0
-    Eigen::VectorXd f1 = solver.solve(f0);
+    VectorXd f1 = solver.solve(f0);
     if(solver.info() != Eigen::Success) {
         throw CanteraError("EEDFTwoTermApproximation::iterate", "Solving failed");
         return f0;
@@ -453,7 +453,7 @@ CanteraDouble EEDFTwoTermApproximation::integralPQ(CanteraDouble a, CanteraDoubl
     return c0 * A1 + c1 * A2;
 }
 
-vector<CanteraDouble> EEDFTwoTermApproximation::vector_g(const Eigen::VectorXd& f0)
+vector<CanteraDouble> EEDFTwoTermApproximation::vector_g(const VectorXd& f0)
 {
     vector<CanteraDouble> g(m_points, 0.0);
     const CanteraDouble f_min = 1e-300;  // Smallest safe floating-point value
@@ -517,7 +517,7 @@ SparseMat EEDFTwoTermApproximation::matrix_Q(span<const CanteraDouble> g, size_t
     return Q;
 }
 
-SparseMat EEDFTwoTermApproximation::matrix_A(const Eigen::VectorXd& f0)
+SparseMat EEDFTwoTermApproximation::matrix_A(const VectorXd& f0)
 {
     vector<CanteraDouble> a0(m_points + 1);
     vector<CanteraDouble> a1(m_points + 1);
@@ -614,7 +614,7 @@ SparseMat EEDFTwoTermApproximation::matrix_A(const Eigen::VectorXd& f0)
     return A + G;
 }
 
-CanteraDouble EEDFTwoTermApproximation::netProductionFrequency(const Eigen::VectorXd& f0)
+CanteraDouble EEDFTwoTermApproximation::netProductionFrequency(const VectorXd& f0)
 {
     CanteraDouble nu = 0.0;
     vector<CanteraDouble> g = vector_g(f0);
@@ -624,7 +624,7 @@ CanteraDouble EEDFTwoTermApproximation::netProductionFrequency(const Eigen::Vect
             m_phase->collisionRate(k)->kind() == "attachment") {
             SparseMat PQ = (matrix_Q(g, k) - matrix_P(g, k)) *
                               m_X_targets[m_klocTargets[k]];
-            Eigen::VectorXd s = PQ * f0;
+            VectorXd s = PQ * f0;
             checkFinite("EEDFTwoTermApproximation::netProductionFrequency: s",
                         asSpan(s));
             nu += s.sum();
@@ -633,7 +633,7 @@ CanteraDouble EEDFTwoTermApproximation::netProductionFrequency(const Eigen::Vect
     return nu;
 }
 
-CanteraDouble EEDFTwoTermApproximation::electronDiffusivity(const Eigen::VectorXd& f0)
+CanteraDouble EEDFTwoTermApproximation::electronDiffusivity(const VectorXd& f0)
 {
     vector<CanteraDouble> y(m_points, 0.0);
     CanteraDouble nu = netProductionFrequency(f0);
@@ -644,12 +644,12 @@ CanteraDouble EEDFTwoTermApproximation::electronDiffusivity(const Eigen::VectorX
         }
     }
     CanteraDouble nDensity = m_phase->molarDensity() * Avogadro;
-    auto f = Eigen::Map<const Eigen::ArrayXd>(y.data(), y.size());
-    auto x = Eigen::Map<const Eigen::ArrayXd>(m_gridCenter.data(), m_gridCenter.size());
+    auto f = Eigen::Map<const ArrayXd>(y.data(), y.size());
+    auto x = Eigen::Map<const ArrayXd>(m_gridCenter.data(), m_gridCenter.size());
     return 1./3. * m_gamma * simpson(f, x) / nDensity;
 }
 
-CanteraDouble EEDFTwoTermApproximation::electronMobility(const Eigen::VectorXd& f0)
+CanteraDouble EEDFTwoTermApproximation::electronMobility(const VectorXd& f0)
 {
     CanteraDouble nu = netProductionFrequency(f0);
     vector<CanteraDouble> y(m_points + 1, 0.0);
@@ -841,10 +841,10 @@ void EEDFTwoTermApproximation::setGridCache()
     }
 }
 
-CanteraDouble EEDFTwoTermApproximation::norm(const Eigen::VectorXd& f, const Eigen::VectorXd& grid)
+CanteraDouble EEDFTwoTermApproximation::norm(const VectorXd& f, const VectorXd& grid)
 {
     string m_quadratureMethod = "simpson";
-    Eigen::VectorXd p(f.size());
+    VectorXd p(f.size());
     for (int i = 0; i < f.size(); i++) {
         p[i] = f(i) * pow(grid[i], 0.5);
     }

@@ -865,9 +865,9 @@ void MultiPhaseEquil::reportCSV(const string& reportFile)
     }
     fprintf(FP,"--------------------- VCS_MULTIPHASE_EQUIL FINAL REPORT"
             " -----------------------------\n");
-    fprintf(FP,"Temperature  = %11.5g kelvin\n", m_mix->temperature());
-    fprintf(FP,"Pressure     = %11.5g Pascal\n", m_mix->pressure());
-    fprintf(FP,"Total Volume = %11.5g m**3\n", vol);
+    fprintf(FP,"Temperature  = %11.5g kelvin\n", castToPassiveDouble(m_mix->temperature()));
+    fprintf(FP,"Pressure     = %11.5g Pascal\n", castToPassiveDouble(m_mix->pressure()));
+    fprintf(FP,"Total Volume = %11.5g m**3\n", castToPassiveDouble(vol));
 
     for (size_t iphase = 0; iphase < m_mix->nPhases(); iphase++) {
         size_t istart = m_mix->speciesIndex(0, iphase);
@@ -914,11 +914,12 @@ void MultiPhaseEquil::reportCSV(const string& reportFile)
                 fprintf(FP,"%12s, %11s, %11.3e, %11.3e, %11.3e, %11.3e, %11.3e,"
                         "%11.3e, %11.3e, %11.3e, %11.3e, %11.3e\n",
                         sName.c_str(),
-                        phaseName.c_str(), TMolesPhase,
-                        mf[istart + k], molalities[k], ac[k], activity[k],
-                        mu0[k]*1.0E-6, mu[k]*1.0E-6,
-                        mf[istart + k] * TMolesPhase,
-                        VolPM[k], VolPhaseVolumes);
+                        phaseName.c_str(), castToPassiveDouble(TMolesPhase),
+                        castToPassiveDouble(mf[istart + k]), castToPassiveDouble(molalities[k]), castToPassiveDouble(ac[k]),
+                        castToPassiveDouble(activity[k]),
+                        castToPassiveDouble(mu0[k]*1.0E-6), castToPassiveDouble(mu[k]*1.0E-6),
+                        castToPassiveDouble(mf[istart + k] * TMolesPhase),
+                        castToPassiveDouble(VolPM[k]), castToPassiveDouble(VolPhaseVolumes));
             }
         } else {
             if (iphase == 0) {
@@ -938,11 +939,11 @@ void MultiPhaseEquil::reportCSV(const string& reportFile)
                 fprintf(FP,"%12s, %11s, %11.3e, %11.3e, %11.3e, %11.3e, %11.3e, "
                         "%11.3e, %11.3e,% 11.3e, %11.3e, %11.3e\n",
                         sName.c_str(),
-                        phaseName.c_str(), TMolesPhase,
-                        mf[istart + k], molalities[k], ac[k],
-                        activity[k], mu0[k]*1.0E-6, mu[k]*1.0E-6,
-                        mf[istart + k] * TMolesPhase,
-                        VolPM[k], VolPhaseVolumes);
+                        phaseName.c_str(), castToPassiveDouble(TMolesPhase),
+                        castToPassiveDouble(mf[istart + k]), castToPassiveDouble(molalities[k]), castToPassiveDouble(ac[k]),
+                        castToPassiveDouble(activity[k]), castToPassiveDouble(mu0[k]*1.0E-6), castToPassiveDouble(mu[k]*1.0E-6),
+                        castToPassiveDouble(mf[istart + k] * TMolesPhase),
+                        castToPassiveDouble(VolPM[k]), castToPassiveDouble(VolPhaseVolumes));
             }
         }
     }

@@ -35,7 +35,7 @@ string vec2str(const vector<CanteraDouble>& v, const string& fmt, const string& 
     char buf[64];
     std::stringstream o;
     for (size_t i = 0; i < v.size(); i++) {
-        SNPRINTF(buf, 63, fmt.c_str(), v[i]);
+        SNPRINTF(buf, 63, fmt.c_str(), castToPassiveDouble(v[i]));
         o << buf;
         if (i != v.size() - 1) {
             o << sep;

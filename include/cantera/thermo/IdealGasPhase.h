@@ -291,7 +291,7 @@ public:
      *
      * @see MultiSpeciesThermo
      */
-    double enthalpy_mole() const override {
+    CanteraDouble enthalpy_mole() const override {
         return RT() * mean_X(enthalpy_RT_ref());
     }
 
@@ -305,7 +305,7 @@ public:
      * computed by the species thermodynamic property manager.
      * @see MultiSpeciesThermo
      */
-    double entropy_mole() const override;
+    CanteraDouble entropy_mole() const override;
 
     /**
      * Molar heat capacity at constant pressure and composition [J/kmol/K].
@@ -317,14 +317,14 @@ public:
      * are computed by the species thermodynamic property manager.
      * @see MultiSpeciesThermo
      */
-    double cp_mole() const override;
+    CanteraDouble cp_mole() const override;
 
     /**
      * Molar heat capacity at constant volume and composition [J/kmol/K].
      * For an ideal gas mixture,
      * @f[ \hat c_v = \hat c_p - \hat R. @f]
      */
-    double cv_mole() const override;
+    CanteraDouble cv_mole() const override;
 
     //! @}
     //! @name Mechanical Equation of State
@@ -335,7 +335,7 @@ public:
      * For an ideal gas mixture,
      * @f[ P = n \hat R T. @f]
      */
-    double pressure() const override {
+    CanteraDouble pressure() const override {
         return GasConstant * molarDensity() * temperature();
     }
 
@@ -349,7 +349,7 @@ public:
      *
      * @param p Pressure (Pa)
      */
-    void setPressure(double p) override {
+    void setPressure(CanteraDouble p) override {
         setDensity(p * meanMolecularWeight() / RT());
     }
 
@@ -366,7 +366,7 @@ public:
      * @param p Pressure (Pa)
      * @since New in %Cantera 3.0.
      */
-    void setState_DP(double rho, double p) override {
+    void setState_DP(CanteraDouble rho, CanteraDouble p) override {
         if (p <= 0) {
             throw CanteraError("IdealGasPhase::setState_DP",
                                "pressure must be positive");
@@ -383,7 +383,7 @@ public:
      * @f]
      *  For ideal gases it's equal to the inverse of the pressure
      */
-    double isothermalCompressibility() const override {
+    CanteraDouble isothermalCompressibility() const override {
         return 1.0 / pressure();
     }
 
@@ -395,7 +395,7 @@ public:
      * @f]
      * For ideal gases, it's equal to the inverse of the temperature.
      */
-    double thermalExpansionCoeff() const override {
+    CanteraDouble thermalExpansionCoeff() const override {
         return 1.0 / temperature();
     }
 
@@ -404,11 +404,11 @@ public:
      * For ideal gases, @f$ (\partial P/\partial T)_V = P/T @f$, so
      * @f$ \pi_T = T(P/T) - P = 0 @f$.
      */
-    double internalPressure() const override {
+    CanteraDouble internalPressure() const override {
         return 0.0;
     }
 
-    double soundSpeed() const override;
+    CanteraDouble soundSpeed() const override;
 
     //! @}
     //! @name Chemical Potentials and Activities
@@ -447,7 +447,7 @@ public:
      *           upon the implementation of the reaction rate expressions within
      *           the phase.
      */
-    void getActivityConcentrations(span<double> c) const override {
+    void getActivityConcentrations(span<CanteraDouble> c) const override {
         getConcentrations(c);
     }
 
@@ -465,7 +465,7 @@ public:
      * @return
      *   Returns the standard Concentration in units of m3 kmol-1.
      */
-    double standardConcentration(size_t k=0) const override;
+    CanteraDouble standardConcentration(size_t k=0) const override;
 
     //! Get the array of non-dimensional activity coefficients at the current
     //! solution temperature, pressure, and solution concentration.
@@ -474,49 +474,49 @@ public:
      *
      * @param ac Output vector of activity coefficients. Length: m_kk.
      */
-    void getActivityCoefficients(span<double> ac) const override;
+    void getActivityCoefficients(span<CanteraDouble> ac) const override;
 
     //! @}
     //! @name Partial Molar Properties of the Solution
     //! @{
 
-    void getChemPotentials(span<double> mu) const override;
-    void getPartialMolarEnthalpies(span<double> hbar) const override;
-    void getPartialMolarEntropies(span<double> sbar) const override;
-    void getPartialMolarIntEnergies(span<double> ubar) const override;
-    void getPartialMolarIntEnergies_TV(span<double> utilde) const override;
-    void getPartialMolarCp(span<double> cpbar) const override;
-    void getPartialMolarCv_TV(span<double> cvtilde) const override;
-    void getPartialMolarVolumes(span<double> vbar) const override;
+    void getChemPotentials(span<CanteraDouble> mu) const override;
+    void getPartialMolarEnthalpies(span<CanteraDouble> hbar) const override;
+    void getPartialMolarEntropies(span<CanteraDouble> sbar) const override;
+    void getPartialMolarIntEnergies(span<CanteraDouble> ubar) const override;
+    void getPartialMolarIntEnergies_TV(span<CanteraDouble> utilde) const override;
+    void getPartialMolarCp(span<CanteraDouble> cpbar) const override;
+    void getPartialMolarCv_TV(span<CanteraDouble> cvtilde) const override;
+    void getPartialMolarVolumes(span<CanteraDouble> vbar) const override;
 
     //! @}
     //! @name  Properties of the Standard State of the Species in the Solution
     //! @{
 
-    void getStandardChemPotentials(span<double> mu) const override;
-    void getEnthalpy_RT(span<double> hrt) const override;
-    void getEntropy_R(span<double> sr) const override;
-    void getGibbs_RT(span<double> grt) const override;
-    void getIntEnergy_RT(span<double> urt) const override;
-    void getCp_R(span<double> cpr) const override;
-    void getStandardVolumes(span<double> vol) const override;
+    void getStandardChemPotentials(span<CanteraDouble> mu) const override;
+    void getEnthalpy_RT(span<CanteraDouble> hrt) const override;
+    void getEntropy_R(span<CanteraDouble> sr) const override;
+    void getGibbs_RT(span<CanteraDouble> grt) const override;
+    void getIntEnergy_RT(span<CanteraDouble> urt) const override;
+    void getCp_R(span<CanteraDouble> cpr) const override;
+    void getStandardVolumes(span<CanteraDouble> vol) const override;
 
     //! @}
     //! @name Thermodynamic Values for the Species Reference States
     //! @{
 
-    void getEnthalpy_RT_ref(span<double> hrt) const override;
-    void getGibbs_RT_ref(span<double> grt) const override;
-    void getGibbs_ref(span<double> g) const override;
-    void getEntropy_R_ref(span<double> er) const override;
-    void getIntEnergy_RT_ref(span<double> urt) const override;
-    void getCp_R_ref(span<double> cprt) const override;
-    void getStandardVolumes_ref(span<double> vol) const override;
+    void getEnthalpy_RT_ref(span<CanteraDouble> hrt) const override;
+    void getGibbs_RT_ref(span<CanteraDouble> grt) const override;
+    void getGibbs_ref(span<CanteraDouble> g) const override;
+    void getEntropy_R_ref(span<CanteraDouble> er) const override;
+    void getIntEnergy_RT_ref(span<CanteraDouble> urt) const override;
+    void getCp_R_ref(span<CanteraDouble> cprt) const override;
+    void getStandardVolumes_ref(span<CanteraDouble> vol) const override;
 
     //! @}
 
     bool addSpecies(shared_ptr<Species> spec) override;
-    void setToEquilState(span<const double> mu_RT) override;
+    void setToEquilState(span<const CanteraDouble> mu_RT) override;
 
 protected:
     //! @name NonVirtual Internal methods to Return References to Reference State Thermo
@@ -527,7 +527,7 @@ protected:
      * This function is part of the layer that checks/recalculates the reference
      * state thermo functions.
      */
-    span<const double> enthalpy_RT_ref() const {
+    span<const CanteraDouble> enthalpy_RT_ref() const {
         updateThermo();
         return m_h0_RT;
     }
@@ -537,7 +537,7 @@ protected:
      * This function is part of the layer that checks/recalculates the reference
      * state thermo functions.
      */
-    span<const double> gibbs_RT_ref() const {
+    span<const CanteraDouble> gibbs_RT_ref() const {
         updateThermo();
         return m_g0_RT;
     }
@@ -547,7 +547,7 @@ protected:
      * This function is part of the layer that checks/recalculates the reference
      * state thermo functions.
      */
-    span<const double> entropy_R_ref() const {
+    span<const CanteraDouble> entropy_R_ref() const {
         updateThermo();
         return m_s0_R;
     }
@@ -557,7 +557,7 @@ protected:
      * This function is part of the layer that checks/recalculates the reference
      * state thermo functions.
      */
-    span<const double> cp_R_ref() const {
+    span<const CanteraDouble> cp_R_ref() const {
         updateThermo();
         return m_cp0_R;
     }
@@ -569,24 +569,24 @@ protected:
      *  Value of the reference state pressure in Pascals.
      *  All species must have the same reference state pressure.
      */
-    double m_p0 = -1.0;
+    CanteraDouble m_p0 = -1.0;
 
     //! Temporary storage for dimensionless reference state enthalpies
-    mutable vector<double> m_h0_RT;
+    mutable vector<CanteraDouble> m_h0_RT;
 
     //! Temporary storage for dimensionless reference state heat capacities
-    mutable vector<double> m_cp0_R;
+    mutable vector<CanteraDouble> m_cp0_R;
 
     //! Temporary storage for dimensionless reference state Gibbs energies
-    mutable vector<double> m_g0_RT;
+    mutable vector<CanteraDouble> m_g0_RT;
 
     //! Temporary storage for dimensionless reference state entropies
-    mutable vector<double> m_s0_R;
+    mutable vector<CanteraDouble> m_s0_R;
 
-    mutable vector<double> m_expg0_RT;
+    mutable vector<CanteraDouble> m_expg0_RT;
 
     //! Temporary array containing internally calculated partial pressures
-    mutable vector<double> m_pp;
+    mutable vector<CanteraDouble> m_pp;
 
     //! Update the species reference state thermodynamic functions
     /*!

@@ -55,17 +55,17 @@ ReactorSurface::ReactorSurface(shared_ptr<Solution> soln,
     m_sdot.resize(m_kinetics->nTotalSpecies(), 0.0);
 }
 
-double ReactorSurface::area() const
+CanteraDouble ReactorSurface::area() const
 {
     return m_area;
 }
 
-void ReactorSurface::setArea(double a)
+void ReactorSurface::setArea(CanteraDouble a)
 {
     m_area = a;
 }
 
-void ReactorSurface::setCoverages(span<const double> cov)
+void ReactorSurface::setCoverages(span<const CanteraDouble> cov)
 {
     m_surf->setCoveragesNoNorm(cov);
 }
@@ -80,17 +80,17 @@ void ReactorSurface::setCoverages(const string& cov)
     m_surf->setCoveragesByName(cov);
 }
 
-void ReactorSurface::getCoverages(span<double> cov) const
+void ReactorSurface::getCoverages(span<CanteraDouble> cov) const
 {
     m_surf->getCoverages(cov);
 }
 
-void ReactorSurface::getState(span<double> y)
+void ReactorSurface::getState(span<CanteraDouble> y)
 {
     m_surf->getCoverages(y);
 }
 
-void ReactorSurface::initialize(double t0)
+void ReactorSurface::initialize(CanteraDouble t0)
 {
     // Sync the surface temperature and pressure to that of the first adjacent reactor
     m_thermo->setState_TP(m_reactors[0]->temperature(), m_reactors[0]->pressure());
@@ -101,18 +101,18 @@ vector<size_t> ReactorSurface::initializeSteady()
     return {0}; // sum of coverages constraint
 }
 
-void ReactorSurface::updateState(span<const double> y)
+void ReactorSurface::updateState(span<const CanteraDouble> y)
 {
     m_surf->setCoveragesNoNorm(y);
     m_thermo->setState_TP(m_reactors[0]->temperature(), m_reactors[0]->pressure());
     m_kinetics->getNetProductionRates(m_sdot);
 }
 
-void ReactorSurface::eval(double t, span<double> LHS, span<double> RHS)
+void ReactorSurface::eval(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS)
 {
     size_t nsp = m_surf->nSpecies();
-    double rs0 = 1.0 / m_surf->siteDensity();
-    double sum = 0.0;
+    CanteraDouble rs0 = 1.0 / m_surf->siteDensity();
+    CanteraDouble sum = 0.0;
     for (size_t k = 1; k < nsp; k++) {
         RHS[k] = m_sdot[k] * rs0 * m_surf->size(k);
         sum -= RHS[k];
@@ -120,19 +120,19 @@ void ReactorSurface::eval(double t, span<double> LHS, span<double> RHS)
     RHS[0] = sum;
 }
 
-void ReactorSurface::evalSteady(double t, span<double> LHS, span<double> RHS)
+void ReactorSurface::evalSteady(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS)
 {
     eval(t, LHS, RHS);
-    vector<double> cov(m_nsp);
+    vector<CanteraDouble> cov(m_nsp);
     m_surf->getCoverages(cov);
-    double sum = 0.0;
+    CanteraDouble sum = 0.0;
     for (size_t k = 0; k < m_nsp; k++) {
         sum += cov[k];
     }
     RHS[0] = 1.0 - sum;
 }
 
-void ReactorSurface::applySensitivity(span<const double> params)
+void ReactorSurface::applySensitivity(span<const CanteraDouble> params)
 {
     if (params.empty()) {
         return;
@@ -149,7 +149,7 @@ void ReactorSurface::applySensitivity(span<const double> params)
     m_kinetics->invalidateCache();
 }
 
-void ReactorSurface::resetSensitivity(span<const double> params)
+void ReactorSurface::resetSensitivity(span<const CanteraDouble> params)
 {
     if (params.empty()) {
         return;
@@ -187,17 +187,17 @@ string ReactorSurface::componentName(size_t k)
     return m_surf->speciesName(k);
 }
 
-double ReactorSurface::upperBound(size_t k) const
+CanteraDouble ReactorSurface::upperBound(size_t k) const
 {
     return 1.0;
 }
 
-double ReactorSurface::lowerBound(size_t k) const
+CanteraDouble ReactorSurface::lowerBound(size_t k) const
 {
     return -Tiny;
 }
 
-void ReactorSurface::resetBadValues(span<double> y)
+void ReactorSurface::resetBadValues(span<CanteraDouble> y)
 {
     for (size_t k = 0; k < m_nsp; k++) {
         y[k] = std::max(y[k], 0.0);
@@ -208,7 +208,7 @@ void ReactorSurface::resetBadValues(span<double> y)
 
 // ------ MoleReactorSurface methods ------
 
-void MoleReactorSurface::initialize(double t0)
+void MoleReactorSurface::initialize(CanteraDouble t0)
 {
     ReactorSurface::initialize(t0);
     m_cov_tmp.resize(m_nsp);
@@ -231,30 +231,30 @@ void MoleReactorSurface::initialize(double t0)
     }
 }
 
-void MoleReactorSurface::getState(span<double> y)
+void MoleReactorSurface::getState(span<CanteraDouble> y)
 {
     m_surf->getCoverages(y);
-    double totalSites = m_surf->siteDensity() * m_area;
+    CanteraDouble totalSites = m_surf->siteDensity() * m_area;
     for (size_t k = 0; k < m_nsp; k++) {
         y[k] *= totalSites / m_surf->size(k);
     }
 }
 
-void MoleReactorSurface::updateDefaultTolerances(span<double> atol, double baseAtol)
+void MoleReactorSurface::updateDefaultTolerances(span<CanteraDouble> atol, CanteraDouble baseAtol)
 {
-    vector<double> y(neq());
+    vector<CanteraDouble> y(neq());
     getState(y);
-    double totalMoles = std::accumulate(y.begin(), y.end(), 0.0);
+    CanteraDouble totalMoles = std::accumulate(y.begin(), y.end(), 0.0);
     if (totalMoles <= 0.0) {
         return;
     }
     std::fill(atol.begin(), atol.end(), baseAtol * totalMoles);
 }
 
-void MoleReactorSurface::updateState(span<const double> y)
+void MoleReactorSurface::updateState(span<const CanteraDouble> y)
 {
     std::copy(y.begin(), y.end(), m_cov_tmp.begin());
-    double totalSites = m_surf->siteDensity() * m_area;
+    CanteraDouble totalSites = m_surf->siteDensity() * m_area;
     for (size_t k = 0; k < m_nsp; k++) {
         m_cov_tmp[k] *= m_surf->size(k) / totalSites;
     }
@@ -263,48 +263,48 @@ void MoleReactorSurface::updateState(span<const double> y)
     m_kinetics->getNetProductionRates(m_sdot);
 }
 
-void MoleReactorSurface::eval(double t, span<double> LHS, span<double> RHS)
+void MoleReactorSurface::eval(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS)
 {
     for (size_t k = 0; k < m_nsp; k++) {
         RHS[k] = m_sdot[k] * m_area;
     }
 }
 
-void MoleReactorSurface::evalSteady(double t, span<double> LHS, span<double> RHS)
+void MoleReactorSurface::evalSteady(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS)
 {
     eval(t, LHS, RHS);
-    double cov_sum = 0.0;
+    CanteraDouble cov_sum = 0.0;
     for (size_t k = 0; k < m_nsp; k++) {
         cov_sum += m_cov_tmp[k];
     }
     RHS[0] = 1.0 - cov_sum;
 }
 
-double MoleReactorSurface::upperBound(size_t k) const
+CanteraDouble MoleReactorSurface::upperBound(size_t k) const
 {
     return BigNumber;
 }
 
-double MoleReactorSurface::lowerBound(size_t k) const
+CanteraDouble MoleReactorSurface::lowerBound(size_t k) const
 {
     return -Tiny;
 }
 
-void MoleReactorSurface::resetBadValues(span<double> y)
+void MoleReactorSurface::resetBadValues(span<CanteraDouble> y)
 {
     for (size_t k = 0; k < m_nsp; k++) {
         y[k] = std::max(y[k], 0.0);
     }
 }
 
-void MoleReactorSurface::getJacobianElements(vector<Eigen::Triplet<double>>& trips)
+void MoleReactorSurface::getJacobianElements(vector<Eigen::Triplet<CanteraDouble>>& trips)
 {
     auto sdot_ddC = m_kinetics->netProductionRates_ddCi();
     for (auto R : m_reactors) {
-        double f_species;
+        CanteraDouble f_species;
         size_t nsp_R = R->phase()->thermo()->nSpecies();
         size_t k0 = m_kinetics->speciesOffset(*R->phase()->thermo());
-        R->getJacobianScalingFactors(f_species, span<double>(&m_f_energy[k0], nsp_R));
+        R->getJacobianScalingFactors(f_species, span<CanteraDouble>(&m_f_energy[k0], nsp_R));
         std::fill(&m_f_species[k0], &m_f_species[k0 + nsp_R], m_area * f_species);
     }
     std::fill(&m_f_species[0], &m_f_species[m_nsp], 1.0); // surface species
@@ -313,7 +313,7 @@ void MoleReactorSurface::getJacobianElements(vector<Eigen::Triplet<double>>& tri
         if (col == -1) {
             continue;
         }
-        for (Eigen::SparseMatrix<double>::InnerIterator it(sdot_ddC, k); it; ++it) {
+        for (Eigen::SparseMatrix<CanteraDouble>::InnerIterator it(sdot_ddC, k); it; ++it) {
             int row = m_kin2net[it.row()];
             if (row == -1 || it.value() == 0.0) {
                 continue;
@@ -339,7 +339,7 @@ FlowReactorSurface::FlowReactorSurface(shared_ptr<Solution> soln,
     m_area = -1.0; // default to perimeter of cylindrical reactor
 }
 
-double FlowReactorSurface::area() const {
+CanteraDouble FlowReactorSurface::area() const {
     if (m_area > 0) {
         return m_area;
     }
@@ -349,11 +349,11 @@ double FlowReactorSurface::area() const {
     return 2.0 * sqrt(Pi * m_reactors[0]->area());
 }
 
-void FlowReactorSurface::evalDae(double t, span<const double> y,
-                                 span<const double> ydot, span<double> residual)
+void FlowReactorSurface::evalDae(CanteraDouble t, span<const CanteraDouble> y,
+                                 span<const CanteraDouble> ydot, span<CanteraDouble> residual)
 {
     size_t nsp = m_surf->nSpecies();
-    double sum = y[0];
+    CanteraDouble sum = y[0];
     for (size_t k = 1; k < nsp; k++) {
         residual[k] = m_sdot[k];
         sum += y[k];
@@ -361,7 +361,7 @@ void FlowReactorSurface::evalDae(double t, span<const double> y,
     residual[0] = sum - 1.0;
 }
 
-void FlowReactorSurface::getStateDae(span<double> y, span<double> ydot)
+void FlowReactorSurface::getStateDae(span<CanteraDouble> y, span<CanteraDouble> ydot)
 {
     // Advance the surface to steady state to get consistent initial coverages
     m_kinetics->advanceCoverages(100.0, m_ss_rtol, m_ss_atol, 0, m_max_ss_steps,
@@ -371,7 +371,7 @@ void FlowReactorSurface::getStateDae(span<double> y, span<double> ydot)
     updateState(y);
 }
 
-void FlowReactorSurface::getConstraints(span<double> constraints)
+void FlowReactorSurface::getConstraints(span<CanteraDouble> constraints)
 {
     // The species coverages are algebraic constraints
     std::fill(constraints.begin(), constraints.end(), 1.0);

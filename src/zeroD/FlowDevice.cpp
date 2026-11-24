@@ -44,16 +44,16 @@ FlowDevice::FlowDevice(shared_ptr<ReactorBase> r0, shared_ptr<ReactorBase> r1,
     }
 }
 
-double FlowDevice::evalPressureFunction()
+CanteraDouble FlowDevice::evalPressureFunction()
 {
-    double delta_P = in().pressure() - out().pressure();
+    CanteraDouble delta_P = in().pressure() - out().pressure();
     if (m_pfunc) {
         return m_pfunc->eval(delta_P);
     }
     return delta_P;
 }
 
-double FlowDevice::evalTimeFunction()
+CanteraDouble FlowDevice::evalTimeFunction()
 {
     if (m_tfunc) {
         return m_tfunc->eval(m_time);
@@ -61,7 +61,7 @@ double FlowDevice::evalTimeFunction()
     return 1.;
 }
 
-double FlowDevice::outletSpeciesMassFlowRate(size_t k)
+CanteraDouble FlowDevice::outletSpeciesMassFlowRate(size_t k)
 {
     if (k >= m_nspout) {
         return 0.0;
@@ -74,9 +74,9 @@ double FlowDevice::outletSpeciesMassFlowRate(size_t k)
 }
 
 void FlowDevice::addMassFlowRateJacobian(SparseTriplets& trips, size_t row,
-    double coeff, bool includePressureSpecies)
+    CanteraDouble coeff, bool includePressureSpecies)
 {
-    double alpha = massFlowRate_ddP();
+    CanteraDouble alpha = massFlowRate_ddP();
     if (alpha == 0.0) {
         return;
     }
@@ -87,7 +87,7 @@ void FlowDevice::addMassFlowRateJacobian(SparseTriplets& trips, size_t row,
 }
 
 void FlowDevice::addOutletSpeciesMassFlowRateJacobian(
-    SparseTriplets& trips, size_t row, size_t k, double coeff,
+    SparseTriplets& trips, size_t row, size_t k, CanteraDouble coeff,
     bool includeComposition, bool includePressureSpecies)
 {
     if (k >= m_nspout) {
@@ -97,7 +97,7 @@ void FlowDevice::addOutletSpeciesMassFlowRateJacobian(
     if (ki == npos) {
         return;
     }
-    double Yin = m_in->massFraction(ki);
+    CanteraDouble Yin = m_in->massFraction(ki);
     // FlowDevice transports species as mdot * Y_in. Mole reactors store n_k, so the
     // upstream reactor converts dY_in/dy to dY_in/dn_j as needed.
     addMassFlowRateJacobian(trips, row, coeff * Yin, includePressureSpecies);
@@ -106,12 +106,12 @@ void FlowDevice::addOutletSpeciesMassFlowRateJacobian(
     }
 }
 
-double FlowDevice::enthalpy_mass()
+CanteraDouble FlowDevice::enthalpy_mass()
 {
     return m_in->enthalpy_mass();
 }
 
-double FlowDevice::pressureFunction_ddP(double deltaP) const
+CanteraDouble FlowDevice::pressureFunction_ddP(CanteraDouble deltaP) const
 {
     if (!m_pfunc) {
         return 1.0;
@@ -122,7 +122,7 @@ double FlowDevice::pressureFunction_ddP(double deltaP) const
         // Fall back to central finite difference for functions without analytic
         // derivatives (for example, Tabulated1 with nearest-neighbor interpolation,
         // or user-defined Func1 subclasses).
-        double eps = std::sqrt(std::numeric_limits<double>::epsilon())
+        CanteraDouble eps = std::sqrt(std::numeric_limits<CanteraDouble>::epsilon())
                      * std::max(1.0, std::abs(deltaP));
         return (m_pfunc->eval(deltaP + eps) - m_pfunc->eval(deltaP - eps))
                / (2.0 * eps);
@@ -130,7 +130,7 @@ double FlowDevice::pressureFunction_ddP(double deltaP) const
 }
 
 void FlowDevice::addInletEnthalpyJacobian(SparseTriplets& trips, size_t row,
-    double coeff, bool includeComposition)
+    CanteraDouble coeff, bool includeComposition)
 {
     if (m_mdot != 0.0) {
         m_in->addEnthalpyJacobian(trips, row, coeff * m_mdot, includeComposition);

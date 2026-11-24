@@ -345,7 +345,7 @@ public:
      * @param fwdROP  Output vector containing forward rates
      *                of progress of the reactions. Length: nReactions().
      */
-    virtual void getFwdRatesOfProgress(span<double> fwdROP);
+    virtual void getFwdRatesOfProgress(span<CanteraDouble> fwdROP);
 
     //!  Return the Reverse rates of progress of the reactions
     /*!
@@ -355,7 +355,7 @@ public:
      * @param revROP  Output vector containing reverse rates
      *                of progress of the reactions. Length: nReactions().
      */
-    virtual void getRevRatesOfProgress(span<double> revROP);
+    virtual void getRevRatesOfProgress(span<CanteraDouble> revROP);
 
     /**
      * Net rates of progress. Return the net (forward - reverse) rates of
@@ -364,7 +364,7 @@ public:
      *
      * @param netROP  Output vector of the net ROP. Length: nReactions().
      */
-    virtual void getNetRatesOfProgress(span<double> netROP);
+    virtual void getNetRatesOfProgress(span<CanteraDouble> netROP);
 
     //! Get the vector of equilibrium constants in concentration units.
     /*!
@@ -384,7 +384,7 @@ public:
      * @param[out] kc  Vector of equilibrium constants in concentration units;
      *                 length nReactions().
      */
-    virtual void getEquilibriumConstants(span<double> kc) {
+    virtual void getEquilibriumConstants(span<CanteraDouble> kc) {
         throw NotImplementedError("Kinetics::getEquilibriumConstants");
     }
 
@@ -402,8 +402,8 @@ public:
      * @param property Input vector of property value. Length: #m_kk.
      * @param deltaProperty Output vector of deltaRxn. Length: nReactions().
      */
-    virtual void getReactionDelta(span<const double> property,
-                                  span<double> deltaProperty) const;
+    virtual void getReactionDelta(span<const CanteraDouble> property,
+                                  span<CanteraDouble> deltaProperty) const;
 
     /**
      * Given an array of species properties 'g', return in array 'dg' the
@@ -415,7 +415,7 @@ public:
      * primarily designed for use in calculating reverse rate coefficients
      * from thermochemistry for reversible reactions.
      */
-    virtual void getRevReactionDelta(span<const double> g, span<double> dg) const;
+    virtual void getRevReactionDelta(span<const CanteraDouble> g, span<CanteraDouble> dg) const;
 
     //! Return the vector of values for the reaction Gibbs free energy change.
     /*!
@@ -427,7 +427,7 @@ public:
      * @param deltaG  Output vector of deltaG's for reactions Length:
      *     nReactions().
      */
-    virtual void getDeltaGibbs(span<double> deltaG) {
+    virtual void getDeltaGibbs(span<CanteraDouble> deltaG) {
         throw NotImplementedError("Kinetics::getDeltaGibbs");
     }
 
@@ -442,7 +442,7 @@ public:
      * @param deltaM  Output vector of deltaM's for reactions Length:
      *     nReactions().
      */
-    virtual void getDeltaElectrochemPotentials(span<double> deltaM) {
+    virtual void getDeltaElectrochemPotentials(span<CanteraDouble> deltaM) {
         throw NotImplementedError("Kinetics::getDeltaElectrochemPotentials");
     }
 
@@ -455,7 +455,7 @@ public:
      * @param deltaH  Output vector of deltaH's for reactions Length:
      *     nReactions().
      */
-    virtual void getDeltaEnthalpy(span<double> deltaH) {
+    virtual void getDeltaEnthalpy(span<CanteraDouble> deltaH) {
         throw NotImplementedError("Kinetics::getDeltaEnthalpy");
     }
 
@@ -468,7 +468,7 @@ public:
      * @param deltaS  Output vector of deltaS's for reactions Length:
      *     nReactions().
      */
-    virtual void getDeltaEntropy(span<double> deltaS) {
+    virtual void getDeltaEntropy(span<CanteraDouble> deltaS) {
         throw NotImplementedError("Kinetics::getDeltaEntropy");
     }
 
@@ -482,7 +482,7 @@ public:
      * @param deltaG  Output vector of ss deltaG's for reactions Length:
      *     nReactions().
      */
-    virtual void getDeltaSSGibbs(span<double> deltaG) {
+    virtual void getDeltaSSGibbs(span<CanteraDouble> deltaG) {
         throw NotImplementedError("Kinetics::getDeltaSSGibbs");
     }
 
@@ -496,7 +496,7 @@ public:
      * @param deltaH  Output vector of ss deltaH's for reactions Length:
      *     nReactions().
      */
-    virtual void getDeltaSSEnthalpy(span<double> deltaH) {
+    virtual void getDeltaSSEnthalpy(span<CanteraDouble> deltaH) {
         throw NotImplementedError("Kinetics::getDeltaSSEnthalpy");
     }
 
@@ -510,7 +510,7 @@ public:
      * @param deltaS  Output vector of ss deltaS's for reactions Length:
      *     nReactions().
      */
-    virtual void getDeltaSSEntropy(span<double> deltaS) {
+    virtual void getDeltaSSEntropy(span<CanteraDouble> deltaS) {
         throw NotImplementedError("Kinetics::getDeltaSSEntropy");
     }
 
@@ -522,7 +522,7 @@ public:
      * @param concm  Output vector of effective third-body concentrations.
      *      Length: nReactions().
      */
-    virtual void getThirdBodyConcentrations(span<double> concm) {
+    virtual void getThirdBodyConcentrations(span<CanteraDouble> concm) {
         throw NotImplementedError("Kinetics::getThirdBodyConcentrations",
             "Not applicable/implemented for Kinetics object of type '{}'",
             kineticsType());
@@ -532,7 +532,7 @@ public:
      * Provide direct access to current third-body concentration values.
      * @see getThirdBodyConcentrations.
      */
-    virtual span<const double> thirdBodyConcentrations() const {
+    virtual span<const CanteraDouble> thirdBodyConcentrations() const {
         throw NotImplementedError("Kinetics::thirdBodyConcentrations",
             "Not applicable/implemented for Kinetics object of type '{}'",
             kineticsType());
@@ -550,7 +550,7 @@ public:
      *
      * @param cdot   Output vector of creation rates. Length: #m_kk.
      */
-    virtual void getCreationRates(span<double> cdot);
+    virtual void getCreationRates(span<CanteraDouble> cdot);
 
     /**
      * Species destruction rates [kmol/m^3/s or kmol/m^2/s]. Return the species
@@ -559,7 +559,7 @@ public:
      *
      * @param ddot   Output vector of destruction rates. Length: #m_kk.
      */
-    virtual void getDestructionRates(span<double> ddot);
+    virtual void getDestructionRates(span<CanteraDouble> ddot);
 
     /**
      * Species net production rates [kmol/m^3/s or kmol/m^2/s]. Return the
@@ -569,7 +569,7 @@ public:
      *
      * @param wdot   Output vector of net production rates. Length: #m_kk.
      */
-    virtual void getNetProductionRates(span<double> wdot);
+    virtual void getNetProductionRates(span<CanteraDouble> wdot);
 
     //! @}
 
@@ -723,7 +723,7 @@ public:
      * at constant pressure, molar concentration and mole fractions
      * @param[out] dkfwd  Output vector of derivatives. Length: nReactions().
      */
-    virtual void getFwdRateConstants_ddT(span<double> dkfwd)
+    virtual void getFwdRateConstants_ddT(span<CanteraDouble> dkfwd)
     {
         throw NotImplementedError("Kinetics::getFwdRateConstants_ddT",
             "Not implemented for kinetics type '{}'.", kineticsType());
@@ -734,7 +734,7 @@ public:
      * at constant temperature, molar concentration and mole fractions.
      * @param[out] dkfwd  Output vector of derivatives. Length: nReactions().
      */
-    virtual void getFwdRateConstants_ddP(span<double> dkfwd)
+    virtual void getFwdRateConstants_ddP(span<CanteraDouble> dkfwd)
     {
         throw NotImplementedError("Kinetics::getFwdRateConstants_ddP",
             "Not implemented for kinetics type '{}'.", kineticsType());
@@ -748,7 +748,7 @@ public:
      * @warning  This method is an experimental part of the %Cantera API and
      *      may be changed or removed without notice.
      */
-    virtual void getFwdRateConstants_ddC(span<double> dkfwd)
+    virtual void getFwdRateConstants_ddC(span<CanteraDouble> dkfwd)
     {
         throw NotImplementedError("Kinetics::getFwdRateConstants_ddC",
             "Not implemented for kinetics type '{}'.", kineticsType());
@@ -759,7 +759,7 @@ public:
      * at constant pressure, molar concentration and mole fractions.
      * @param[out] drop  Output vector of derivatives. Length: nReactions().
      */
-    virtual void getFwdRatesOfProgress_ddT(span<double> drop)
+    virtual void getFwdRatesOfProgress_ddT(span<CanteraDouble> drop)
     {
         throw NotImplementedError("Kinetics::getFwdRatesOfProgress_ddT",
             "Not implemented for kinetics type '{}'.", kineticsType());
@@ -770,7 +770,7 @@ public:
      * at constant temperature, molar concentration and mole fractions.
      * @param[out] drop  Output vector of derivatives. Length: nReactions().
      */
-    virtual void getFwdRatesOfProgress_ddP(span<double> drop)
+    virtual void getFwdRatesOfProgress_ddP(span<CanteraDouble> drop)
     {
         throw NotImplementedError("Kinetics::getFwdRatesOfProgress_ddP",
             "Not implemented for kinetics type '{}'.", kineticsType());
@@ -784,7 +784,7 @@ public:
      * @warning  This method is an experimental part of the %Cantera API and
      *      may be changed or removed without notice.
      */
-    virtual void getFwdRatesOfProgress_ddC(span<double> drop)
+    virtual void getFwdRatesOfProgress_ddC(span<CanteraDouble> drop)
     {
         throw NotImplementedError("Kinetics::getFwdRatesOfProgress_ddC",
             "Not implemented for kinetics type '{}'.", kineticsType());
@@ -801,7 +801,7 @@ public:
      * @warning  This method is an experimental part of the %Cantera API and
      *      may be changed or removed without notice.
      */
-    virtual Eigen::SparseMatrix<double> fwdRatesOfProgress_ddX()
+    virtual Eigen::SparseMatrix<CanteraDouble> fwdRatesOfProgress_ddX()
     {
         throw NotImplementedError("Kinetics::fwdRatesOfProgress_ddX",
             "Not implemented for kinetics type '{}'.", kineticsType());
@@ -821,7 +821,7 @@ public:
      *
      * @since New in %Cantera 3.0.
      */
-    virtual Eigen::SparseMatrix<double> fwdRatesOfProgress_ddCi()
+    virtual Eigen::SparseMatrix<CanteraDouble> fwdRatesOfProgress_ddCi()
     {
         throw NotImplementedError("Kinetics::fwdRatesOfProgress_ddCi",
             "Not implemented for kinetics type '{}'.", kineticsType());
@@ -832,7 +832,7 @@ public:
      * at constant pressure, molar concentration and mole fractions.
      * @param[out] drop  Output vector of derivatives. Length: nReactions().
      */
-    virtual void getRevRatesOfProgress_ddT(span<double> drop)
+    virtual void getRevRatesOfProgress_ddT(span<CanteraDouble> drop)
     {
         throw NotImplementedError("Kinetics::getRevRatesOfProgress_ddT",
             "Not implemented for kinetics type '{}'.", kineticsType());
@@ -843,7 +843,7 @@ public:
      * at constant temperature, molar concentration and mole fractions.
      * @param[out] drop  Output vector of derivatives. Length: nReactions().
      */
-    virtual void getRevRatesOfProgress_ddP(span<double> drop)
+    virtual void getRevRatesOfProgress_ddP(span<CanteraDouble> drop)
     {
         throw NotImplementedError("Kinetics::getRevRatesOfProgress_ddP",
             "Not implemented for kinetics type '{}'.", kineticsType());
@@ -857,7 +857,7 @@ public:
      * @warning  This method is an experimental part of the %Cantera API and
      *      may be changed or removed without notice.
      */
-    virtual void getRevRatesOfProgress_ddC(span<double> drop)
+    virtual void getRevRatesOfProgress_ddC(span<CanteraDouble> drop)
     {
         throw NotImplementedError("Kinetics::getRevRatesOfProgress_ddC",
             "Not implemented for kinetics type '{}'.", kineticsType());
@@ -874,7 +874,7 @@ public:
      * @warning  This method is an experimental part of the %Cantera API and
      *      may be changed or removed without notice.
      */
-    virtual Eigen::SparseMatrix<double> revRatesOfProgress_ddX()
+    virtual Eigen::SparseMatrix<CanteraDouble> revRatesOfProgress_ddX()
     {
         throw NotImplementedError("Kinetics::revRatesOfProgress_ddX",
             "Not implemented for kinetics type '{}'.", kineticsType());
@@ -894,7 +894,7 @@ public:
      *
      * @since New in %Cantera 3.0.
      */
-    virtual Eigen::SparseMatrix<double> revRatesOfProgress_ddCi()
+    virtual Eigen::SparseMatrix<CanteraDouble> revRatesOfProgress_ddCi()
     {
         throw NotImplementedError("Kinetics::revRatesOfProgress_ddCi",
             "Not implemented for kinetics type '{}'.", kineticsType());
@@ -905,7 +905,7 @@ public:
      * at constant pressure, molar concentration and mole fractions.
      * @param[out] drop  Output vector of derivatives. Length: nReactions().
      */
-    virtual void getNetRatesOfProgress_ddT(span<double> drop)
+    virtual void getNetRatesOfProgress_ddT(span<CanteraDouble> drop)
     {
         throw NotImplementedError("Kinetics::getNetRatesOfProgress_ddT",
             "Not implemented for kinetics type '{}'.", kineticsType());
@@ -916,7 +916,7 @@ public:
      * at constant temperature, molar concentration and mole fractions.
      * @param[out] drop  Output vector of derivatives. Length: nReactions().
      */
-    virtual void getNetRatesOfProgress_ddP(span<double> drop)
+    virtual void getNetRatesOfProgress_ddP(span<CanteraDouble> drop)
     {
         throw NotImplementedError("Kinetics::getNetRatesOfProgress_ddP",
             "Not implemented for kinetics type '{}'.", kineticsType());
@@ -930,7 +930,7 @@ public:
      * @warning  This method is an experimental part of the %Cantera API and
      *      may be changed or removed without notice.
      */
-    virtual void getNetRatesOfProgress_ddC(span<double> drop)
+    virtual void getNetRatesOfProgress_ddC(span<CanteraDouble> drop)
     {
         throw NotImplementedError("Kinetics::getNetRatesOfProgress_ddC",
             "Not implemented for kinetics type '{}'.", kineticsType());
@@ -947,7 +947,7 @@ public:
      * @warning  This method is an experimental part of the %Cantera API and
      *      may be changed or removed without notice.
      */
-    virtual Eigen::SparseMatrix<double> netRatesOfProgress_ddX()
+    virtual Eigen::SparseMatrix<CanteraDouble> netRatesOfProgress_ddX()
     {
         throw NotImplementedError("Kinetics::netRatesOfProgress_ddX",
             "Not implemented for kinetics type '{}'.", kineticsType());
@@ -967,7 +967,7 @@ public:
      *
      * @since New in %Cantera 3.0.
      */
-    virtual Eigen::SparseMatrix<double> netRatesOfProgress_ddCi()
+    virtual Eigen::SparseMatrix<CanteraDouble> netRatesOfProgress_ddCi()
     {
         throw NotImplementedError("Kinetics::netRatesOfProgress_ddCi",
             "Not implemented for kinetics type '{}'.", kineticsType());
@@ -978,14 +978,14 @@ public:
      * at constant pressure, molar concentration and mole fractions.
      * @param[out] dwdot  Output vector of derivatives. Length: #m_kk.
      */
-    void getCreationRates_ddT(span<double> dwdot);
+    void getCreationRates_ddT(span<CanteraDouble> dwdot);
 
     /**
      * Calculate derivatives for species creation rates with respect to pressure
      * at constant temperature, molar concentration and mole fractions.
      * @param[out] dwdot  Output vector of derivatives. Length: #m_kk.
      */
-    void getCreationRates_ddP(span<double> dwdot);
+    void getCreationRates_ddP(span<CanteraDouble> dwdot);
 
     /**
      * Calculate derivatives for species creation rates with respect to molar
@@ -995,7 +995,7 @@ public:
      * @warning  This method is an experimental part of the %Cantera API and
      *      may be changed or removed without notice.
      */
-    void getCreationRates_ddC(span<double> dwdot);
+    void getCreationRates_ddC(span<CanteraDouble> dwdot);
 
     /**
      * Calculate derivatives for species creation rates with respect to species
@@ -1008,7 +1008,7 @@ public:
      * @warning  This method is an experimental part of the %Cantera API and
      *      may be changed or removed without notice.
      */
-    Eigen::SparseMatrix<double> creationRates_ddX();
+    Eigen::SparseMatrix<CanteraDouble> creationRates_ddX();
 
     /**
      * Calculate derivatives for species creation rates with respect to species
@@ -1024,21 +1024,21 @@ public:
      *
      * @since New in %Cantera 3.0.
      */
-    Eigen::SparseMatrix<double> creationRates_ddCi();
+    Eigen::SparseMatrix<CanteraDouble> creationRates_ddCi();
 
     /**
      * Calculate derivatives for species destruction rates with respect to temperature
      * at constant pressure, molar concentration and mole fractions.
      * @param[out] dwdot  Output vector of derivatives. Length: #m_kk.
      */
-    void getDestructionRates_ddT(span<double> dwdot);
+    void getDestructionRates_ddT(span<CanteraDouble> dwdot);
 
     /**
      * Calculate derivatives for species destruction rates with respect to pressure
      * at constant temperature, molar concentration and mole fractions.
      * @param[out] dwdot  Output vector of derivatives. Length: #m_kk.
      */
-    void getDestructionRates_ddP(span<double> dwdot);
+    void getDestructionRates_ddP(span<CanteraDouble> dwdot);
 
     /**
      * Calculate derivatives for species destruction rates with respect to molar
@@ -1048,7 +1048,7 @@ public:
      * @warning  This method is an experimental part of the %Cantera API and
      *      may be changed or removed without notice.
      */
-    void getDestructionRates_ddC(span<double> dwdot);
+    void getDestructionRates_ddC(span<CanteraDouble> dwdot);
 
     /**
      * Calculate derivatives for species destruction rates with respect to species
@@ -1061,7 +1061,7 @@ public:
      * @warning  This method is an experimental part of the %Cantera API and
      *      may be changed or removed without notice.
      */
-    Eigen::SparseMatrix<double> destructionRates_ddX();
+    Eigen::SparseMatrix<CanteraDouble> destructionRates_ddX();
 
     /**
      * Calculate derivatives for species destruction rates with respect to species
@@ -1077,21 +1077,21 @@ public:
      *
      * @since New in %Cantera 3.0.
      */
-    Eigen::SparseMatrix<double> destructionRates_ddCi();
+    Eigen::SparseMatrix<CanteraDouble> destructionRates_ddCi();
 
     /**
      * Calculate derivatives for species net production rates with respect to
      * temperature at constant pressure, molar concentration and mole fractions.
      * @param[out] dwdot  Output vector of derivatives. Length: #m_kk.
      */
-    void getNetProductionRates_ddT(span<double> dwdot);
+    void getNetProductionRates_ddT(span<CanteraDouble> dwdot);
 
     /**
      * Calculate derivatives for species net production rates with respect to pressure
      * at constant temperature, molar concentration and mole fractions.
      * @param[out] dwdot  Output vector of derivatives. Length: #m_kk.
      */
-    void getNetProductionRates_ddP(span<double> dwdot);
+    void getNetProductionRates_ddP(span<CanteraDouble> dwdot);
 
     /**
      * Calculate derivatives for species net production rates with respect to molar
@@ -1101,7 +1101,7 @@ public:
      * @warning  This method is an experimental part of the %Cantera API and
      *      may be changed or removed without notice.
      */
-    void getNetProductionRates_ddC(span<double> dwdot);
+    void getNetProductionRates_ddC(span<CanteraDouble> dwdot);
 
     /**
      * Calculate derivatives for species net production rates with respect to species
@@ -1114,7 +1114,7 @@ public:
      * @warning  This method is an experimental part of the %Cantera API and
      *      may be changed or removed without notice.
      */
-    Eigen::SparseMatrix<double> netProductionRates_ddX();
+    Eigen::SparseMatrix<CanteraDouble> netProductionRates_ddX();
 
     /**
      * Calculate derivatives for species net production rates with respect to species
@@ -1130,7 +1130,7 @@ public:
      *
      * @since New in %Cantera 3.0.
      */
-    Eigen::SparseMatrix<double> netProductionRates_ddCi();
+    Eigen::SparseMatrix<CanteraDouble> netProductionRates_ddCi();
 
     //! Calculate derivatives of species net production rates with respect to
     //! species concentrations, filling the caller-owned sparse matrix `jac` and
@@ -1145,7 +1145,7 @@ public:
     //! in debug builds).
     //! @param[in,out] jac  Sparse matrix to fill; pattern reused if non-empty.
     //! @since New in %Cantera 4.0.
-    virtual void netProductionRates_ddCi(Eigen::SparseMatrix<double>& jac);
+    virtual void netProductionRates_ddCi(Eigen::SparseMatrix<CanteraDouble>& jac);
 
     /** @} End of Kinetics Derivatives */
     //! @} End of addtogroup derivGroup
@@ -1159,12 +1159,12 @@ public:
      * @param k   kinetic species index
      * @param i   reaction index
      */
-    virtual double reactantStoichCoeff(size_t k, size_t i) const;
+    virtual CanteraDouble reactantStoichCoeff(size_t k, size_t i) const;
 
     /**
      * Stoichiometric coefficient matrix for reactants.
      */
-    Eigen::SparseMatrix<double> reactantStoichCoeffs() const {
+    Eigen::SparseMatrix<CanteraDouble> reactantStoichCoeffs() const {
         return m_reactantStoich.stoichCoeffs();
     }
 
@@ -1174,19 +1174,19 @@ public:
      * @param k   kinetic species index
      * @param i   reaction index
      */
-    virtual double productStoichCoeff(size_t k, size_t i) const;
+    virtual CanteraDouble productStoichCoeff(size_t k, size_t i) const;
 
     /**
      * Stoichiometric coefficient matrix for products.
      */
-    Eigen::SparseMatrix<double> productStoichCoeffs() const {
+    Eigen::SparseMatrix<CanteraDouble> productStoichCoeffs() const {
         return m_productStoich.stoichCoeffs();
     }
 
     /**
      * Stoichiometric coefficient matrix for products of reversible reactions.
      */
-    Eigen::SparseMatrix<double> revProductStoichCoeffs() const {
+    Eigen::SparseMatrix<CanteraDouble> revProductStoichCoeffs() const {
         return m_revProductStoich.stoichCoeffs();
     }
 
@@ -1198,7 +1198,7 @@ public:
      * @param k   kinetic species index
      * @param i   reaction index
      */
-    virtual double reactantOrder(size_t k, size_t i) const {
+    virtual CanteraDouble reactantOrder(size_t k, size_t i) const {
         throw NotImplementedError("Kinetics::reactantOrder");
     }
 
@@ -1212,7 +1212,7 @@ public:
      * @param k   kinetic species index
      * @param i   reaction index
      */
-    virtual double productOrder(int k, int i) const {
+    virtual CanteraDouble productOrder(int k, int i) const {
         throw NotImplementedError("Kinetics::productOrder");
     }
 
@@ -1240,7 +1240,7 @@ public:
      * @param kfwd    Output vector containing the forward reaction rate
      *                constants. Length: nReactions().
      */
-    virtual void getFwdRateConstants(span<double> kfwd) {
+    virtual void getFwdRateConstants(span<CanteraDouble> kfwd) {
         throw NotImplementedError("Kinetics::getFwdRateConstants");
     }
 
@@ -1260,7 +1260,7 @@ public:
      * @param doIrreversible boolean indicating whether irreversible reactions
      *                       should be included.
      */
-    virtual void getRevRateConstants(span<double> krev, bool doIrreversible = false) {
+    virtual void getRevRateConstants(span<CanteraDouble> krev, bool doIrreversible = false) {
         throw NotImplementedError("Kinetics::getRevRateConstants");
     }
 
@@ -1387,7 +1387,7 @@ public:
     /*!
      * @param i index of the reaction
      */
-    double multiplier(size_t i) const {
+    CanteraDouble multiplier(size_t i) const {
         return m_perturb[i];
     }
 
@@ -1396,7 +1396,7 @@ public:
      *  @param i  index of the reaction
      *  @param f  value of the multiplier.
      */
-    virtual void setMultiplier(size_t i, double f) {
+    virtual void setMultiplier(size_t i, CanteraDouble f) {
         m_perturb[i] = f;
     }
 
@@ -1471,7 +1471,7 @@ protected:
      *  @return 0.0 if the stoichiometries are not multiples of one another
      *    Otherwise, it returns the ratio of the stoichiometric coefficients.
      */
-    double checkDuplicateStoich(map<int, double>& r1, map<int, double>& r2) const;
+    CanteraDouble checkDuplicateStoich(map<int, CanteraDouble>& r1, map<int, CanteraDouble>& r2) const;
 
     //! Vector of rate handlers
     vector<unique_ptr<MultiRateBase>> m_rateHandlers;
@@ -1494,7 +1494,7 @@ protected:
     StoichManagerN m_revProductStoich;
 
     //! Net stoichiometry (products - reactants)
-    Eigen::SparseMatrix<double> m_stoichMatrix;
+    Eigen::SparseMatrix<CanteraDouble> m_stoichMatrix;
     //! @}
 
     //! The number of species in all of the phases
@@ -1503,11 +1503,11 @@ protected:
 
     //! Vector of perturbation factors for each reaction's rate of
     //! progress vector. It is initialized to one.
-    vector<double> m_perturb;
+    vector<CanteraDouble> m_perturb;
 
     //! Default values for perturbations defined in the phase definition's
     //! `rate-multipliers` field. Key -1 contains the default multiplier.
-    map<size_t, double> m_defaultPerturb = {{-1, 1.0}};
+    map<size_t, CanteraDouble> m_defaultPerturb = {{-1, 1.0}};
 
     //! Vector of Reaction objects represented by this Kinetics manager
     vector<shared_ptr<Reaction>> m_reactions;
@@ -1542,31 +1542,31 @@ protected:
     size_t m_mindim = 4;
 
     //! Forward rate constant for each reaction
-    vector<double> m_rfn;
+    vector<CanteraDouble> m_rfn;
 
     //! Delta G^0 for all reactions
-    vector<double> m_delta_gibbs0;
+    vector<CanteraDouble> m_delta_gibbs0;
 
     //! Reciprocal of the equilibrium constant in concentration units
-    vector<double> m_rkcn;
+    vector<CanteraDouble> m_rkcn;
 
     //! Forward rate-of-progress for each reaction
-    vector<double> m_ropf;
+    vector<CanteraDouble> m_ropf;
 
     //! Reverse rate-of-progress for each reaction
-    vector<double> m_ropr;
+    vector<CanteraDouble> m_ropr;
 
     //! Net rate-of-progress for each reaction
-    vector<double> m_ropnet;
+    vector<CanteraDouble> m_ropnet;
 
     vector<size_t> m_revindex; //!< Indices of reversible reactions
     vector<size_t> m_irrev; //!< Indices of irreversible reactions
 
     //! The enthalpy change for each reaction to calculate Blowers-Masel rates
-    vector<double> m_dH;
+    vector<CanteraDouble> m_dH;
 
     //! Buffer used for storage of intermediate reaction-specific results
-    vector<double> m_rbuf;
+    vector<CanteraDouble> m_rbuf;
 
     //! See skipUndeclaredSpecies()
     bool m_skipUndeclaredSpecies = false;

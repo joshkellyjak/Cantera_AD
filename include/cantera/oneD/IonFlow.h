@@ -53,8 +53,8 @@ public:
      * If in the future the class GasTransport is improved, this method may
      * be discarded. This method specifies this profile.
      */
-    void setElectronTransport(span<const double> tfix, span<const double> diff_e,
-                              span<const double> mobi_e);
+    void setElectronTransport(span<const CanteraDouble> tfix, span<const CanteraDouble> diff_e,
+                              span<const CanteraDouble> mobi_e);
 
 protected:
 
@@ -85,8 +85,8 @@ protected:
      *
      * For argument explanation, see evalContinuity() base class.
      */
-    void evalElectricField(span<const double> x, span<double> rsd, span<int> diag,
-                           double rdt, size_t jmin, size_t jmax) override;
+    void evalElectricField(span<const CanteraDouble> x, span<CanteraDouble> rsd, span<int> diag,
+                           CanteraDouble rdt, size_t jmin, size_t jmax) override;
 
     /**
      * Evaluate the species equations' residual. This function overloads the
@@ -98,16 +98,16 @@ protected:
      *
      * For argument explanation, see evalContinuity() base class.
      */
-    void evalSpecies(span<const double> x, span<double> rsd, span<int> diag,
-                     double rdt, size_t jmin, size_t jmax) override;
-    void updateTransport(span<const double> x, size_t j0, size_t j1) override;
-    void updateDiffFluxes(span<const double> x, size_t j0, size_t j1) override;
+    void evalSpecies(span<const CanteraDouble> x, span<CanteraDouble> rsd, span<int> diag,
+                     CanteraDouble rdt, size_t jmin, size_t jmax) override;
+    void updateTransport(span<const CanteraDouble> x, size_t j0, size_t j1) override;
+    void updateDiffFluxes(span<const CanteraDouble> x, size_t j0, size_t j1) override;
     //! Solving phase one: the fluxes of charged species are turned off and the electric
     //! field is not solved.
-    void frozenIonMethod(span<const double> x, size_t j0, size_t j1);
+    void frozenIonMethod(span<const CanteraDouble> x, size_t j0, size_t j1);
     //! Solving phase two: the electric field equation is added coupled
     //! by the electrical drift
-    void electricFieldMethod(span<const double> x, size_t j0, size_t j1);
+    void electricFieldMethod(span<const CanteraDouble> x, size_t j0, size_t j1);
     //! flag for solving electric field or not
     bool m_do_electric_field = false;
 
@@ -115,7 +115,7 @@ protected:
     bool m_import_electron_transport = false;
 
     //! electrical properties
-    vector<double> m_speciesCharge;
+    vector<CanteraDouble> m_speciesCharge;
 
     //! index of species with charges
     vector<size_t> m_kCharge;
@@ -126,37 +126,37 @@ protected:
     //! Coefficients of polynomial fit for electron mobility as a function of
     //! temperature.
     //! @see setElectronTransport
-    vector<double> m_mobi_e_fix;
+    vector<CanteraDouble> m_mobi_e_fix;
 
     //! Coefficients of polynomial fit for electron diffusivity as a function of
     //! temperature.
     //! @see setElectronTransport
-    vector<double> m_diff_e_fix;
+    vector<CanteraDouble> m_diff_e_fix;
 
     //! mobility
-    vector<double> m_mobility;
+    vector<CanteraDouble> m_mobility;
 
     //! index of electron
     size_t m_kElectron = npos;
 
     //! electric field [V/m]
-    double E(span<const double> x, size_t j) const {
+    CanteraDouble E(span<const CanteraDouble> x, size_t j) const {
         return x[index(c_offset_E, j)];
     }
 
     //! Axial gradient of the electric field [V/m²]
-    double dEdz(span<const double> x, size_t j) const {
+    CanteraDouble dEdz(span<const CanteraDouble> x, size_t j) const {
         return (E(x,j)-E(x,j-1))/(z(j)-z(j-1));
     }
 
     //! number density [molecules/m³]
-    double ND(span<const double> x, size_t k, size_t j) const {
+    CanteraDouble ND(span<const CanteraDouble> x, size_t k, size_t j) const {
         return Avogadro * m_rho[j] * Y(x,k,j) / m_wt[k];
     }
 
     //! total charge density
-    double rho_e(span<const double> x, size_t j) const {
-        double chargeDensity = 0.0;
+    CanteraDouble rho_e(span<const CanteraDouble> x, size_t j) const {
+        CanteraDouble chargeDensity = 0.0;
         for (size_t k : m_kCharge) {
             chargeDensity += m_speciesCharge[k] * ElectronCharge * ND(x,k,j);
         }

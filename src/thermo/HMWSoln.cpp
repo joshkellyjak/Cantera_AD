@@ -25,12 +25,12 @@ namespace Cantera
 {
 
 namespace {
-double A_Debye_default = 1.172576; // units = sqrt(kg/gmol)
-double maxIionicStrength_default = 100.0;
-double crop_ln_gamma_o_min_default = -6.0;
-double crop_ln_gamma_o_max_default = 3.0;
-double crop_ln_gamma_k_min_default = -5.0;
-double crop_ln_gamma_k_max_default = 15.0;
+CanteraDouble A_Debye_default = 1.172576; // units = sqrt(kg/gmol)
+CanteraDouble maxIionicStrength_default = 100.0;
+CanteraDouble crop_ln_gamma_o_min_default = -6.0;
+CanteraDouble crop_ln_gamma_o_max_default = 3.0;
+CanteraDouble crop_ln_gamma_k_min_default = -5.0;
+CanteraDouble crop_ln_gamma_k_max_default = 15.0;
 }
 
 HMWSoln::~HMWSoln()
@@ -51,25 +51,25 @@ HMWSoln::HMWSoln(const string& inputFile, const string& id_) :
 
 // -------- Molar Thermodynamic Properties of the Solution ---------------
 
-double HMWSoln::relative_enthalpy() const
+CanteraDouble HMWSoln::relative_enthalpy() const
 {
     getPartialMolarEnthalpies(m_workS);
-    double hbar = mean_X(m_workS);
+    CanteraDouble hbar = mean_X(m_workS);
     getEnthalpy_RT(m_gamma_tmp);
     for (size_t k = 0; k < m_kk; k++) {
         m_gamma_tmp[k] *= RT();
     }
-    double h0bar = mean_X(m_gamma_tmp);
+    CanteraDouble h0bar = mean_X(m_gamma_tmp);
     return hbar - h0bar;
 }
 
-double HMWSoln::relative_molal_enthalpy() const
+CanteraDouble HMWSoln::relative_molal_enthalpy() const
 {
-    double L = relative_enthalpy();
+    CanteraDouble L = relative_enthalpy();
     getMoleFractions(m_workS);
-    double xanion = 0.0;
+    CanteraDouble xanion = 0.0;
     size_t kcation = npos;
-    double xcation = 0.0;
+    CanteraDouble xcation = 0.0;
     size_t kanion = npos;
     for (size_t k = 0; k < m_kk; k++) {
         if (charge(k) > 0.0) {
@@ -87,8 +87,8 @@ double HMWSoln::relative_molal_enthalpy() const
     if (kcation == npos || kanion == npos) {
         return L;
     }
-    double xuse = xcation;
-    double factor = 1;
+    CanteraDouble xuse = xcation;
+    CanteraDouble factor = 1;
     if (xanion < xcation) {
         xuse = xanion;
         if (charge(kcation) != 1.0) {
@@ -103,13 +103,13 @@ double HMWSoln::relative_molal_enthalpy() const
     return L / xuse;
 }
 
-double HMWSoln::cv_mole() const
+CanteraDouble HMWSoln::cv_mole() const
 {
-    double kappa_t = isothermalCompressibility();
-    double beta = thermalExpansionCoeff();
-    double cp = cp_mole();
-    double tt = temperature();
-    double molarV = molarVolume();
+    CanteraDouble kappa_t = isothermalCompressibility();
+    CanteraDouble beta = thermalExpansionCoeff();
+    CanteraDouble cp = cp_mole();
+    CanteraDouble tt = temperature();
+    CanteraDouble molarV = molarVolume();
     return cp - beta * beta * tt * molarV / kappa_t;
 }
 
@@ -129,30 +129,30 @@ void HMWSoln::calcDensity()
 
 // ------- Activities and Activity Concentrations
 
-void HMWSoln::getActivityConcentrations(span<double> c) const
+void HMWSoln::getActivityConcentrations(span<CanteraDouble> c) const
 {
-    double cs_solvent = standardConcentration();
+    CanteraDouble cs_solvent = standardConcentration();
     getActivities(c);
     c[0] *= cs_solvent;
     if (m_kk > 1) {
-        double cs_solute = standardConcentration(1);
+        CanteraDouble cs_solute = standardConcentration(1);
         for (size_t k = 1; k < m_kk; k++) {
             c[k] *= cs_solute;
         }
     }
 }
 
-double HMWSoln::standardConcentration(size_t k) const
+CanteraDouble HMWSoln::standardConcentration(size_t k) const
 {
     getStandardVolumes(m_workS);
-    double mvSolvent = m_workS[0];
+    CanteraDouble mvSolvent = m_workS[0];
     if (k > 0) {
         return m_Mnaught / mvSolvent;
     }
     return 1.0 / mvSolvent;
 }
 
-void HMWSoln::getActivities(span<double> ac) const
+void HMWSoln::getActivities(span<CanteraDouble> ac) const
 {
     checkArraySize("HMWSoln::getActivities", ac.size(), m_kk);
     updateStandardStateThermo();
@@ -165,11 +165,11 @@ void HMWSoln::getActivities(span<double> ac) const
     for (size_t k = 1; k < m_kk; k++) {
         ac[k] = m_molalities[k] * exp(m_lnActCoeffMolal_Scaled[k]);
     }
-    double xmolSolvent = moleFraction(0);
+    CanteraDouble xmolSolvent = moleFraction(0);
     ac[0] = exp(m_lnActCoeffMolal_Scaled[0]) * xmolSolvent;
 }
 
-void HMWSoln::getUnscaledMolalityActivityCoefficients(span<double> acMolality) const
+void HMWSoln::getUnscaledMolalityActivityCoefficients(span<CanteraDouble> acMolality) const
 {
     checkArraySize("HMWSoln::getUnscaledMolalityActivityCoefficients",
                    acMolality.size(), m_kk);
@@ -185,9 +185,9 @@ void HMWSoln::getUnscaledMolalityActivityCoefficients(span<double> acMolality) c
 
 // ------ Partial Molar Properties of the Solution -----------------
 
-void HMWSoln::getChemPotentials(span<double> mu) const
+void HMWSoln::getChemPotentials(span<CanteraDouble> mu) const
 {
-    double xx;
+    CanteraDouble xx;
 
     // First get the standard chemical potentials in molar form. This requires
     // updates of standard state as a function of T and P
@@ -196,7 +196,7 @@ void HMWSoln::getChemPotentials(span<double> mu) const
     // Update the activity coefficients. This also updates the internal molality
     // array.
     s_update_lnMolalityActCoeff();
-    double xmolSolvent = moleFraction(0);
+    CanteraDouble xmolSolvent = moleFraction(0);
     for (size_t k = 1; k < m_kk; k++) {
         xx = std::max(m_molalities[k], SmallNumber);
         mu[k] += RT() * (log(xx) + m_lnActCoeffMolal_Scaled[k]);
@@ -205,7 +205,7 @@ void HMWSoln::getChemPotentials(span<double> mu) const
     mu[0] += RT() * (log(xx) + m_lnActCoeffMolal_Scaled[0]);
 }
 
-void HMWSoln::getPartialMolarEnthalpies(span<double> hbar) const
+void HMWSoln::getPartialMolarEnthalpies(span<CanteraDouble> hbar) const
 {
     // Get the nondimensional standard state enthalpies
     getEnthalpy_RT(hbar);
@@ -224,7 +224,7 @@ void HMWSoln::getPartialMolarEnthalpies(span<double> hbar) const
     }
 }
 
-void HMWSoln::getPartialMolarEntropies(span<double> sbar) const
+void HMWSoln::getPartialMolarEntropies(span<CanteraDouble> sbar) const
 {
     // Get the standard state entropies at the temperature and pressure of the
     // solution.
@@ -241,12 +241,12 @@ void HMWSoln::getPartialMolarEntropies(span<double> sbar) const
 
     // First we will add in the obvious dependence on the T term out front of
     // the log activity term
-    double mm;
+    CanteraDouble mm;
     for (size_t k = 1; k < m_kk; k++) {
         mm = std::max(SmallNumber, m_molalities[k]);
         sbar[k] -= GasConstant * (log(mm) + m_lnActCoeffMolal_Scaled[k]);
     }
-    double xmolSolvent = moleFraction(0);
+    CanteraDouble xmolSolvent = moleFraction(0);
     mm = std::max(SmallNumber, xmolSolvent);
     sbar[0] -= GasConstant *(log(mm) + m_lnActCoeffMolal_Scaled[0]);
 
@@ -259,7 +259,7 @@ void HMWSoln::getPartialMolarEntropies(span<double> sbar) const
     }
 }
 
-void HMWSoln::getPartialMolarVolumes(span<double> vbar) const
+void HMWSoln::getPartialMolarVolumes(span<CanteraDouble> vbar) const
 {
     // Get the standard state values in m^3 kmol-1
     getStandardVolumes(vbar);
@@ -272,7 +272,7 @@ void HMWSoln::getPartialMolarVolumes(span<double> vbar) const
     }
 }
 
-void HMWSoln::getPartialMolarCp(span<double> cpbar) const
+void HMWSoln::getPartialMolarCp(span<CanteraDouble> cpbar) const
 {
     getCp_R(cpbar);
     for (size_t k = 0; k < m_kk; k++) {
@@ -292,10 +292,10 @@ void HMWSoln::getPartialMolarCp(span<double> cpbar) const
 
 // -------------- Utilities -------------------------------
 
-double HMWSoln::satPressure(double t) {
-    double p_old = pressure();
-    double t_old = temperature();
-    double pres = m_waterSS->satPressure(t);
+CanteraDouble HMWSoln::satPressure(CanteraDouble t) {
+    CanteraDouble p_old = pressure();
+    CanteraDouble t_old = temperature();
+    CanteraDouble pres = m_waterSS->satPressure(t);
 
     // Set the underlying object back to its original state.
     m_waterSS->setState_TP(t_old, p_old);
@@ -305,7 +305,7 @@ double HMWSoln::satPressure(double t) {
 namespace {
 
 static void check_nParams(const string& method, size_t m_formPitzerTemp,
-    const vector<span<const double>> paramLists)
+    const vector<span<const CanteraDouble>> paramLists)
 {
     for (const auto& params : paramLists) {
         size_t nParams = params.size();
@@ -326,9 +326,9 @@ static void check_nParams(const string& method, size_t m_formPitzerTemp,
 } // local namespace
 
 void HMWSoln::setBinarySalt(const string& sp1, const string& sp2,
-        span<const double> beta0, span<const double> beta1,
-        span<const double> beta2, span<const double> Cphi, double alpha1,
-        double alpha2)
+        span<const CanteraDouble> beta0, span<const CanteraDouble> beta1,
+        span<const CanteraDouble> beta2, span<const CanteraDouble> Cphi, CanteraDouble alpha1,
+        CanteraDouble alpha2)
 {
     size_t k1 = speciesIndex(sp1, true);
     size_t k2 = speciesIndex(sp2, true);
@@ -356,7 +356,7 @@ void HMWSoln::setBinarySalt(const string& sp1, const string& sp2,
     m_Alpha2MX_ij[c] = alpha2;
 }
 
-void HMWSoln::setTheta(const string& sp1, const string& sp2, span<const double> theta)
+void HMWSoln::setTheta(const string& sp1, const string& sp2, span<const CanteraDouble> theta)
 {
     size_t k1 = speciesIndex(sp1, true);
     size_t k2 = speciesIndex(sp2, true);
@@ -374,7 +374,7 @@ void HMWSoln::setTheta(const string& sp1, const string& sp2, span<const double> 
 }
 
 void HMWSoln::setPsi(const string& sp1, const string& sp2,
-        const string& sp3, span<const double> psi)
+        const string& sp3, span<const CanteraDouble> psi)
 {
     size_t k1 = speciesIndex(sp1, true);
     size_t k2 = speciesIndex(sp2, true);
@@ -402,7 +402,7 @@ void HMWSoln::setPsi(const string& sp1, const string& sp2,
     }
 }
 
-void HMWSoln::setLambda(const string& sp1, const string& sp2, span<const double> lambda)
+void HMWSoln::setLambda(const string& sp1, const string& sp2, span<const CanteraDouble> lambda)
 {
     size_t k1 = speciesIndex(sp1, true);
     size_t k2 = speciesIndex(sp2, true);
@@ -423,7 +423,7 @@ void HMWSoln::setLambda(const string& sp1, const string& sp2, span<const double>
     m_Lambda_nj(k1, k2) = lambda[0];
 }
 
-void HMWSoln::setMunnn(const string& sp, span<const double> munnn)
+void HMWSoln::setMunnn(const string& sp, span<const CanteraDouble> munnn)
 {
     size_t k = speciesIndex(sp, true);
 
@@ -439,7 +439,7 @@ void HMWSoln::setMunnn(const string& sp, span<const double> munnn)
 }
 
 void HMWSoln::setZeta(const string& sp1, const string& sp2,
-        const string& sp3, span<const double> psi)
+        const string& sp3, span<const CanteraDouble> psi)
 {
     size_t k1 = speciesIndex(sp1, true);
     size_t k2 = speciesIndex(sp2, true);
@@ -488,7 +488,7 @@ void HMWSoln::setPitzerTempModel(const string& model)
     }
 }
 
-void HMWSoln::setA_Debye(double A)
+void HMWSoln::setA_Debye(CanteraDouble A)
 {
     if (A < 0) {
         m_form_A_Debye = A_DEBYE_WATER;
@@ -498,8 +498,8 @@ void HMWSoln::setA_Debye(double A)
     }
 }
 
-void HMWSoln::setCroppingCoefficients(double ln_gamma_k_min,
-    double ln_gamma_k_max, double ln_gamma_o_min, double ln_gamma_o_max)
+void HMWSoln::setCroppingCoefficients(CanteraDouble ln_gamma_k_min,
+    CanteraDouble ln_gamma_k_max, CanteraDouble ln_gamma_o_min, CanteraDouble ln_gamma_o_max)
 {
         CROP_ln_gamma_k_min = ln_gamma_k_min;
         CROP_ln_gamma_k_max = ln_gamma_k_max;
@@ -507,15 +507,15 @@ void HMWSoln::setCroppingCoefficients(double ln_gamma_k_min,
         CROP_ln_gamma_o_max = ln_gamma_o_max;
 }
 
-vector<double> getSizedVector(const AnyMap& item, const string& key, size_t nCoeffs)
+vector<CanteraDouble> getSizedVector(const AnyMap& item, const string& key, size_t nCoeffs)
 {
-    vector<double> v;
-    if (item[key].is<double>()) {
+    vector<CanteraDouble> v;
+    if (item[key].is<CanteraDouble>()) {
         // Allow a single value to be given directly, rather than as a list of
         // one item
         v.push_back(item[key].asDouble());
     } else {
-        v = item[key].asVector<double>(1, nCoeffs);
+        v = item[key].asVector<CanteraDouble>(1, nCoeffs);
     }
     if (v.size() == 1 && nCoeffs == 5) {
         // Adapt constant-temperature data to be compatible with the "complex"
@@ -552,44 +552,44 @@ void HMWSoln::initThermo()
             for (auto& item : actData["interactions"].asVector<AnyMap>()) {
                 auto& species = item["species"].asVector<string>(1, 3);
                 size_t nsp = species.size();
-                double q0 = charge(speciesIndex(species[0], true));
-                double q1 = (nsp > 1) ? charge(speciesIndex(species[1], true)) : 0;
-                double q2 = (nsp == 3) ? charge(speciesIndex(species[2], true)) : 0;
+                CanteraDouble q0 = charge(speciesIndex(species[0], true));
+                CanteraDouble q1 = (nsp > 1) ? charge(speciesIndex(species[1], true)) : 0;
+                CanteraDouble q2 = (nsp == 3) ? charge(speciesIndex(species[2], true)) : 0;
                 if (nsp == 2 && q0 * q1 < 0) {
                     // Two species with opposite charges - binary salt
-                    vector<double> beta0 = getSizedVector(item, "beta0", nCoeffs);
-                    vector<double> beta1 = getSizedVector(item, "beta1", nCoeffs);
-                    vector<double> beta2 = getSizedVector(item, "beta2", nCoeffs);
-                    vector<double> Cphi = getSizedVector(item, "Cphi", nCoeffs);
+                    vector<CanteraDouble> beta0 = getSizedVector(item, "beta0", nCoeffs);
+                    vector<CanteraDouble> beta1 = getSizedVector(item, "beta1", nCoeffs);
+                    vector<CanteraDouble> beta2 = getSizedVector(item, "beta2", nCoeffs);
+                    vector<CanteraDouble> Cphi = getSizedVector(item, "Cphi", nCoeffs);
                     if (beta0.size() != beta1.size() || beta0.size() != beta2.size()
                         || beta0.size() != Cphi.size()) {
                         throw InputFileError("HMWSoln::initThermo", item,
                             "Inconsistent binary salt array sizes ({}, {}, {}, {})",
                             beta0.size(), beta1.size(), beta2.size(), Cphi.size());
                     }
-                    double alpha1 = item["alpha1"].asDouble();
-                    double alpha2 = item.getDouble("alpha2", 0.0);
+                    CanteraDouble alpha1 = item["alpha1"].asDouble();
+                    CanteraDouble alpha2 = item.getDouble("alpha2", 0.0);
                     setBinarySalt(species[0], species[1],
                         beta0, beta1, beta2, Cphi, alpha1, alpha2);
                 } else if (nsp == 2 && q0 * q1 > 0) {
                     // Two species with like charges - "theta" interaction
-                    vector<double> theta = getSizedVector(item, "theta", nCoeffs);
+                    vector<CanteraDouble> theta = getSizedVector(item, "theta", nCoeffs);
                     setTheta(species[0], species[1], theta);
                 } else if (nsp == 2 && q0 * q1 == 0) {
                     // Two species, including at least one neutral
-                    vector<double> lambda = getSizedVector(item, "lambda", nCoeffs);
+                    vector<CanteraDouble> lambda = getSizedVector(item, "lambda", nCoeffs);
                     setLambda(species[0], species[1], lambda);
                 } else if (nsp == 3 && q0 * q1 * q2 != 0) {
                     // Three charged species - "psi" interaction
-                    vector<double> psi = getSizedVector(item, "psi", nCoeffs);
+                    vector<CanteraDouble> psi = getSizedVector(item, "psi", nCoeffs);
                     setPsi(species[0], species[1], species[2], psi);
                 } else if (nsp == 3 && q0 * q1 * q2 == 0) {
                     // Three species, including one neutral
-                    vector<double> zeta = getSizedVector(item, "zeta", nCoeffs);
+                    vector<CanteraDouble> zeta = getSizedVector(item, "zeta", nCoeffs);
                     setZeta(species[0], species[1], species[2], zeta);
                 } else if (nsp == 1) {
                     // single species (should be neutral)
-                    vector<double> mu = getSizedVector(item, "mu", nCoeffs);
+                    vector<CanteraDouble> mu = getSizedVector(item, "mu", nCoeffs);
                     setMunnn(species[0], mu);
                 }
             }
@@ -620,14 +620,14 @@ void HMWSoln::initThermo()
 
     // Lastly calculate the charge balance and then add stuff until the charges
     // compensate
-    vector<double> mf(m_kk, 0.0);
+    vector<CanteraDouble> mf(m_kk, 0.0);
     getMoleFractions(mf);
     bool notDone = true;
 
     while (notDone) {
-        double sum = 0.0;
+        CanteraDouble sum = 0.0;
         size_t kMaxC = npos;
-        double MaxC = 0.0;
+        CanteraDouble MaxC = 0.0;
         for (size_t k = 0; k < m_kk; k++) {
             sum += mf[k] * charge(k);
             if (fabs(mf[k] * charge(k)) > MaxC) {
@@ -687,7 +687,7 @@ void HMWSoln::initThermo()
     setMoleFSolventMin(1.0E-5);
 }
 
-void assignTrimmed(AnyMap& interaction, const string& key, vector<double>& values) {
+void assignTrimmed(AnyMap& interaction, const string& key, vector<CanteraDouble>& values) {
     while (values.size() > 1 && values.back() == 0) {
         values.pop_back();
     }
@@ -738,7 +738,7 @@ void HMWSoln::getParameters(AnyMap& phaseNode) const
                 AnyMap interaction;
                 interaction["species"] = vector<string>{
                     speciesName(i), speciesName(j)};
-                vector<double> lambda(nParams);
+                vector<CanteraDouble> lambda(nParams);
                 for (size_t n = 0; n < nParams; n++) {
                     lambda[n] = m_Lambda_nj_coeff(n, c);
                 }
@@ -766,7 +766,7 @@ void HMWSoln::getParameters(AnyMap& phaseNode) const
                 AnyMap interaction;
                 interaction["species"] = vector<string>{
                     speciesName(i), speciesName(j)};
-                vector<double> beta0(nParams), beta1(nParams), beta2(nParams), Cphi(nParams);
+                vector<CanteraDouble> beta0(nParams), beta1(nParams), beta2(nParams), Cphi(nParams);
                 size_t last_nonzero = 0;
                 for (size_t n = 0; n < nParams; n++) {
                     beta0[n] = m_Beta0MX_ij_coeff(n, c);
@@ -812,7 +812,7 @@ void HMWSoln::getParameters(AnyMap& phaseNode) const
                 AnyMap interaction;
                 interaction["species"] = vector<string>{
                     speciesName(i), speciesName(j)};
-                vector<double> theta(nParams);
+                vector<CanteraDouble> theta(nParams);
                 for (size_t n = 0; n < nParams; n++) {
                     theta[n] = m_Theta_ij_coeff(n, c);
                 }
@@ -844,7 +844,7 @@ void HMWSoln::getParameters(AnyMap& phaseNode) const
                         AnyMap interaction;
                         interaction["species"] = vector<string>{
                             speciesName(i), speciesName(j), speciesName(k)};
-                        vector<double> psi(nParams);
+                        vector<CanteraDouble> psi(nParams);
                         for (size_t m = 0; m < nParams; m++) {
                             psi[m] = m_Psi_ijk_coeff(m, c);
                         }
@@ -876,7 +876,7 @@ void HMWSoln::getParameters(AnyMap& phaseNode) const
                         AnyMap interaction;
                         interaction["species"] = vector<string>{
                             speciesName(i), speciesName(j), speciesName(k)};
-                        vector<double> zeta(nParams);
+                        vector<CanteraDouble> zeta(nParams);
                         for (size_t m = 0; m < nParams; m++) {
                             zeta[m] = m_Psi_ijk_coeff(m, c);
                         }
@@ -895,7 +895,7 @@ void HMWSoln::getParameters(AnyMap& phaseNode) const
             if (m_Mu_nnn_coeff(n, i) != 0) {
                 AnyMap interaction;
                 interaction["species"] = vector<string>{speciesName(i)};
-                vector<double> mu(nParams);
+                vector<CanteraDouble> mu(nParams);
                 for (size_t m = 0; m < nParams; m++) {
                     mu[m] = m_Mu_nnn_coeff(m, i);
                 }
@@ -928,14 +928,14 @@ void HMWSoln::getParameters(AnyMap& phaseNode) const
     phaseNode["activity-data"] = std::move(activityNode);
 }
 
-double HMWSoln::A_Debye_TP(double tempArg, double presArg) const
+CanteraDouble HMWSoln::A_Debye_TP(CanteraDouble tempArg, CanteraDouble presArg) const
 {
-    double T = temperature();
-    double A;
+    CanteraDouble T = temperature();
+    CanteraDouble A;
     if (tempArg != -1.0) {
         T = tempArg;
     }
-    double P = pressure();
+    CanteraDouble P = pressure();
     if (presArg != -1.0) {
         P = presArg;
     }
@@ -960,17 +960,17 @@ double HMWSoln::A_Debye_TP(double tempArg, double presArg) const
     return A;
 }
 
-double HMWSoln::dA_DebyedT_TP(double tempArg, double presArg) const
+CanteraDouble HMWSoln::dA_DebyedT_TP(CanteraDouble tempArg, CanteraDouble presArg) const
 {
-    double T = temperature();
+    CanteraDouble T = temperature();
     if (tempArg != -1.0) {
         T = tempArg;
     }
-    double P = pressure();
+    CanteraDouble P = pressure();
     if (presArg != -1.0) {
         P = presArg;
     }
-    double dAdT;
+    CanteraDouble dAdT;
     switch (m_form_A_Debye) {
     case A_DEBYE_CONST:
         dAdT = 0.0;
@@ -984,18 +984,18 @@ double HMWSoln::dA_DebyedT_TP(double tempArg, double presArg) const
     return dAdT;
 }
 
-double HMWSoln::dA_DebyedP_TP(double tempArg, double presArg) const
+CanteraDouble HMWSoln::dA_DebyedP_TP(CanteraDouble tempArg, CanteraDouble presArg) const
 {
-    double T = temperature();
+    CanteraDouble T = temperature();
     if (tempArg != -1.0) {
         T = tempArg;
     }
-    double P = pressure();
+    CanteraDouble P = pressure();
     if (presArg != -1.0) {
         P = presArg;
     }
 
-    double dAdP;
+    CanteraDouble dAdP;
     static const int cacheId = m_cache.getId();
     CachedScalar cached = m_cache.getScalar(cacheId);
     switch (m_form_A_Debye) {
@@ -1016,51 +1016,51 @@ double HMWSoln::dA_DebyedP_TP(double tempArg, double presArg) const
     return dAdP;
 }
 
-double HMWSoln::ADebye_L(double tempArg, double presArg) const
+CanteraDouble HMWSoln::ADebye_L(CanteraDouble tempArg, CanteraDouble presArg) const
 {
-    double dAdT = dA_DebyedT_TP();
-    double dAphidT = dAdT /3.0;
-    double T = temperature();
+    CanteraDouble dAdT = dA_DebyedT_TP();
+    CanteraDouble dAphidT = dAdT /3.0;
+    CanteraDouble T = temperature();
     if (tempArg != -1.0) {
         T = tempArg;
     }
     return dAphidT * (4.0 * GasConstant * T * T);
 }
 
-double HMWSoln::ADebye_V(double tempArg, double presArg) const
+CanteraDouble HMWSoln::ADebye_V(CanteraDouble tempArg, CanteraDouble presArg) const
 {
-    double dAdP = dA_DebyedP_TP();
-    double dAphidP = dAdP /3.0;
-    double T = temperature();
+    CanteraDouble dAdP = dA_DebyedP_TP();
+    CanteraDouble dAphidP = dAdP /3.0;
+    CanteraDouble T = temperature();
     if (tempArg != -1.0) {
         T = tempArg;
     }
     return - dAphidP * (4.0 * GasConstant * T);
 }
 
-double HMWSoln::ADebye_J(double tempArg, double presArg) const
+CanteraDouble HMWSoln::ADebye_J(CanteraDouble tempArg, CanteraDouble presArg) const
 {
-    double T = temperature();
+    CanteraDouble T = temperature();
     if (tempArg != -1.0) {
         T = tempArg;
     }
-    double A_L = ADebye_L(T, presArg);
-    double d2 = d2A_DebyedT2_TP(T, presArg);
-    double d2Aphi = d2 / 3.0;
+    CanteraDouble A_L = ADebye_L(T, presArg);
+    CanteraDouble d2 = d2A_DebyedT2_TP(T, presArg);
+    CanteraDouble d2Aphi = d2 / 3.0;
     return 2.0 * A_L / T + 4.0 * GasConstant * T * T *d2Aphi;
 }
 
-double HMWSoln::d2A_DebyedT2_TP(double tempArg, double presArg) const
+CanteraDouble HMWSoln::d2A_DebyedT2_TP(CanteraDouble tempArg, CanteraDouble presArg) const
 {
-    double T = temperature();
+    CanteraDouble T = temperature();
     if (tempArg != -1.0) {
         T = tempArg;
     }
-    double P = pressure();
+    CanteraDouble P = pressure();
     if (presArg != -1.0) {
         P = presArg;
     }
-    double d2AdT2;
+    CanteraDouble d2AdT2;
     switch (m_form_A_Debye) {
     case A_DEBYE_CONST:
         d2AdT2 = 0.0;
@@ -1217,10 +1217,10 @@ void HMWSoln::s_update_lnMolalityActCoeff() const
     // Now do the main calculation.
     s_updatePitzer_lnMolalityActCoeff();
 
-    double xmolSolvent = moleFraction(0);
-    double xx = std::max(m_xmolSolventMIN, xmolSolvent);
-    double lnActCoeffMolal0 = - log(xx) + (xx - 1.0)/xx;
-    double lnxs = log(xx);
+    CanteraDouble xmolSolvent = moleFraction(0);
+    CanteraDouble xx = std::max(m_xmolSolventMIN, xmolSolvent);
+    CanteraDouble lnActCoeffMolal0 = - log(xx) + (xx - 1.0)/xx;
+    CanteraDouble lnxs = log(xx);
 
     for (size_t k = 1; k < m_kk; k++) {
         CROP_speciesCropped_[k] = 0;
@@ -1257,7 +1257,7 @@ void HMWSoln::s_update_lnMolalityActCoeff() const
 
 void HMWSoln::calcMolalitiesCropped() const
 {
-    double Imax = 0.0;
+    CanteraDouble Imax = 0.0;
     m_molalitiesAreCropped = false;
 
     for (size_t k = 0; k < m_kk; k++) {
@@ -1274,18 +1274,18 @@ void HMWSoln::calcMolalitiesCropped() const
 
         m_molalitiesAreCropped = true;
         for (size_t i = 1; i < (m_kk - 1); i++) {
-            double charge_i = charge(i);
-            double abs_charge_i = fabs(charge_i);
+            CanteraDouble charge_i = charge(i);
+            CanteraDouble abs_charge_i = fabs(charge_i);
             if (charge_i == 0.0) {
                 continue;
             }
             for (size_t j = (i+1); j < m_kk; j++) {
-                double charge_j = charge(j);
-                double abs_charge_j = fabs(charge_j);
+                CanteraDouble charge_j = charge(j);
+                CanteraDouble abs_charge_j = fabs(charge_j);
 
                 // Only loop over oppositely charge species
                 if (charge_i * charge_j < 0) {
-                    double Iac_max = m_maxIionicStrength;
+                    CanteraDouble Iac_max = m_maxIionicStrength;
 
                     if (m_molalitiesCropped[i] > m_molalitiesCropped[j]) {
                         Imax = m_molalitiesCropped[i] * abs_charge_i * abs_charge_i;
@@ -1313,23 +1313,23 @@ void HMWSoln::calcMolalitiesCropped() const
         // Do this loop 10 times until we have achieved charge neutrality in the
         // cropped molalities
         for (int times = 0; times< 10; times++) {
-            double anion_charge = 0.0;
-            double cation_charge = 0.0;
+            CanteraDouble anion_charge = 0.0;
+            CanteraDouble cation_charge = 0.0;
             size_t anion_contrib_max_i = npos;
-            double anion_contrib_max = -1.0;
+            CanteraDouble anion_contrib_max = -1.0;
             size_t cation_contrib_max_i = npos;
-            double cation_contrib_max = -1.0;
+            CanteraDouble cation_contrib_max = -1.0;
             for (size_t i = 0; i < m_kk; i++) {
-                double charge_i = charge(i);
+                CanteraDouble charge_i = charge(i);
                 if (charge_i < 0.0) {
-                    double anion_contrib = - m_molalitiesCropped[i] * charge_i;
+                    CanteraDouble anion_contrib = - m_molalitiesCropped[i] * charge_i;
                     anion_charge += anion_contrib;
                     if (anion_contrib > anion_contrib_max) {
                         anion_contrib_max = anion_contrib;
                         anion_contrib_max_i = i;
                     }
                 } else if (charge_i > 0.0) {
-                    double cation_contrib = m_molalitiesCropped[i] * charge_i;
+                    CanteraDouble cation_contrib = m_molalitiesCropped[i] * charge_i;
                     cation_charge += cation_contrib;
                     if (cation_contrib > cation_contrib_max) {
                         cation_contrib_max = cation_contrib;
@@ -1337,10 +1337,10 @@ void HMWSoln::calcMolalitiesCropped() const
                     }
                 }
             }
-            double total_charge = cation_charge - anion_charge;
+            CanteraDouble total_charge = cation_charge - anion_charge;
             if (total_charge > 1.0E-8) {
-                double desiredCrop = total_charge/charge(cation_contrib_max_i);
-                double maxCrop = 0.66 * m_molalitiesCropped[cation_contrib_max_i];
+                CanteraDouble desiredCrop = total_charge/charge(cation_contrib_max_i);
+                CanteraDouble maxCrop = 0.66 * m_molalitiesCropped[cation_contrib_max_i];
                 if (desiredCrop < maxCrop) {
                     m_molalitiesCropped[cation_contrib_max_i] -= desiredCrop;
                     break;
@@ -1348,8 +1348,8 @@ void HMWSoln::calcMolalitiesCropped() const
                     m_molalitiesCropped[cation_contrib_max_i] -= maxCrop;
                 }
             } else if (total_charge < -1.0E-8) {
-                double desiredCrop = total_charge/charge(anion_contrib_max_i);
-                double maxCrop = 0.66 * m_molalitiesCropped[anion_contrib_max_i];
+                CanteraDouble desiredCrop = total_charge/charge(anion_contrib_max_i);
+                CanteraDouble maxCrop = 0.66 * m_molalitiesCropped[anion_contrib_max_i];
                 if (desiredCrop < maxCrop) {
                     m_molalitiesCropped[anion_contrib_max_i] -= desiredCrop;
                     break;
@@ -1363,17 +1363,17 @@ void HMWSoln::calcMolalitiesCropped() const
     }
 
     if (cropMethod == 1) {
-        double* molF = m_gamma_tmp.data();
-        getMoleFractions(span<double>(molF, m_kk));
-        double xmolSolvent = molF[0];
+        CanteraDouble* molF = m_gamma_tmp.data();
+        getMoleFractions(span<CanteraDouble>(molF, m_kk));
+        CanteraDouble xmolSolvent = molF[0];
         if (xmolSolvent >= MC_X_o_cutoff_) {
             return;
         }
 
         m_molalitiesAreCropped = true;
-        double poly = MC_apCut_ + MC_bpCut_ * xmolSolvent + MC_dpCut_* xmolSolvent * xmolSolvent;
-        double p = xmolSolvent + MC_epCut_ + exp(- xmolSolvent/ MC_cpCut_) * poly;
-        double denomInv = 1.0/ (m_Mnaught * p);
+        CanteraDouble poly = MC_apCut_ + MC_bpCut_ * xmolSolvent + MC_dpCut_* xmolSolvent * xmolSolvent;
+        CanteraDouble p = xmolSolvent + MC_epCut_ + exp(- xmolSolvent/ MC_cpCut_) * poly;
+        CanteraDouble denomInv = 1.0/ (m_Mnaught * p);
         for (size_t k = 0; k < m_kk; k++) {
             m_molalitiesCropped[k] = molF[k] * denomInv;
         }
@@ -1381,12 +1381,12 @@ void HMWSoln::calcMolalitiesCropped() const
         // Do a further check to see if the Ionic strength is below a max value
         // Reduce the molalities to enforce this. Note, this algorithm preserves
         // the charge neutrality of the solution after cropping.
-        double Itmp = 0.0;
+        CanteraDouble Itmp = 0.0;
         for (size_t k = 0; k < m_kk; k++) {
             Itmp += m_molalitiesCropped[k] * charge(k) * charge(k);
         }
         if (Itmp > m_maxIionicStrength) {
-            double ratio = Itmp / m_maxIionicStrength;
+            CanteraDouble ratio = Itmp / m_maxIionicStrength;
             for (size_t k = 0; k < m_kk; k++) {
                 if (charge(k) != 0.0) {
                     m_molalitiesCropped[k] *= ratio;
@@ -1421,14 +1421,14 @@ void HMWSoln::counterIJ_setup() const
 
 void HMWSoln::calcIMSCutoffParams_()
 {
-    double IMS_gamma_o_min_ = 1.0E-5; // value at the zero solvent point
-    double IMS_gamma_k_min_ = 10.0; // minimum at the zero solvent point
-    double IMS_slopefCut_ = 0.6; // slope of the f function at the zero solvent point
+    CanteraDouble IMS_gamma_o_min_ = 1.0E-5; // value at the zero solvent point
+    CanteraDouble IMS_gamma_k_min_ = 10.0; // minimum at the zero solvent point
+    CanteraDouble IMS_slopefCut_ = 0.6; // slope of the f function at the zero solvent point
 
     IMS_afCut_ = 1.0 / (std::exp(1.0) * IMS_gamma_k_min_);
     IMS_efCut_ = 0.0;
     bool converged = false;
-    double oldV = 0.0;
+    CanteraDouble oldV = 0.0;
     for (int its = 0; its < 100 && !converged; its++) {
         oldV = IMS_efCut_;
         IMS_afCut_ = 1.0 / (std::exp(1.0) * IMS_gamma_k_min_) -IMS_efCut_;
@@ -1436,8 +1436,8 @@ void HMWSoln::calcIMSCutoffParams_()
         IMS_dfCut_ = ((- IMS_afCut_/IMS_cCut_ + IMS_bfCut_ - IMS_bfCut_*IMS_X_o_cutoff_/IMS_cCut_)
                       /
                       (IMS_X_o_cutoff_*IMS_X_o_cutoff_/IMS_cCut_ - 2.0 * IMS_X_o_cutoff_));
-        double tmp = IMS_afCut_ + IMS_X_o_cutoff_*(IMS_bfCut_ + IMS_dfCut_ *IMS_X_o_cutoff_);
-        double eterm = std::exp(-IMS_X_o_cutoff_/IMS_cCut_);
+        CanteraDouble tmp = IMS_afCut_ + IMS_X_o_cutoff_*(IMS_bfCut_ + IMS_dfCut_ *IMS_X_o_cutoff_);
+        CanteraDouble eterm = std::exp(-IMS_X_o_cutoff_/IMS_cCut_);
         IMS_efCut_ = - eterm * tmp;
         if (fabs(IMS_efCut_ - oldV) < 1.0E-14) {
             converged = true;
@@ -1448,19 +1448,19 @@ void HMWSoln::calcIMSCutoffParams_()
                            " failed to converge on the f polynomial");
     }
     converged = false;
-    double f_0 = IMS_afCut_ + IMS_efCut_;
-    double f_prime_0 = 1.0 - IMS_afCut_ / IMS_cCut_ + IMS_bfCut_;
+    CanteraDouble f_0 = IMS_afCut_ + IMS_efCut_;
+    CanteraDouble f_prime_0 = 1.0 - IMS_afCut_ / IMS_cCut_ + IMS_bfCut_;
     IMS_egCut_ = 0.0;
     for (int its = 0; its < 100 && !converged; its++) {
         oldV = IMS_egCut_;
-        double lng_0 = -log(IMS_gamma_o_min_) - f_prime_0 / f_0;
+        CanteraDouble lng_0 = -log(IMS_gamma_o_min_) - f_prime_0 / f_0;
         IMS_agCut_ = exp(lng_0) - IMS_egCut_;
         IMS_bgCut_ = IMS_agCut_ / IMS_cCut_ + IMS_slopegCut_ - 1.0;
         IMS_dgCut_ = ((- IMS_agCut_/IMS_cCut_ + IMS_bgCut_ - IMS_bgCut_*IMS_X_o_cutoff_/IMS_cCut_)
                       /
                       (IMS_X_o_cutoff_*IMS_X_o_cutoff_/IMS_cCut_ - 2.0 * IMS_X_o_cutoff_));
-        double tmp = IMS_agCut_ + IMS_X_o_cutoff_*(IMS_bgCut_ + IMS_dgCut_ *IMS_X_o_cutoff_);
-        double eterm = std::exp(-IMS_X_o_cutoff_/IMS_cCut_);
+        CanteraDouble tmp = IMS_agCut_ + IMS_X_o_cutoff_*(IMS_bgCut_ + IMS_dgCut_ *IMS_X_o_cutoff_);
+        CanteraDouble eterm = std::exp(-IMS_X_o_cutoff_/IMS_cCut_);
         IMS_egCut_ = - eterm * tmp;
         if (fabs(IMS_egCut_ - oldV) < 1.0E-14) {
             converged = true;
@@ -1474,30 +1474,30 @@ void HMWSoln::calcIMSCutoffParams_()
 
 void HMWSoln::calcMCCutoffParams_()
 {
-    double MC_X_o_min_ = 0.35; // value at the zero solvent point
+    CanteraDouble MC_X_o_min_ = 0.35; // value at the zero solvent point
     MC_X_o_cutoff_ = 0.6;
-    double MC_slopepCut_ = 0.02; // slope of the p function at the zero solvent point
+    CanteraDouble MC_slopepCut_ = 0.02; // slope of the p function at the zero solvent point
     MC_cpCut_ = 0.25;
 
     // Initial starting values
     MC_apCut_ = MC_X_o_min_;
     MC_epCut_ = 0.0;
     bool converged = false;
-    double oldV = 0.0;
-    double damp = 0.5;
+    CanteraDouble oldV = 0.0;
+    CanteraDouble damp = 0.5;
     for (int its = 0; its < 500 && !converged; its++) {
         oldV = MC_epCut_;
         MC_apCut_ = damp *(MC_X_o_min_ - MC_epCut_) + (1-damp) * MC_apCut_;
-        double MC_bpCutNew = MC_apCut_ / MC_cpCut_ + MC_slopepCut_ - 1.0;
+        CanteraDouble MC_bpCutNew = MC_apCut_ / MC_cpCut_ + MC_slopepCut_ - 1.0;
         MC_bpCut_ = damp * MC_bpCutNew + (1-damp) * MC_bpCut_;
-        double MC_dpCutNew = ((- MC_apCut_/MC_cpCut_ + MC_bpCut_ - MC_bpCut_ * MC_X_o_cutoff_/MC_cpCut_)
+        CanteraDouble MC_dpCutNew = ((- MC_apCut_/MC_cpCut_ + MC_bpCut_ - MC_bpCut_ * MC_X_o_cutoff_/MC_cpCut_)
                               /
                               (MC_X_o_cutoff_ * MC_X_o_cutoff_/MC_cpCut_ - 2.0 * MC_X_o_cutoff_));
         MC_dpCut_ = damp * MC_dpCutNew + (1-damp) * MC_dpCut_;
-        double tmp = MC_apCut_ + MC_X_o_cutoff_*(MC_bpCut_ + MC_dpCut_ * MC_X_o_cutoff_);
-        double eterm = std::exp(- MC_X_o_cutoff_ / MC_cpCut_);
+        CanteraDouble tmp = MC_apCut_ + MC_X_o_cutoff_*(MC_bpCut_ + MC_dpCut_ * MC_X_o_cutoff_);
+        CanteraDouble eterm = std::exp(- MC_X_o_cutoff_ / MC_cpCut_);
         MC_epCut_ = - eterm * tmp;
-        double diff = MC_epCut_ - oldV;
+        CanteraDouble diff = MC_epCut_ - oldV;
         if (fabs(diff) < 1.0E-14) {
             converged = true;
         }
@@ -1510,12 +1510,12 @@ void HMWSoln::calcMCCutoffParams_()
 
 void HMWSoln::s_updatePitzer_CoeffWRTemp(int doDerivs) const
 {
-    double T = temperature();
-    const double twoT = 2.0 * T;
-    const double invT = 1.0 / T;
-    const double invT2 = invT * invT;
-    const double twoinvT3 = 2.0 * invT * invT2;
-    double tinv = 0.0, tln = 0.0, tlin = 0.0, tquad = 0.0;
+    CanteraDouble T = temperature();
+    const CanteraDouble twoT = 2.0 * T;
+    const CanteraDouble invT = 1.0 / T;
+    const CanteraDouble invT2 = invT * invT;
+    const CanteraDouble twoinvT3 = 2.0 * invT * invT2;
+    CanteraDouble tinv = 0.0, tln = 0.0, tlin = 0.0, tquad = 0.0;
     if (m_formPitzerTemp == PITZER_TEMP_LINEAR) {
         tlin = T - m_TempPitzerRef;
     } else if (m_formPitzerTemp == PITZER_TEMP_COMPLEX1) {
@@ -1757,25 +1757,25 @@ void HMWSoln::s_updatePitzer_CoeffWRTemp(int doDerivs) const
 void HMWSoln::s_updatePitzer_lnMolalityActCoeff() const
 {
     // Use the CROPPED molality of the species in solution.
-    const vector<double>& molality = m_molalitiesCropped;
+    const vector<CanteraDouble>& molality = m_molalitiesCropped;
 
     // These are data inputs about the Pitzer correlation. They come from the
     // input file for the Pitzer model.
-    vector<double>& gamma_Unscaled = m_gamma_tmp;
+    vector<CanteraDouble>& gamma_Unscaled = m_gamma_tmp;
 
     // Local variables defined by Coltrin
-    double etheta[5][5], etheta_prime[5][5], sqrtIs;
+    CanteraDouble etheta[5][5], etheta_prime[5][5], sqrtIs;
 
     // Molality based ionic strength of the solution
-    double Is = 0.0;
+    CanteraDouble Is = 0.0;
 
     // Molar charge of the solution: In Pitzer's notation, this is his variable
     // called "Z".
-    double molarcharge = 0.0;
+    CanteraDouble molarcharge = 0.0;
 
     // molalitysum is the sum of the molalities over all solutes, even those
     // with zero charge.
-    double molalitysumUncropped = 0.0;
+    CanteraDouble molalitysumUncropped = 0.0;
 
     // Make sure the counter variables are setup
     counterIJ_setup();
@@ -1818,7 +1818,7 @@ void HMWSoln::s_updatePitzer_lnMolalityActCoeff() const
             // Only loop over oppositely charge species
             if (charge(i)*charge(j) < 0) {
                 // x is a reduced function variable
-                double x1 = sqrtIs * m_Alpha1MX_ij[counterIJ];
+                CanteraDouble x1 = sqrtIs * m_Alpha1MX_ij[counterIJ];
                 if (x1 > 1.0E-100) {
                     m_gfunc_IJ[counterIJ] = 2.0*(1.0-(1.0 + x1) * exp(-x1)) / (x1 * x1);
                     m_hfunc_IJ[counterIJ] = -2.0 *
@@ -1829,7 +1829,7 @@ void HMWSoln::s_updatePitzer_lnMolalityActCoeff() const
                 }
 
                 if (m_Beta2MX_ij[counterIJ] != 0.0) {
-                    double x2 = sqrtIs * m_Alpha2MX_ij[counterIJ];
+                    CanteraDouble x2 = sqrtIs * m_Alpha2MX_ij[counterIJ];
                     if (x2 > 1.0E-100) {
                         m_g2func_IJ[counterIJ] = 2.0*(1.0-(1.0 + x2) * exp(-x2)) / (x2 * x2);
                         m_h2func_IJ[counterIJ] = -2.0 *
@@ -1921,8 +1921,8 @@ void HMWSoln::s_updatePitzer_lnMolalityActCoeff() const
 
     // SUBSECTION FOR CALCULATION OF F
     // Agrees with Pitzer Eqn. (65)
-    double Aphi = A_Debye_TP() / 3.0;
-    double F = -Aphi * (sqrt(Is) / (1.0 + 1.2*sqrt(Is))
+    CanteraDouble Aphi = A_Debye_TP() / 3.0;
+    CanteraDouble F = -Aphi * (sqrt(Is) / (1.0 + 1.2*sqrt(Is))
                  + (2.0/1.2) * log(1.0+1.2*(sqrtIs)));
     for (size_t i = 1; i < m_kk-1; i++) {
         for (size_t j = i+1; j < m_kk; j++) {
@@ -1951,12 +1951,12 @@ void HMWSoln::s_updatePitzer_lnMolalityActCoeff() const
         // Equations agree with Pitzer, eqn.(63)
         if (charge(i) > 0.0) {
             // species i is the cation (positive) to calc the actcoeff
-            double zsqF = charge(i)*charge(i)*F;
-            double sum1 = 0.0;
-            double sum2 = 0.0;
-            double sum3 = 0.0;
-            double sum4 = 0.0;
-            double sum5 = 0.0;
+            CanteraDouble zsqF = charge(i)*charge(i)*F;
+            CanteraDouble sum1 = 0.0;
+            CanteraDouble sum2 = 0.0;
+            CanteraDouble sum3 = 0.0;
+            CanteraDouble sum4 = 0.0;
+            CanteraDouble sum5 = 0.0;
             for (size_t j = 1; j < m_kk; j++) {
                 // Find the counterIJ for the symmetric binary interaction
                 size_t n = m_kk*i + j;
@@ -2010,7 +2010,7 @@ void HMWSoln::s_updatePitzer_lnMolalityActCoeff() const
                             size_t izeta = j;
                             size_t jzeta = i;
                             n = izeta * m_kk * m_kk + jzeta * m_kk + k;
-                            double zeta = m_Psi_ijk[n];
+                            CanteraDouble zeta = m_Psi_ijk[n];
                             if (zeta != 0.0) {
                                 sum5 += molality[j]*molality[k]*zeta;
                             }
@@ -2030,12 +2030,12 @@ void HMWSoln::s_updatePitzer_lnMolalityActCoeff() const
         // Equations agree with Pitzer, eqn.(64)
         if (charge(i) < 0) {
             // species i is an anion (negative)
-            double zsqF = charge(i)*charge(i)*F;
-            double sum1 = 0.0;
-            double sum2 = 0.0;
-            double sum3 = 0.0;
-            double sum4 = 0.0;
-            double sum5 = 0.0;
+            CanteraDouble zsqF = charge(i)*charge(i)*F;
+            CanteraDouble sum1 = 0.0;
+            CanteraDouble sum2 = 0.0;
+            CanteraDouble sum3 = 0.0;
+            CanteraDouble sum4 = 0.0;
+            CanteraDouble sum5 = 0.0;
             for (size_t j = 1; j < m_kk; j++) {
                 // Find the counterIJ for the symmetric binary interaction
                 size_t n = m_kk*i + j;
@@ -2086,7 +2086,7 @@ void HMWSoln::s_updatePitzer_lnMolalityActCoeff() const
                             size_t jzeta = k;
                             size_t kzeta = i;
                             n = izeta * m_kk * m_kk + jzeta * m_kk + kzeta;
-                            double zeta = m_Psi_ijk[n];
+                            CanteraDouble zeta = m_Psi_ijk[n];
                             if (zeta != 0.0) {
                                 sum5 += molality[j]*molality[k]*zeta;
                             }
@@ -2102,8 +2102,8 @@ void HMWSoln::s_updatePitzer_lnMolalityActCoeff() const
         // equations agree with my notes,
         // Equations agree with Pitzer,
         if (charge(i) == 0.0) {
-            double sum1 = 0.0;
-            double sum3 = 0.0;
+            CanteraDouble sum1 = 0.0;
+            CanteraDouble sum3 = 0.0;
             for (size_t j = 1; j < m_kk; j++) {
                 sum1 += molality[j]*2.0*m_Lambda_nj(i,j);
                 // Zeta term -> we piggyback on the psi term
@@ -2116,7 +2116,7 @@ void HMWSoln::s_updatePitzer_lnMolalityActCoeff() const
                     }
                 }
             }
-            double sum2 = 3.0 * molality[i]* molality[i] * m_Mu_nnn[i];
+            CanteraDouble sum2 = 3.0 * molality[i]* molality[i] * m_Mu_nnn[i];
             m_lnActCoeffMolal_Unscaled[i] = sum1 + sum2 + sum3;
             gamma_Unscaled[i] = exp(m_lnActCoeffMolal_Unscaled[i]);
         }
@@ -2125,20 +2125,20 @@ void HMWSoln::s_updatePitzer_lnMolalityActCoeff() const
     // SUBSECTION FOR CALCULATING THE OSMOTIC COEFF
     // equations agree with my notes, Eqn. (117).
     // Equations agree with Pitzer, eqn.(62)
-    double sum1 = 0.0;
-    double sum2 = 0.0;
-    double sum3 = 0.0;
-    double sum4 = 0.0;
-    double sum5 = 0.0;
-    double sum6 = 0.0;
-    double sum7 = 0.0;
+    CanteraDouble sum1 = 0.0;
+    CanteraDouble sum2 = 0.0;
+    CanteraDouble sum3 = 0.0;
+    CanteraDouble sum4 = 0.0;
+    CanteraDouble sum5 = 0.0;
+    CanteraDouble sum6 = 0.0;
+    CanteraDouble sum7 = 0.0;
 
     // term1 is the DH term in the osmotic coefficient expression
     // b = 1.2 sqrt(kg/gmol) <- arbitrarily set in all Pitzer
     //                          implementations.
     // Is = Ionic strength on the molality scale (units of (gmol/kg))
     // Aphi = A_Debye / 3   (units of sqrt(kg/gmol))
-    double term1 = -Aphi * pow(Is,1.5) / (1.0 + 1.2 * sqrt(Is));
+    CanteraDouble term1 = -Aphi * pow(Is,1.5) / (1.0 + 1.2 * sqrt(Is));
 
     for (size_t j = 1; j < m_kk; j++) {
         // Loop Over Cations
@@ -2223,7 +2223,7 @@ void HMWSoln::s_updatePitzer_lnMolalityActCoeff() const
                         if (charge(m) > 0.0) {
                             size_t jzeta = m;
                             size_t n = k + jzeta * m_kk + izeta * m_kk * m_kk;
-                            double zeta = m_Psi_ijk[n];
+                            CanteraDouble zeta = m_Psi_ijk[n];
                             if (zeta != 0.0) {
                                 sum7 += molality[izeta]*molality[jzeta]*molality[k]*zeta;
                             }
@@ -2234,17 +2234,17 @@ void HMWSoln::s_updatePitzer_lnMolalityActCoeff() const
             sum7 += molality[j]*molality[j]*molality[j]*m_Mu_nnn[j];
         }
     }
-    double sum_m_phi_minus_1 = 2.0 *
+    CanteraDouble sum_m_phi_minus_1 = 2.0 *
                         (term1 + sum1 + sum2 + sum3 + sum4 + sum5 + sum6 + sum7);
     // Calculate the osmotic coefficient from
     //     osmotic_coeff = 1 + dGex/d(M0noRT) / sum(molality_i)
-    double osmotic_coef;
+    CanteraDouble osmotic_coef;
     if (molalitysumUncropped > 1.0E-150) {
         osmotic_coef = 1.0 + (sum_m_phi_minus_1 / molalitysumUncropped);
     } else {
         osmotic_coef = 1.0;
     }
-    double lnwateract = -(m_weightSolvent/1000.0) * molalitysumUncropped * osmotic_coef;
+    CanteraDouble lnwateract = -(m_weightSolvent/1000.0) * molalitysumUncropped * osmotic_coef;
 
     // In Cantera, we define the activity coefficient of the solvent as
     //
@@ -2252,8 +2252,8 @@ void HMWSoln::s_updatePitzer_lnMolalityActCoeff() const
     //
     // We have just computed act_0. However, this routine returns
     //     ln(actcoeff[]). Therefore, we must calculate ln(actcoeff_0).
-    double xmolSolvent = moleFraction(0);
-    double xx = std::max(m_xmolSolventMIN, xmolSolvent);
+    CanteraDouble xmolSolvent = moleFraction(0);
+    CanteraDouble xx = std::max(m_xmolSolventMIN, xmolSolvent);
     m_lnActCoeffMolal_Unscaled[0] = lnwateract - log(xx);
 }
 
@@ -2291,22 +2291,22 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dT() const
     // immediately preceding the calling of this routine. Therefore, some
     // quantities do not need to be recalculated in this routine.
 
-    const vector<double>& molality = m_molalitiesCropped;
-    double* d_gamma_dT_Unscaled = m_gamma_tmp.data();
+    const vector<CanteraDouble>& molality = m_molalitiesCropped;
+    CanteraDouble* d_gamma_dT_Unscaled = m_gamma_tmp.data();
 
     // Local variables defined by Coltrin
-    double etheta[5][5], etheta_prime[5][5], sqrtIs;
+    CanteraDouble etheta[5][5], etheta_prime[5][5], sqrtIs;
 
     // Molality based ionic strength of the solution
-    double Is = 0.0;
+    CanteraDouble Is = 0.0;
 
     // Molar charge of the solution: In Pitzer's notation, this is his variable
     // called "Z".
-    double molarcharge = 0.0;
+    CanteraDouble molarcharge = 0.0;
 
     // molalitysum is the sum of the molalities over all solutes, even those
     // with zero charge.
-    double molalitysum = 0.0;
+    CanteraDouble molalitysum = 0.0;
 
     // Make sure the counter variables are setup
     counterIJ_setup();
@@ -2349,7 +2349,7 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dT() const
             // Only loop over oppositely charge species
             if (charge(i)*charge(j) < 0) {
                 // x is a reduced function variable
-                double x1 = sqrtIs * m_Alpha1MX_ij[counterIJ];
+                CanteraDouble x1 = sqrtIs * m_Alpha1MX_ij[counterIJ];
                 if (x1 > 1.0E-100) {
                     m_gfunc_IJ[counterIJ] = 2.0*(1.0-(1.0 + x1) * exp(-x1)) / (x1 * x1);
                     m_hfunc_IJ[counterIJ] = -2.0 *
@@ -2360,7 +2360,7 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dT() const
                 }
 
                 if (m_Beta2MX_ij_L[counterIJ] != 0.0) {
-                    double x2 = sqrtIs * m_Alpha2MX_ij[counterIJ];
+                    CanteraDouble x2 = sqrtIs * m_Alpha2MX_ij[counterIJ];
                     if (x2 > 1.0E-100) {
                         m_g2func_IJ[counterIJ] = 2.0*(1.0-(1.0 + x2) * exp(-x2)) / (x2 * x2);
                         m_h2func_IJ[counterIJ] = -2.0 *
@@ -2447,9 +2447,9 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dT() const
     }
 
     // ----------- SUBSECTION FOR CALCULATION OF dFdT ---------------------
-    double dA_DebyedT = dA_DebyedT_TP();
-    double dAphidT = dA_DebyedT /3.0;
-    double dFdT = -dAphidT * (sqrt(Is) / (1.0 + 1.2*sqrt(Is))
+    CanteraDouble dA_DebyedT = dA_DebyedT_TP();
+    CanteraDouble dAphidT = dA_DebyedT /3.0;
+    CanteraDouble dFdT = -dAphidT * (sqrt(Is) / (1.0 + 1.2*sqrt(Is))
                        + (2.0/1.2) * log(1.0+1.2*(sqrtIs)));
     for (size_t i = 1; i < m_kk-1; i++) {
         for (size_t j = i+1; j < m_kk; j++) {
@@ -2475,12 +2475,12 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dT() const
         // -------- SUBSECTION FOR CALCULATING THE dACTCOEFFdT FOR CATIONS -----
         if (charge(i) > 0) {
             // species i is the cation (positive) to calc the actcoeff
-            double zsqdFdT = charge(i)*charge(i)*dFdT;
-            double sum1 = 0.0;
-            double sum2 = 0.0;
-            double sum3 = 0.0;
-            double sum4 = 0.0;
-            double sum5 = 0.0;
+            CanteraDouble zsqdFdT = charge(i)*charge(i)*dFdT;
+            CanteraDouble sum1 = 0.0;
+            CanteraDouble sum2 = 0.0;
+            CanteraDouble sum3 = 0.0;
+            CanteraDouble sum4 = 0.0;
+            CanteraDouble sum5 = 0.0;
             for (size_t j = 1; j < m_kk; j++) {
                 // Find the counterIJ for the symmetric binary interaction
                 size_t n = m_kk*i + j;
@@ -2535,7 +2535,7 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dT() const
                         size_t izeta = j;
                         size_t jzeta = i;
                         n = izeta * m_kk * m_kk + jzeta * m_kk + k;
-                        double zeta_L = m_Psi_ijk_L[n];
+                        CanteraDouble zeta_L = m_Psi_ijk_L[n];
                         if (zeta_L != 0.0) {
                             sum5 += molality[j]*molality[k]*zeta_L;
                         }
@@ -2553,12 +2553,12 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dT() const
         // ------ SUBSECTION FOR CALCULATING THE dACTCOEFFdT FOR ANIONS ------
         if (charge(i) < 0) {
             // species i is an anion (negative)
-            double zsqdFdT = charge(i)*charge(i)*dFdT;
-            double sum1 = 0.0;
-            double sum2 = 0.0;
-            double sum3 = 0.0;
-            double sum4 = 0.0;
-            double sum5 = 0.0;
+            CanteraDouble zsqdFdT = charge(i)*charge(i)*dFdT;
+            CanteraDouble sum1 = 0.0;
+            CanteraDouble sum2 = 0.0;
+            CanteraDouble sum3 = 0.0;
+            CanteraDouble sum4 = 0.0;
+            CanteraDouble sum5 = 0.0;
             for (size_t j = 1; j < m_kk; j++) {
                 // Find the counterIJ for the symmetric binary interaction
                 size_t n = m_kk*i + j;
@@ -2608,7 +2608,7 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dT() const
                             size_t jzeta = k;
                             size_t kzeta = i;
                             n = izeta * m_kk * m_kk + jzeta * m_kk + kzeta;
-                            double zeta_L = m_Psi_ijk_L[n];
+                            CanteraDouble zeta_L = m_Psi_ijk_L[n];
                             if (zeta_L != 0.0) {
                                 sum5 += molality[j]*molality[k]*zeta_L;
                             }
@@ -2625,8 +2625,8 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dT() const
         // equations agree with my notes,
         // Equations agree with Pitzer,
         if (charge(i) == 0.0) {
-            double sum1 = 0.0;
-            double sum3 = 0.0;
+            CanteraDouble sum1 = 0.0;
+            CanteraDouble sum3 = 0.0;
             for (size_t j = 1; j < m_kk; j++) {
                 sum1 += molality[j]*2.0*m_Lambda_nj_L(i,j);
                 // Zeta term -> we piggyback on the psi term
@@ -2639,27 +2639,27 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dT() const
                     }
                 }
             }
-            double sum2 = 3.0 * molality[i] * molality[i] * m_Mu_nnn_L[i];
+            CanteraDouble sum2 = 3.0 * molality[i] * molality[i] * m_Mu_nnn_L[i];
             m_dlnActCoeffMolaldT_Unscaled[i] = sum1 + sum2 + sum3;
             d_gamma_dT_Unscaled[i] = exp(m_dlnActCoeffMolaldT_Unscaled[i]);
         }
     }
 
     // ------ SUBSECTION FOR CALCULATING THE d OSMOTIC COEFF dT ---------
-    double sum1 = 0.0;
-    double sum2 = 0.0;
-    double sum3 = 0.0;
-    double sum4 = 0.0;
-    double sum5 = 0.0;
-    double sum6 = 0.0;
-    double sum7 = 0.0;
+    CanteraDouble sum1 = 0.0;
+    CanteraDouble sum2 = 0.0;
+    CanteraDouble sum3 = 0.0;
+    CanteraDouble sum4 = 0.0;
+    CanteraDouble sum5 = 0.0;
+    CanteraDouble sum6 = 0.0;
+    CanteraDouble sum7 = 0.0;
 
     // term1 is the temperature derivative of the DH term in the osmotic
     // coefficient expression
     // b = 1.2 sqrt(kg/gmol) <- arbitrarily set in all Pitzer implementations.
     // Is = Ionic strength on the molality scale (units of (gmol/kg))
     // Aphi = A_Debye / 3   (units of sqrt(kg/gmol))
-    double term1 = -dAphidT * Is * sqrt(Is) / (1.0 + 1.2 * sqrt(Is));
+    CanteraDouble term1 = -dAphidT * Is * sqrt(Is) / (1.0 + 1.2 * sqrt(Is));
 
     for (size_t j = 1; j < m_kk; j++) {
         // Loop Over Cations
@@ -2743,7 +2743,7 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dT() const
                         if (charge(m) > 0.0) {
                             size_t jzeta = m;
                             size_t n = k + jzeta * m_kk + izeta * m_kk * m_kk;
-                            double zeta_L = m_Psi_ijk_L[n];
+                            CanteraDouble zeta_L = m_Psi_ijk_L[n];
                             if (zeta_L != 0.0) {
                                 sum7 += molality[izeta]*molality[jzeta]*molality[k]*zeta_L;
                             }
@@ -2754,18 +2754,18 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dT() const
             sum7 += molality[j]*molality[j]*molality[j]*m_Mu_nnn_L[j];
         }
     }
-    double sum_m_phi_minus_1 = 2.0 *
+    CanteraDouble sum_m_phi_minus_1 = 2.0 *
                         (term1 + sum1 + sum2 + sum3 + sum4 + sum5 + sum6 + sum7);
     // Calculate the osmotic coefficient from
     //     osmotic_coeff = 1 + dGex/d(M0noRT) / sum(molality_i)
-    double d_osmotic_coef_dT;
+    CanteraDouble d_osmotic_coef_dT;
     if (molalitysum > 1.0E-150) {
         d_osmotic_coef_dT = 0.0 + (sum_m_phi_minus_1 / molalitysum);
     } else {
         d_osmotic_coef_dT = 0.0;
     }
 
-    double d_lnwateract_dT = -(m_weightSolvent/1000.0) * molalitysum * d_osmotic_coef_dT;
+    CanteraDouble d_lnwateract_dT = -(m_weightSolvent/1000.0) * molalitysum * d_osmotic_coef_dT;
 
     // In Cantera, we define the activity coefficient of the solvent as
     //
@@ -2806,21 +2806,21 @@ void HMWSoln::s_update_d2lnMolalityActCoeff_dT2() const
 
 void HMWSoln::s_updatePitzer_d2lnMolalityActCoeff_dT2() const
 {
-    const double* molality = m_molalitiesCropped.data();
+    const CanteraDouble* molality = m_molalitiesCropped.data();
 
     // Local variables defined by Coltrin
-    double etheta[5][5], etheta_prime[5][5], sqrtIs;
+    CanteraDouble etheta[5][5], etheta_prime[5][5], sqrtIs;
 
     // Molality based ionic strength of the solution
-    double Is = 0.0;
+    CanteraDouble Is = 0.0;
 
     // Molar charge of the solution: In Pitzer's notation, this is his variable
     // called "Z".
-    double molarcharge = 0.0;
+    CanteraDouble molarcharge = 0.0;
 
     // molalitysum is the sum of the molalities over all solutes, even those
     // with zero charge.
-    double molalitysum = 0.0;
+    CanteraDouble molalitysum = 0.0;
 
     // Make sure the counter variables are setup
     counterIJ_setup();
@@ -2863,7 +2863,7 @@ void HMWSoln::s_updatePitzer_d2lnMolalityActCoeff_dT2() const
             // Only loop over oppositely charge species
             if (charge(i)*charge(j) < 0) {
                 // x is a reduced function variable
-                double x1 = sqrtIs * m_Alpha1MX_ij[counterIJ];
+                CanteraDouble x1 = sqrtIs * m_Alpha1MX_ij[counterIJ];
                 if (x1 > 1.0E-100) {
                     m_gfunc_IJ[counterIJ] = 2.0*(1.0-(1.0 + x1) * exp(-x1)) / (x1 *x1);
                     m_hfunc_IJ[counterIJ] = -2.0*
@@ -2874,7 +2874,7 @@ void HMWSoln::s_updatePitzer_d2lnMolalityActCoeff_dT2() const
                 }
 
                 if (m_Beta2MX_ij_LL[counterIJ] != 0.0) {
-                    double x2 = sqrtIs * m_Alpha2MX_ij[counterIJ];
+                    CanteraDouble x2 = sqrtIs * m_Alpha2MX_ij[counterIJ];
                     if (x2 > 1.0E-100) {
                         m_g2func_IJ[counterIJ] = 2.0*(1.0-(1.0 + x2) * exp(-x2)) / (x2 * x2);
                         m_h2func_IJ[counterIJ] = -2.0 *
@@ -2961,8 +2961,8 @@ void HMWSoln::s_updatePitzer_d2lnMolalityActCoeff_dT2() const
     }
 
     // ----------- SUBSECTION FOR CALCULATION OF d2FdT2 ---------------------
-    double d2AphidT2 = d2A_DebyedT2_TP() / 3.0;
-    double d2FdT2 = -d2AphidT2 * (sqrt(Is) / (1.0 + 1.2*sqrt(Is))
+    CanteraDouble d2AphidT2 = d2A_DebyedT2_TP() / 3.0;
+    CanteraDouble d2FdT2 = -d2AphidT2 * (sqrt(Is) / (1.0 + 1.2*sqrt(Is))
                            + (2.0/1.2) * log(1.0+1.2*(sqrtIs)));
     for (size_t i = 1; i < m_kk-1; i++) {
         for (size_t j = i+1; j < m_kk; j++) {
@@ -2988,12 +2988,12 @@ void HMWSoln::s_updatePitzer_d2lnMolalityActCoeff_dT2() const
         // -------- SUBSECTION FOR CALCULATING THE dACTCOEFFdT FOR CATIONS -----
         if (charge(i) > 0) {
             // species i is the cation (positive) to calc the actcoeff
-            double zsqd2FdT2 = charge(i)*charge(i)*d2FdT2;
-            double sum1 = 0.0;
-            double sum2 = 0.0;
-            double sum3 = 0.0;
-            double sum4 = 0.0;
-            double sum5 = 0.0;
+            CanteraDouble zsqd2FdT2 = charge(i)*charge(i)*d2FdT2;
+            CanteraDouble sum1 = 0.0;
+            CanteraDouble sum2 = 0.0;
+            CanteraDouble sum3 = 0.0;
+            CanteraDouble sum4 = 0.0;
+            CanteraDouble sum5 = 0.0;
             for (size_t j = 1; j < m_kk; j++) {
                 // Find the counterIJ for the symmetric binary interaction
                 size_t n = m_kk*i + j;
@@ -3046,7 +3046,7 @@ void HMWSoln::s_updatePitzer_d2lnMolalityActCoeff_dT2() const
                             size_t izeta = j;
                             size_t jzeta = i;
                             n = izeta * m_kk * m_kk + jzeta * m_kk + k;
-                            double zeta_LL = m_Psi_ijk_LL[n];
+                            CanteraDouble zeta_LL = m_Psi_ijk_LL[n];
                             if (zeta_LL != 0.0) {
                                 sum5 += molality[j]*molality[k]*zeta_LL;
                             }
@@ -3063,12 +3063,12 @@ void HMWSoln::s_updatePitzer_d2lnMolalityActCoeff_dT2() const
         // ------ SUBSECTION FOR CALCULATING THE d2ACTCOEFFdT2 FOR ANIONS ------
         if (charge(i) < 0) {
             // species i is an anion (negative)
-            double zsqd2FdT2 = charge(i)*charge(i)*d2FdT2;
-            double sum1 = 0.0;
-            double sum2 = 0.0;
-            double sum3 = 0.0;
-            double sum4 = 0.0;
-            double sum5 = 0.0;
+            CanteraDouble zsqd2FdT2 = charge(i)*charge(i)*d2FdT2;
+            CanteraDouble sum1 = 0.0;
+            CanteraDouble sum2 = 0.0;
+            CanteraDouble sum3 = 0.0;
+            CanteraDouble sum4 = 0.0;
+            CanteraDouble sum5 = 0.0;
             for (size_t j = 1; j < m_kk; j++) {
                 // Find the counterIJ for the symmetric binary interaction
                 size_t n = m_kk*i + j;
@@ -3119,7 +3119,7 @@ void HMWSoln::s_updatePitzer_d2lnMolalityActCoeff_dT2() const
                             size_t jzeta = k;
                             size_t kzeta = i;
                             n = izeta * m_kk * m_kk + jzeta * m_kk + kzeta;
-                            double zeta_LL = m_Psi_ijk_LL[n];
+                            CanteraDouble zeta_LL = m_Psi_ijk_LL[n];
                             if (zeta_LL != 0.0) {
                                 sum5 += molality[j]*molality[k]*zeta_LL;
                             }
@@ -3135,8 +3135,8 @@ void HMWSoln::s_updatePitzer_d2lnMolalityActCoeff_dT2() const
         // equations agree with my notes,
         // Equations agree with Pitzer,
         if (charge(i) == 0.0) {
-            double sum1 = 0.0;
-            double sum3 = 0.0;
+            CanteraDouble sum1 = 0.0;
+            CanteraDouble sum3 = 0.0;
             for (size_t j = 1; j < m_kk; j++) {
                 sum1 += molality[j]*2.0*m_Lambda_nj_LL(i,j);
                 // Zeta term -> we piggyback on the psi term
@@ -3149,26 +3149,26 @@ void HMWSoln::s_updatePitzer_d2lnMolalityActCoeff_dT2() const
                     }
                 }
             }
-            double sum2 = 3.0 * molality[i] * molality[i] * m_Mu_nnn_LL[i];
+            CanteraDouble sum2 = 3.0 * molality[i] * molality[i] * m_Mu_nnn_LL[i];
             m_d2lnActCoeffMolaldT2_Unscaled[i] = sum1 + sum2 + sum3;
         }
     }
 
     // ------ SUBSECTION FOR CALCULATING THE d2 OSMOTIC COEFF dT2 ---------
-    double sum1 = 0.0;
-    double sum2 = 0.0;
-    double sum3 = 0.0;
-    double sum4 = 0.0;
-    double sum5 = 0.0;
-    double sum6 = 0.0;
-    double sum7 = 0.0;
+    CanteraDouble sum1 = 0.0;
+    CanteraDouble sum2 = 0.0;
+    CanteraDouble sum3 = 0.0;
+    CanteraDouble sum4 = 0.0;
+    CanteraDouble sum5 = 0.0;
+    CanteraDouble sum6 = 0.0;
+    CanteraDouble sum7 = 0.0;
 
     // term1 is the temperature derivative of the  DH term in the osmotic
     // coefficient expression
     // b = 1.2 sqrt(kg/gmol) <- arbitrarily set in all Pitzer implementations.
     // Is = Ionic strength on the molality scale (units of (gmol/kg))
     // Aphi = A_Debye / 3   (units of sqrt(kg/gmol))
-    double term1 = -d2AphidT2 * Is * sqrt(Is) / (1.0 + 1.2 * sqrt(Is));
+    CanteraDouble term1 = -d2AphidT2 * Is * sqrt(Is) / (1.0 + 1.2 * sqrt(Is));
 
     for (size_t j = 1; j < m_kk; j++) {
         // Loop Over Cations
@@ -3254,7 +3254,7 @@ void HMWSoln::s_updatePitzer_d2lnMolalityActCoeff_dT2() const
                         if (charge(m) > 0.0) {
                             size_t jzeta = m;
                             size_t n = k + jzeta * m_kk + izeta * m_kk * m_kk;
-                            double zeta_LL = m_Psi_ijk_LL[n];
+                            CanteraDouble zeta_LL = m_Psi_ijk_LL[n];
                             if (zeta_LL != 0.0) {
                                 sum7 += molality[izeta]*molality[jzeta]*molality[k]*zeta_LL;
                             }
@@ -3266,17 +3266,17 @@ void HMWSoln::s_updatePitzer_d2lnMolalityActCoeff_dT2() const
             sum7 += molality[j] * molality[j] * molality[j] * m_Mu_nnn_LL[j];
         }
     }
-    double sum_m_phi_minus_1 = 2.0 *
+    CanteraDouble sum_m_phi_minus_1 = 2.0 *
                         (term1 + sum1 + sum2 + sum3 + sum4 + sum5 + sum6 + sum7);
     // Calculate the osmotic coefficient from
     //     osmotic_coeff = 1 + dGex/d(M0noRT) / sum(molality_i)
-    double d2_osmotic_coef_dT2;
+    CanteraDouble d2_osmotic_coef_dT2;
     if (molalitysum > 1.0E-150) {
         d2_osmotic_coef_dT2 = 0.0 + (sum_m_phi_minus_1 / molalitysum);
     } else {
         d2_osmotic_coef_dT2 = 0.0;
     }
-    double d2_lnwateract_dT2 = -(m_weightSolvent/1000.0) * molalitysum * d2_osmotic_coef_dT2;
+    CanteraDouble d2_lnwateract_dT2 = -(m_weightSolvent/1000.0) * molalitysum * d2_osmotic_coef_dT2;
 
     // In Cantera, we define the activity coefficient of the solvent as
     //
@@ -3313,23 +3313,23 @@ void HMWSoln::s_update_dlnMolalityActCoeff_dP() const
 
 void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dP() const
 {
-    const double* molality = m_molalitiesCropped.data();
+    const CanteraDouble* molality = m_molalitiesCropped.data();
 
     // Local variables defined by Coltrin
-    double etheta[5][5], etheta_prime[5][5], sqrtIs;
+    CanteraDouble etheta[5][5], etheta_prime[5][5], sqrtIs;
 
     // Molality based ionic strength of the solution
-    double Is = 0.0;
+    CanteraDouble Is = 0.0;
 
     // Molar charge of the solution: In Pitzer's notation, this is his variable
     // called "Z".
-    double molarcharge = 0.0;
+    CanteraDouble molarcharge = 0.0;
 
     // molalitysum is the sum of the molalities over all solutes, even those
     // with zero charge.
-    double molalitysum = 0.0;
-    double currTemp = temperature();
-    double currPres = pressure();
+    CanteraDouble molalitysum = 0.0;
+    CanteraDouble currTemp = temperature();
+    CanteraDouble currPres = pressure();
 
     // Make sure the counter variables are setup
     counterIJ_setup();
@@ -3372,7 +3372,7 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dP() const
             // Only loop over oppositely charge species
             if (charge(i)*charge(j) < 0) {
                 // x is a reduced function variable
-                double x1 = sqrtIs * m_Alpha1MX_ij[counterIJ];
+                CanteraDouble x1 = sqrtIs * m_Alpha1MX_ij[counterIJ];
                 if (x1 > 1.0E-100) {
                     m_gfunc_IJ[counterIJ] = 2.0*(1.0-(1.0 + x1) * exp(-x1)) / (x1 * x1);
                     m_hfunc_IJ[counterIJ] = -2.0*
@@ -3383,7 +3383,7 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dP() const
                 }
 
                 if (m_Beta2MX_ij_P[counterIJ] != 0.0) {
-                    double x2 = sqrtIs * m_Alpha2MX_ij[counterIJ];
+                    CanteraDouble x2 = sqrtIs * m_Alpha2MX_ij[counterIJ];
                     if (x2 > 1.0E-100) {
                         m_g2func_IJ[counterIJ] = 2.0*(1.0-(1.0 + x2) * exp(-x2)) / (x2 * x2);
                         m_h2func_IJ[counterIJ] = -2.0 *
@@ -3470,9 +3470,9 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dP() const
     }
 
     // ----------- SUBSECTION FOR CALCULATION OF dFdT ---------------------
-    double dA_DebyedP = dA_DebyedP_TP(currTemp, currPres);
-    double dAphidP = dA_DebyedP /3.0;
-    double dFdP = -dAphidP * (sqrt(Is) / (1.0 + 1.2*sqrt(Is))
+    CanteraDouble dA_DebyedP = dA_DebyedP_TP(currTemp, currPres);
+    CanteraDouble dAphidP = dA_DebyedP /3.0;
+    CanteraDouble dFdP = -dAphidP * (sqrt(Is) / (1.0 + 1.2*sqrt(Is))
                        + (2.0/1.2) * log(1.0+1.2*(sqrtIs)));
     for (size_t i = 1; i < m_kk-1; i++) {
         for (size_t j = i+1; j < m_kk; j++) {
@@ -3498,12 +3498,12 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dP() const
         // -------- SUBSECTION FOR CALCULATING THE dACTCOEFFdP FOR CATIONS -----
         if (charge(i) > 0) {
             // species i is the cation (positive) to calc the actcoeff
-            double zsqdFdP = charge(i)*charge(i)*dFdP;
-            double sum1 = 0.0;
-            double sum2 = 0.0;
-            double sum3 = 0.0;
-            double sum4 = 0.0;
-            double sum5 = 0.0;
+            CanteraDouble zsqdFdP = charge(i)*charge(i)*dFdP;
+            CanteraDouble sum1 = 0.0;
+            CanteraDouble sum2 = 0.0;
+            CanteraDouble sum3 = 0.0;
+            CanteraDouble sum4 = 0.0;
+            CanteraDouble sum5 = 0.0;
             for (size_t j = 1; j < m_kk; j++) {
                 // Find the counterIJ for the symmetric binary interaction
                 size_t n = m_kk*i + j;
@@ -3556,7 +3556,7 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dP() const
                             size_t izeta = j;
                             size_t jzeta = i;
                             n = izeta * m_kk * m_kk + jzeta * m_kk + k;
-                            double zeta_P = m_Psi_ijk_P[n];
+                            CanteraDouble zeta_P = m_Psi_ijk_P[n];
                             if (zeta_P != 0.0) {
                                 sum5 += molality[j]*molality[k]*zeta_P;
                             }
@@ -3574,12 +3574,12 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dP() const
         // ------ SUBSECTION FOR CALCULATING THE dACTCOEFFdP FOR ANIONS ------
         if (charge(i) < 0) {
             // species i is an anion (negative)
-            double zsqdFdP = charge(i)*charge(i)*dFdP;
-            double sum1 = 0.0;
-            double sum2 = 0.0;
-            double sum3 = 0.0;
-            double sum4 = 0.0;
-            double sum5 = 0.0;
+            CanteraDouble zsqdFdP = charge(i)*charge(i)*dFdP;
+            CanteraDouble sum1 = 0.0;
+            CanteraDouble sum2 = 0.0;
+            CanteraDouble sum3 = 0.0;
+            CanteraDouble sum4 = 0.0;
+            CanteraDouble sum5 = 0.0;
             for (size_t j = 1; j < m_kk; j++) {
                 // Find the counterIJ for the symmetric binary interaction
                 size_t n = m_kk*i + j;
@@ -3630,7 +3630,7 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dP() const
                             size_t jzeta = k;
                             size_t kzeta = i;
                             n = izeta * m_kk * m_kk + jzeta * m_kk + kzeta;
-                            double zeta_P = m_Psi_ijk_P[n];
+                            CanteraDouble zeta_P = m_Psi_ijk_P[n];
                             if (zeta_P != 0.0) {
                                 sum5 += molality[j]*molality[k]*zeta_P;
                             }
@@ -3644,8 +3644,8 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dP() const
 
         // ------ SUBSECTION FOR CALCULATING d NEUTRAL SOLUTE ACT COEFF dP -----
         if (charge(i) == 0.0) {
-            double sum1 = 0.0;
-            double sum3 = 0.0;
+            CanteraDouble sum1 = 0.0;
+            CanteraDouble sum3 = 0.0;
             for (size_t j = 1; j < m_kk; j++) {
                 sum1 += molality[j]*2.0*m_Lambda_nj_P(i,j);
                 // Zeta term -> we piggyback on the psi term
@@ -3658,26 +3658,26 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dP() const
                     }
                 }
             }
-            double sum2 = 3.0 * molality[i] * molality[i] * m_Mu_nnn_P[i];
+            CanteraDouble sum2 = 3.0 * molality[i] * molality[i] * m_Mu_nnn_P[i];
             m_dlnActCoeffMolaldP_Unscaled[i] = sum1 + sum2 + sum3;
         }
     }
 
     // ------ SUBSECTION FOR CALCULATING THE d OSMOTIC COEFF dP ---------
-    double sum1 = 0.0;
-    double sum2 = 0.0;
-    double sum3 = 0.0;
-    double sum4 = 0.0;
-    double sum5 = 0.0;
-    double sum6 = 0.0;
-    double sum7 = 0.0;
+    CanteraDouble sum1 = 0.0;
+    CanteraDouble sum2 = 0.0;
+    CanteraDouble sum3 = 0.0;
+    CanteraDouble sum4 = 0.0;
+    CanteraDouble sum5 = 0.0;
+    CanteraDouble sum6 = 0.0;
+    CanteraDouble sum7 = 0.0;
 
     // term1 is the temperature derivative of the DH term in the osmotic
     // coefficient expression
     // b = 1.2 sqrt(kg/gmol) <- arbitrarily set in all Pitzer implementations.
     // Is = Ionic strength on the molality scale (units of (gmol/kg))
     // Aphi = A_Debye / 3   (units of sqrt(kg/gmol))
-    double term1 = -dAphidP * Is * sqrt(Is) / (1.0 + 1.2 * sqrt(Is));
+    CanteraDouble term1 = -dAphidP * Is * sqrt(Is) / (1.0 + 1.2 * sqrt(Is));
 
     for (size_t j = 1; j < m_kk; j++) {
         // Loop Over Cations
@@ -3762,7 +3762,7 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dP() const
                         if (charge(m) > 0.0) {
                             size_t jzeta = m;
                             size_t n = k + jzeta * m_kk + izeta * m_kk * m_kk;
-                            double zeta_P = m_Psi_ijk_P[n];
+                            CanteraDouble zeta_P = m_Psi_ijk_P[n];
                             if (zeta_P != 0.0) {
                                 sum7 += molality[izeta]*molality[jzeta]*molality[k]*zeta_P;
                             }
@@ -3774,18 +3774,18 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dP() const
             sum7 += molality[j] * molality[j] * molality[j] * m_Mu_nnn_P[j];
         }
     }
-    double sum_m_phi_minus_1 = 2.0 *
+    CanteraDouble sum_m_phi_minus_1 = 2.0 *
                         (term1 + sum1 + sum2 + sum3 + sum4 + sum5 + sum6 + sum7);
 
     // Calculate the osmotic coefficient from
     //     osmotic_coeff = 1 + dGex/d(M0noRT) / sum(molality_i)
-    double d_osmotic_coef_dP;
+    CanteraDouble d_osmotic_coef_dP;
     if (molalitysum > 1.0E-150) {
         d_osmotic_coef_dP = 0.0 + (sum_m_phi_minus_1 / molalitysum);
     } else {
         d_osmotic_coef_dP = 0.0;
     }
-    double d_lnwateract_dP = -(m_weightSolvent/1000.0) * molalitysum * d_osmotic_coef_dP;
+    CanteraDouble d_lnwateract_dP = -(m_weightSolvent/1000.0) * molalitysum * d_osmotic_coef_dP;
 
     // In Cantera, we define the activity coefficient of the solvent as
     //
@@ -3796,7 +3796,7 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dP() const
     m_dlnActCoeffMolaldP_Unscaled[0] = d_lnwateract_dP;
 }
 
-void HMWSoln::calc_lambdas(double is) const
+void HMWSoln::calc_lambdas(CanteraDouble is) const
 {
     if( m_last_is == is ) {
       return;
@@ -3805,8 +3805,8 @@ void HMWSoln::calc_lambdas(double is) const
 
     // Coefficients c1-c4 are used to approximate the integral function "J";
     // aphi is the Debye-Huckel constant at 25 C
-    double c1 = 4.581, c2 = 0.7237, c3 = 0.0120, c4 = 0.528;
-    double aphi = 0.392; /* Value at 25 C */
+    CanteraDouble c1 = 4.581, c2 = 0.7237, c3 = 0.0120, c4 = 0.528;
+    CanteraDouble aphi = 0.392; /* Value at 25 C */
     if (is < 1.0E-150) {
         for (int i = 0; i < 17; i++) {
             elambda[i] = 0.0;
@@ -3822,16 +3822,16 @@ void HMWSoln::calc_lambdas(double is) const
             int ij = i*j;
 
             // calculate the product of the charges
-            double zprod = (double)ij;
+            CanteraDouble zprod = (CanteraDouble)ij;
 
             // calculate Xmn (A1) from Harvie, Weare (1980).
-            double x = 6.0* zprod * aphi * sqrt(is); // eqn 23
+            CanteraDouble x = 6.0* zprod * aphi * sqrt(is); // eqn 23
 
-            double jfunc = x / (4.0 + c1*pow(x,-c2)*exp(-c3*pow(x,c4))); // eqn 47
+            CanteraDouble jfunc = x / (4.0 + c1*pow(x,-c2)*exp(-c3*pow(x,c4))); // eqn 47
 
-            double t = c3 * c4 * pow(x,c4);
-            double dj = c1* pow(x,(-c2-1.0)) * (c2+t) * exp(-c3*pow(x,c4));
-            double jprime = (jfunc/x)*(1.0 + jfunc*dj);
+            CanteraDouble t = c3 * c4 * pow(x,c4);
+            CanteraDouble dj = c1* pow(x,(-c2-1.0)) * (c2+t) * exp(-c3*pow(x,c4));
+            CanteraDouble jprime = (jfunc/x)*(1.0 + jfunc*dj);
 
             elambda[ij] = zprod*jfunc / (4.0*is); // eqn 14
             elambda1[ij] = (3.0*zprod*zprod*aphi*jprime/(4.0*sqrt(is))
@@ -3841,7 +3841,7 @@ void HMWSoln::calc_lambdas(double is) const
 }
 
 void HMWSoln::calc_thetas(int z1, int z2,
-                          double& etheta, double& etheta_prime) const
+                          CanteraDouble& etheta, CanteraDouble& etheta_prime) const
 {
     // Calculate E-theta(i) and E-theta'(I) using method of Pitzer (1987)
     int i = abs(z1);
@@ -3859,8 +3859,8 @@ void HMWSoln::calc_thetas(int z1, int z2,
         etheta_prime = 0.0;
     } else {
         // Actually calculate the interaction.
-        double f1 = (double)i / (2.0 * j);
-        double f2 = (double)j / (2.0 * i);
+        CanteraDouble f1 = (CanteraDouble)i / (2.0 * j);
+        CanteraDouble f2 = (CanteraDouble)j / (2.0 * i);
         etheta = elambda[i*j] - f1*elambda[j*j] - f2*elambda[i*i];
         etheta_prime = elambda1[i*j] - f1*elambda1[j*j] - f2*elambda1[i*i];
     }
@@ -3871,8 +3871,8 @@ void HMWSoln::s_updateIMS_lnMolalityActCoeff() const
     // Calculate the molalities. Currently, the molalities may not be current
     // with respect to the contents of the State objects' data.
     calcMolalities();
-    double xmolSolvent = moleFraction(0);
-    double xx = std::max(m_xmolSolventMIN, xmolSolvent);
+    CanteraDouble xmolSolvent = moleFraction(0);
+    CanteraDouble xx = std::max(m_xmolSolventMIN, xmolSolvent);
     // Exponentials - trial 2
     if (xmolSolvent > IMS_X_o_cutoff_) {
         for (size_t k = 1; k < m_kk; k++) {
@@ -3881,24 +3881,24 @@ void HMWSoln::s_updateIMS_lnMolalityActCoeff() const
         IMS_lnActCoeffMolal_[0] = - log(xx) + (xx - 1.0)/xx;
         return;
     } else {
-        double xoverc = xmolSolvent/IMS_cCut_;
-        double eterm = std::exp(-xoverc);
+        CanteraDouble xoverc = xmolSolvent/IMS_cCut_;
+        CanteraDouble eterm = std::exp(-xoverc);
 
-        double fptmp = IMS_bfCut_ - IMS_afCut_ / IMS_cCut_ - IMS_bfCut_*xoverc
+        CanteraDouble fptmp = IMS_bfCut_ - IMS_afCut_ / IMS_cCut_ - IMS_bfCut_*xoverc
                        + 2.0*IMS_dfCut_*xmolSolvent - IMS_dfCut_*xmolSolvent*xoverc;
-        double f_prime = 1.0 + eterm*fptmp;
-        double f = xmolSolvent + IMS_efCut_
+        CanteraDouble f_prime = 1.0 + eterm*fptmp;
+        CanteraDouble f = xmolSolvent + IMS_efCut_
                    + eterm * (IMS_afCut_ + xmolSolvent * (IMS_bfCut_ + IMS_dfCut_*xmolSolvent));
 
-        double gptmp = IMS_bgCut_ - IMS_agCut_ / IMS_cCut_ - IMS_bgCut_*xoverc
+        CanteraDouble gptmp = IMS_bgCut_ - IMS_agCut_ / IMS_cCut_ - IMS_bgCut_*xoverc
                        + 2.0*IMS_dgCut_*xmolSolvent - IMS_dgCut_*xmolSolvent*xoverc;
-        double g_prime = 1.0 + eterm*gptmp;
-        double g = xmolSolvent + IMS_egCut_
+        CanteraDouble g_prime = 1.0 + eterm*gptmp;
+        CanteraDouble g = xmolSolvent + IMS_egCut_
                    + eterm * (IMS_agCut_ + xmolSolvent * (IMS_bgCut_ + IMS_dgCut_*xmolSolvent));
 
-        double tmp = (xmolSolvent / g * g_prime + (1.0 - xmolSolvent) / f * f_prime);
-        double lngammak = -1.0 - log(f) + tmp * xmolSolvent;
-        double lngammao =-log(g) - tmp * (1.0-xmolSolvent);
+        CanteraDouble tmp = (xmolSolvent / g * g_prime + (1.0 - xmolSolvent) / f * f_prime);
+        CanteraDouble lngammak = -1.0 - log(f) + tmp * xmolSolvent;
+        CanteraDouble lngammao =-log(g) - tmp * (1.0-xmolSolvent);
 
         tmp = log(xx) + lngammak;
         for (size_t k = 1; k < m_kk; k++) {
@@ -3912,7 +3912,7 @@ void HMWSoln::s_updateIMS_lnMolalityActCoeff() const
 void HMWSoln::printCoeffs() const
 {
     calcMolalities();
-    vector<double>& moleF = m_workS;
+    vector<CanteraDouble>& moleF = m_workS;
 
     // Update the coefficients wrt Temperature. Calculate the derivatives as well
     s_updatePitzer_CoeffWRTemp(2);
@@ -3953,16 +3953,16 @@ void HMWSoln::printCoeffs() const
     }
 }
 
-void HMWSoln::applyphScale(span<double> acMolality) const
+void HMWSoln::applyphScale(span<CanteraDouble> acMolality) const
 {
     checkArraySize("HMWSoln::applyphScale", acMolality.size(), m_kk);
     if (m_pHScalingType == PHSCALE_PITZER) {
         return;
     }
     AssertTrace(m_pHScalingType == PHSCALE_NBS);
-    double lnGammaClMs2 = s_NBS_CLM_lnMolalityActCoeff();
-    double lnGammaCLMs1 = m_lnActCoeffMolal_Unscaled[m_indexCLM];
-    double afac = -1.0 *(lnGammaClMs2 - lnGammaCLMs1);
+    CanteraDouble lnGammaClMs2 = s_NBS_CLM_lnMolalityActCoeff();
+    CanteraDouble lnGammaCLMs1 = m_lnActCoeffMolal_Unscaled[m_indexCLM];
+    CanteraDouble afac = -1.0 *(lnGammaClMs2 - lnGammaCLMs1);
     for (size_t k = 0; k < m_kk; k++) {
         acMolality[k] *= exp(charge(k) * afac);
     }
@@ -3975,9 +3975,9 @@ void HMWSoln::s_updateScaling_pHScaling() const
         return;
     }
     AssertTrace(m_pHScalingType == PHSCALE_NBS);
-    double lnGammaClMs2 = s_NBS_CLM_lnMolalityActCoeff();
-    double lnGammaCLMs1 = m_lnActCoeffMolal_Unscaled[m_indexCLM];
-    double afac = -1.0 *(lnGammaClMs2 - lnGammaCLMs1);
+    CanteraDouble lnGammaClMs2 = s_NBS_CLM_lnMolalityActCoeff();
+    CanteraDouble lnGammaCLMs1 = m_lnActCoeffMolal_Unscaled[m_indexCLM];
+    CanteraDouble afac = -1.0 *(lnGammaClMs2 - lnGammaCLMs1);
     for (size_t k = 0; k < m_kk; k++) {
         m_lnActCoeffMolal_Scaled[k] = m_lnActCoeffMolal_Unscaled[k] + charge(k) * afac;
     }
@@ -3990,9 +3990,9 @@ void HMWSoln::s_updateScaling_pHScaling_dT() const
         return;
     }
     AssertTrace(m_pHScalingType == PHSCALE_NBS);
-    double dlnGammaClM_dT_s2 = s_NBS_CLM_dlnMolalityActCoeff_dT();
-    double dlnGammaCLM_dT_s1 = m_dlnActCoeffMolaldT_Unscaled[m_indexCLM];
-    double afac = -1.0 *(dlnGammaClM_dT_s2 - dlnGammaCLM_dT_s1);
+    CanteraDouble dlnGammaClM_dT_s2 = s_NBS_CLM_dlnMolalityActCoeff_dT();
+    CanteraDouble dlnGammaCLM_dT_s1 = m_dlnActCoeffMolaldT_Unscaled[m_indexCLM];
+    CanteraDouble afac = -1.0 *(dlnGammaClM_dT_s2 - dlnGammaCLM_dT_s1);
     for (size_t k = 0; k < m_kk; k++) {
         m_dlnActCoeffMolaldT_Scaled[k] = m_dlnActCoeffMolaldT_Unscaled[k] + charge(k) * afac;
     }
@@ -4005,9 +4005,9 @@ void HMWSoln::s_updateScaling_pHScaling_dT2() const
         return;
     }
     AssertTrace(m_pHScalingType == PHSCALE_NBS);
-    double d2lnGammaClM_dT2_s2 = s_NBS_CLM_d2lnMolalityActCoeff_dT2();
-    double d2lnGammaCLM_dT2_s1 = m_d2lnActCoeffMolaldT2_Unscaled[m_indexCLM];
-    double afac = -1.0 *(d2lnGammaClM_dT2_s2 - d2lnGammaCLM_dT2_s1);
+    CanteraDouble d2lnGammaClM_dT2_s2 = s_NBS_CLM_d2lnMolalityActCoeff_dT2();
+    CanteraDouble d2lnGammaCLM_dT2_s1 = m_d2lnActCoeffMolaldT2_Unscaled[m_indexCLM];
+    CanteraDouble afac = -1.0 *(d2lnGammaClM_dT2_s2 - d2lnGammaCLM_dT2_s1);
     for (size_t k = 0; k < m_kk; k++) {
         m_d2lnActCoeffMolaldT2_Scaled[k] = m_d2lnActCoeffMolaldT2_Unscaled[k] + charge(k) * afac;
     }
@@ -4020,40 +4020,40 @@ void HMWSoln::s_updateScaling_pHScaling_dP() const
         return;
     }
     AssertTrace(m_pHScalingType == PHSCALE_NBS);
-    double dlnGammaClM_dP_s2 = s_NBS_CLM_dlnMolalityActCoeff_dP();
-    double dlnGammaCLM_dP_s1 = m_dlnActCoeffMolaldP_Unscaled[m_indexCLM];
-    double afac = -1.0 *(dlnGammaClM_dP_s2 - dlnGammaCLM_dP_s1);
+    CanteraDouble dlnGammaClM_dP_s2 = s_NBS_CLM_dlnMolalityActCoeff_dP();
+    CanteraDouble dlnGammaCLM_dP_s1 = m_dlnActCoeffMolaldP_Unscaled[m_indexCLM];
+    CanteraDouble afac = -1.0 *(dlnGammaClM_dP_s2 - dlnGammaCLM_dP_s1);
     for (size_t k = 0; k < m_kk; k++) {
         m_dlnActCoeffMolaldP_Scaled[k] = m_dlnActCoeffMolaldP_Unscaled[k] + charge(k) * afac;
     }
 }
 
-double HMWSoln::s_NBS_CLM_lnMolalityActCoeff() const
+CanteraDouble HMWSoln::s_NBS_CLM_lnMolalityActCoeff() const
 {
-    double sqrtIs = sqrt(m_IionicMolality);
-    double A = A_Debye_TP();
-    double lnGammaClMs2 = - A * sqrtIs /(1.0 + 1.5 * sqrtIs);
+    CanteraDouble sqrtIs = sqrt(m_IionicMolality);
+    CanteraDouble A = A_Debye_TP();
+    CanteraDouble lnGammaClMs2 = - A * sqrtIs /(1.0 + 1.5 * sqrtIs);
     return lnGammaClMs2;
 }
 
-double HMWSoln::s_NBS_CLM_dlnMolalityActCoeff_dT() const
+CanteraDouble HMWSoln::s_NBS_CLM_dlnMolalityActCoeff_dT() const
 {
-    double sqrtIs = sqrt(m_IionicMolality);
-    double dAdT = dA_DebyedT_TP();
+    CanteraDouble sqrtIs = sqrt(m_IionicMolality);
+    CanteraDouble dAdT = dA_DebyedT_TP();
     return - dAdT * sqrtIs /(1.0 + 1.5 * sqrtIs);
 }
 
-double HMWSoln::s_NBS_CLM_d2lnMolalityActCoeff_dT2() const
+CanteraDouble HMWSoln::s_NBS_CLM_d2lnMolalityActCoeff_dT2() const
 {
-    double sqrtIs = sqrt(m_IionicMolality);
-    double d2AdT2 = d2A_DebyedT2_TP();
+    CanteraDouble sqrtIs = sqrt(m_IionicMolality);
+    CanteraDouble d2AdT2 = d2A_DebyedT2_TP();
     return - d2AdT2 * sqrtIs /(1.0 + 1.5 * sqrtIs);
 }
 
-double HMWSoln::s_NBS_CLM_dlnMolalityActCoeff_dP() const
+CanteraDouble HMWSoln::s_NBS_CLM_dlnMolalityActCoeff_dP() const
 {
-    double sqrtIs = sqrt(m_IionicMolality);
-    double dAdP = dA_DebyedP_TP();
+    CanteraDouble sqrtIs = sqrt(m_IionicMolality);
+    CanteraDouble dAdP = dA_DebyedP_TP();
     return - dAdP * sqrtIs /(1.0 + 1.5 * sqrtIs);
 }
 

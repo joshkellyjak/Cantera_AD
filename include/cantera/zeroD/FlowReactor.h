@@ -32,47 +32,47 @@ public:
     }
 
     //! Not implemented; FlowReactor implements getStateDae() instead.
-    void getState(span<double> y) override {
+    void getState(span<CanteraDouble> y) override {
         throw NotImplementedError("FlowReactor::getState");
     }
 
-    void getStateDae(span<double> y, span<double> ydot) override;
-    void updateState(span<const double> y) override;
+    void getStateDae(span<CanteraDouble> y, span<CanteraDouble> ydot) override;
+    void updateState(span<const CanteraDouble> y) override;
 
     //! Not implemented; FlowReactor implements evalDae() instead.
-    void eval(double t, span<double> LHS, span<double> RHS) override {
+    void eval(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS) override {
         throw NotImplementedError("FlowReactor::eval");
     }
 
-    void evalDae(double t, span<const double> y, span<const double> ydot,
-                 span<double> residual) override;
+    void evalDae(CanteraDouble t, span<const CanteraDouble> y, span<const CanteraDouble> ydot,
+                 span<CanteraDouble> residual) override;
 
-    void getConstraints(span<double> constraints) override;
+    void getConstraints(span<CanteraDouble> constraints) override;
     vector<size_t> initializeSteady() override {
         throw CanteraError("FlowReactor::initializeSteady",
             "FlowReactor is not compatible with time-dependent steady-state solver.");
     }
 
     //! Mass flow rate through the reactor [kg/s]
-    double massFlowRate() {
+    CanteraDouble massFlowRate() {
         return m_u * m_rho * m_area;
     }
 
     //! Set the mass flow rate through the reactor [kg/s]
-    void setMassFlowRate(double mdot);
+    void setMassFlowRate(CanteraDouble mdot);
 
     //! The current gas speed in the reactor [m/s]
-    double speed() const {
+    CanteraDouble speed() const {
         return m_u;
     }
 
     //! The cross-sectional area of the reactor [m²]
-    double area() const override {
+    CanteraDouble area() const override {
         return m_area;
     }
 
     //! Sets the area of the reactor [m²]
-    void setArea(double area) override;
+    void setArea(CanteraDouble area) override;
 
     //! Return the index in the solution vector for this reactor of the component named
     //! *nm*. Possible values for *nm* are "density", "speed", "pressure",
@@ -83,15 +83,15 @@ public:
 
 protected:
     //! Density [kg/m^3]. First component of the state vector.
-    double m_rho = NAN;
+    CanteraDouble m_rho = NAN;
     //! Axial velocity [m/s]. Second component of the state vector.
-    double m_u = -1.0;
+    CanteraDouble m_u = -1.0;
     //! offset to the species equations
     const size_t m_offset_Y = 4;
     //! reactor area [m^2]
-    double m_area = 1.0;
+    CanteraDouble m_area = 1.0;
     //! temporary storage for species partial molar enthalpies
-    vector<double> m_hk;
+    vector<CanteraDouble> m_hk;
 };
 
 }

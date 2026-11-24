@@ -35,7 +35,7 @@ int VPStandardStateTP::standardStateConvention() const
 
 // ----- Thermodynamic Values for the Species Standard States States ----
 
-void VPStandardStateTP::getStandardChemPotentials(span<double> g) const
+void VPStandardStateTP::getStandardChemPotentials(span<CanteraDouble> g) const
 {
     getGibbs_RT(g);
     for (size_t k = 0; k < m_kk; k++) {
@@ -43,28 +43,28 @@ void VPStandardStateTP::getStandardChemPotentials(span<double> g) const
     }
 }
 
-void VPStandardStateTP::getEnthalpy_RT(span<double> hrt) const
+void VPStandardStateTP::getEnthalpy_RT(span<CanteraDouble> hrt) const
 {
     checkArraySize("VPStandardStateTP::getEnthalpy_RT", hrt.size(), m_kk);
     updateStandardStateThermo();
     std::copy(m_hss_RT.begin(), m_hss_RT.end(), hrt.begin());
 }
 
-void VPStandardStateTP::getEntropy_R(span<double> sr) const
+void VPStandardStateTP::getEntropy_R(span<CanteraDouble> sr) const
 {
     checkArraySize("VPStandardStateTP::getEntropy_R", sr.size(), m_kk);
     updateStandardStateThermo();
     std::copy(m_sss_R.begin(), m_sss_R.end(), sr.begin());
 }
 
-void VPStandardStateTP::getGibbs_RT(span<double> grt) const
+void VPStandardStateTP::getGibbs_RT(span<CanteraDouble> grt) const
 {
     checkArraySize("VPStandardStateTP::getGibbs_RT", grt.size(), m_kk);
     updateStandardStateThermo();
     std::copy(m_gss_RT.begin(), m_gss_RT.end(), grt.begin());
 }
 
-void VPStandardStateTP::getIntEnergy_RT(span<double> urt) const
+void VPStandardStateTP::getIntEnergy_RT(span<CanteraDouble> urt) const
 {
     checkArraySize("VPStandardStateTP::getIntEnergy_RT", urt.size(), m_kk);
     updateStandardStateThermo();
@@ -74,20 +74,20 @@ void VPStandardStateTP::getIntEnergy_RT(span<double> urt) const
     }
 }
 
-void VPStandardStateTP::getCp_R(span<double> cpr) const
+void VPStandardStateTP::getCp_R(span<CanteraDouble> cpr) const
 {
     checkArraySize("VPStandardStateTP::getCp_R", cpr.size(), m_kk);
     updateStandardStateThermo();
     std::copy(m_cpss_R.begin(), m_cpss_R.end(), cpr.begin());
 }
 
-void VPStandardStateTP::getStandardVolumes(span<double> vol) const
+void VPStandardStateTP::getStandardVolumes(span<CanteraDouble> vol) const
 {
     checkArraySize("VPStandardStateTP::getStandardVolumes", vol.size(), m_kk);
     updateStandardStateThermo();
     std::copy(m_Vss.begin(), m_Vss.end(), vol.begin());
 }
-span<const double> VPStandardStateTP::getStandardVolumes() const
+span<const CanteraDouble> VPStandardStateTP::getStandardVolumes() const
 {
     updateStandardStateThermo();
     return m_Vss;
@@ -95,21 +95,21 @@ span<const double> VPStandardStateTP::getStandardVolumes() const
 
 // ----- Thermodynamic Values for the Species Reference States ----
 
-void VPStandardStateTP::getEnthalpy_RT_ref(span<double> hrt) const
+void VPStandardStateTP::getEnthalpy_RT_ref(span<CanteraDouble> hrt) const
 {
     checkArraySize("VPStandardStateTP::getEnthalpy_RT_ref", hrt.size(), m_kk);
     updateStandardStateThermo();
     std::copy(m_h0_RT.begin(), m_h0_RT.end(), hrt.begin());
 }
 
-void VPStandardStateTP::getGibbs_RT_ref(span<double> grt) const
+void VPStandardStateTP::getGibbs_RT_ref(span<CanteraDouble> grt) const
 {
     checkArraySize("VPStandardStateTP::getGibbs_RT_ref", grt.size(), m_kk);
     updateStandardStateThermo();
     std::copy(m_g0_RT.begin(), m_g0_RT.end(), grt.begin());
 }
 
-void VPStandardStateTP::getGibbs_ref(span<double> g) const
+void VPStandardStateTP::getGibbs_ref(span<CanteraDouble> g) const
 {
     checkArraySize("VPStandardStateTP::getGibbs_ref", g.size(), m_kk);
     updateStandardStateThermo();
@@ -117,21 +117,21 @@ void VPStandardStateTP::getGibbs_ref(span<double> g) const
     scale(g.begin(), g.end(), g.begin(), RT());
 }
 
-void VPStandardStateTP::getEntropy_R_ref(span<double> sr) const
+void VPStandardStateTP::getEntropy_R_ref(span<CanteraDouble> sr) const
 {
     checkArraySize("VPStandardStateTP::getEntropy_R_ref", sr.size(), m_kk);
     updateStandardStateThermo();
     std::copy(m_s0_R.begin(), m_s0_R.end(), sr.begin());
 }
 
-void VPStandardStateTP::getCp_R_ref(span<double> cpr) const
+void VPStandardStateTP::getCp_R_ref(span<CanteraDouble> cpr) const
 {
     checkArraySize("VPStandardStateTP::getCp_R_ref", cpr.size(), m_kk);
     updateStandardStateThermo();
     std::copy(m_cp0_R.begin(), m_cp0_R.end(), cpr.begin());
 }
 
-void VPStandardStateTP::getStandardVolumes_ref(span<double> vol) const
+void VPStandardStateTP::getStandardVolumes_ref(span<CanteraDouble> vol) const
 {
     checkArraySize("VPStandardStateTP::getStandardVolumes_ref", vol.size(), m_kk);
     updateStandardStateThermo();
@@ -184,13 +184,13 @@ bool VPStandardStateTP::addSpecies(shared_ptr<Species> spec)
     return true;
 }
 
-void VPStandardStateTP::setTemperature(const double temp)
+void VPStandardStateTP::setTemperature(const CanteraDouble temp)
 {
     setState_TP(temp, m_Pcurrent);
     updateStandardStateThermo();
 }
 
-void VPStandardStateTP::setPressure(double p)
+void VPStandardStateTP::setPressure(CanteraDouble p)
 {
     setState_TP(temperature(), p);
     updateStandardStateThermo();
@@ -199,11 +199,11 @@ void VPStandardStateTP::setPressure(double p)
 void VPStandardStateTP::calcDensity()
 {
     getPartialMolarVolumes(m_workS);
-    double dd = meanMolecularWeight() / mean_X(m_workS);
+    CanteraDouble dd = meanMolecularWeight() / mean_X(m_workS);
     Phase::assignDensity(dd);
 }
 
-void VPStandardStateTP::setState_TP(double t, double pres)
+void VPStandardStateTP::setState_TP(CanteraDouble t, CanteraDouble pres)
 {
     if (pres < 0) {
         throw CanteraError("VPStandardStateTP::setState_TP",
@@ -263,7 +263,7 @@ void VPStandardStateTP::invalidateCache()
 
 void VPStandardStateTP::_updateStandardStateThermo() const
 {
-    double Tnow = temperature();
+    CanteraDouble Tnow = temperature();
     for (size_t k = 0; k < m_kk; k++) {
         PDSS* kPDSS = m_PDSS_storage[k].get();
         kPDSS->setState_TP(Tnow, m_Pcurrent);
@@ -289,13 +289,13 @@ void VPStandardStateTP::_updateStandardStateThermo() const
 
 void VPStandardStateTP::updateStandardStateThermo() const
 {
-    double Tnow = temperature();
+    CanteraDouble Tnow = temperature();
     if (Tnow != m_Tlast_ss || Tnow != m_tlast || m_Pcurrent != m_Plast_ss) {
         _updateStandardStateThermo();
     }
 }
 
-double VPStandardStateTP::minTemp(size_t k) const
+CanteraDouble VPStandardStateTP::minTemp(size_t k) const
 {
     if (k == npos) {
         return m_minTemp;
@@ -304,7 +304,7 @@ double VPStandardStateTP::minTemp(size_t k) const
     }
 }
 
-double VPStandardStateTP::maxTemp(size_t k) const
+CanteraDouble VPStandardStateTP::maxTemp(size_t k) const
 {
     if (k == npos) {
         return m_maxTemp;

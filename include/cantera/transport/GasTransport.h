@@ -42,17 +42,17 @@ public:
      * @f]
      * @see updateViscosity_T()
      */
-    double viscosity() override;
+    CanteraDouble viscosity() override;
 
     //! Get the pure-species viscosities [Pa·s]
-    void getSpeciesViscosities(span<double> visc) override {
+    void getSpeciesViscosities(span<CanteraDouble> visc) override {
         checkArraySize("GasTransport::getSpeciesViscosities", visc.size(), m_nsp);
         update_T();
         updateViscosity_T();
         std::copy(m_visc.begin(), m_visc.end(), visc.begin());
     }
 
-    void getBinaryDiffCoeffs(const size_t ld, span<double> d) override;
+    void getBinaryDiffCoeffs(const size_t ld, span<CanteraDouble> d) override;
 
     //! Returns the Mixture-averaged diffusion coefficients [m²/s].
     /*!
@@ -73,7 +73,7 @@ public:
      * @param[out] d  Vector of mixture diffusion coefficients, @f$ D_{km}' @f$ ,
      *     for each species; length is the number of species.
      */
-    void getMixDiffCoeffs(span<double> d) override;
+    void getMixDiffCoeffs(span<CanteraDouble> d) override;
 
     //! Returns the mixture-averaged diffusion coefficients [m²/s].
     //! These are the coefficients for calculating the molar diffusive fluxes
@@ -84,7 +84,7 @@ public:
     //!
     //! @param[out] d vector of mixture-averaged diffusion coefficients for
     //!     each species, length #m_nsp.
-    void getMixDiffCoeffsMole(span<double> d) override;
+    void getMixDiffCoeffsMole(span<CanteraDouble> d) override;
 
     //! Returns the mixture-averaged diffusion coefficients [m²/s].
     /*!
@@ -100,43 +100,43 @@ public:
      * @param[out] d vector of mixture-averaged diffusion coefficients for
      *     each species, length #m_nsp.
      */
-    void getMixDiffCoeffsMass(span<double> d) override;
+    void getMixDiffCoeffsMass(span<CanteraDouble> d) override;
 
     //! Return the polynomial fits to the viscosity of species `i`.
     //! @see fitProperties()
-    void getViscosityPolynomial(size_t i, span<double> coeffs) const override;
+    void getViscosityPolynomial(size_t i, span<CanteraDouble> coeffs) const override;
 
     //! Return the temperature fits of the heat conductivity of species `i`.
     //! @see fitProperties()
-    void getConductivityPolynomial(size_t i, span<double> coeffs) const override;
+    void getConductivityPolynomial(size_t i, span<CanteraDouble> coeffs) const override;
 
     //! Return the polynomial fits to the binary diffusivity of species pair (i, j)
     //! @see fitDiffCoeffs()
-    void getBinDiffusivityPolynomial(size_t i, size_t j, span<double> coeffs) const override;
+    void getBinDiffusivityPolynomial(size_t i, size_t j, span<CanteraDouble> coeffs) const override;
 
     //! Return the polynomial fits to the collision integral of species pair (i, j)
     //! @see fitCollisionIntegrals()
     void getCollisionIntegralPolynomial(size_t i, size_t j,
-                                        span<double> astar_coeffs,
-                                        span<double> bstar_coeffs,
-                                        span<double> cstar_coeffs) const override;
+                                        span<CanteraDouble> astar_coeffs,
+                                        span<CanteraDouble> bstar_coeffs,
+                                        span<CanteraDouble> cstar_coeffs) const override;
 
     //! Modify the polynomial fits to the viscosity of species `i`
     //! @see fitProperties()
-    void setViscosityPolynomial(size_t i, span<double> coeffs) override;
+    void setViscosityPolynomial(size_t i, span<CanteraDouble> coeffs) override;
 
     //! Modify the temperature fits of the heat conductivity of species `i`
     //! @see fitProperties()
-    void setConductivityPolynomial(size_t i, span<double> coeffs) override;
+    void setConductivityPolynomial(size_t i, span<CanteraDouble> coeffs) override;
 
     //! Modify the polynomial fits to the binary diffusivity of species pair (i, j)
     //! @see fitDiffCoeffs()
-    void setBinDiffusivityPolynomial(size_t i, size_t j, span<double> coeffs) override;
+    void setBinDiffusivityPolynomial(size_t i, size_t j, span<CanteraDouble> coeffs) override;
 
     //! Modify the polynomial fits to the collision integral of species pair (i, j)
     //! @see fitCollisionIntegrals()
-    void setCollisionIntegralPolynomial(size_t i, size_t j, span<double> astar_coeffs,
-        span<double> bstar_coeffs, span<double> cstar_coeffs, bool actualT) override;
+    void setCollisionIntegralPolynomial(size_t i, size_t j, span<CanteraDouble> astar_coeffs,
+        span<CanteraDouble> bstar_coeffs, span<CanteraDouble> cstar_coeffs, bool actualT) override;
 
     void init(shared_ptr<ThermoPhase> thermo, int mode=0) override;
 
@@ -202,8 +202,8 @@ protected:
      * @param f_eps    Multiplicative correction factor to be applied to epsilon(i,j)
      * @param f_sigma  Multiplicative correction factor to be applied to diam(i,j)
      */
-    void makePolarCorrections(size_t i, size_t j, double& f_eps,
-                              double& f_sigma);
+    void makePolarCorrections(size_t i, size_t j, CanteraDouble& f_eps,
+                              CanteraDouble& f_sigma);
 
     //! Generate polynomial fits to collision integrals
     /*!
@@ -272,18 +272,18 @@ protected:
      *
      * @note This method is not used currently.
      */
-    void getBinDiffCorrection(double t, MMCollisionInt& integrals, size_t k,
-                              size_t j, double xk, double xj,
-                              double& fkj, double& fjk);
+    void getBinDiffCorrection(CanteraDouble t, MMCollisionInt& integrals, size_t k,
+                              size_t j, CanteraDouble xk, CanteraDouble xj,
+                              CanteraDouble& fkj, CanteraDouble& fjk);
 
     //! @}
 
     //! Vector of species mole fractions. These are processed so that all mole
     //! fractions are >= #Tiny. Length = #m_nsp.
-    vector<double> m_molefracs;
+    vector<CanteraDouble> m_molefracs;
 
     //! Internal storage for the viscosity of the mixture [Pa·s]
-    double m_viscmix = 0.0;
+    CanteraDouble m_viscmix = 0.0;
 
     //! Update boolean for mixture rule for the mixture viscosity
     bool m_visc_ok = false;
@@ -305,19 +305,19 @@ protected:
     DenseMatrix m_phi;
 
     //! work space length = #m_nsp
-    vector<double> m_spwork;
+    vector<CanteraDouble> m_spwork;
 
     //! vector of species viscosities [Pa·s]. These are used in Wilke's
     //! rule to calculate the viscosity of the solution. length = #m_nsp.
-    vector<double> m_visc;
+    vector<CanteraDouble> m_visc;
 
     //! Polynomial fits to the viscosity of each species. `m_visccoeffs[k]` is
     //! the vector of polynomial coefficients for species `k` that fits the
     //! viscosity as a function of temperature.
-    vector<vector<double>> m_visccoeffs;
+    vector<vector<CanteraDouble>> m_visccoeffs;
 
     //! Local copy of the species molecular weights.
-    vector<double> m_mw;
+    vector<CanteraDouble> m_mw;
 
     //! Holds square roots of molecular weight ratios
     /*!
@@ -336,26 +336,26 @@ protected:
 
     //! vector of square root of species viscosities. These are used in Wilke's rule to
     //! calculate the viscosity of the solution. length = #m_nsp.
-    vector<double> m_sqvisc;
+    vector<CanteraDouble> m_sqvisc;
 
     //! Powers of the ln temperature, up to fourth order
-    vector<double> m_polytempvec;
+    vector<CanteraDouble> m_polytempvec;
 
     //! Current value of the temperature [K] at which the properties in this object
     //! are calculated.
-    double m_temp = -1.0;
+    CanteraDouble m_temp = -1.0;
 
     //! Current value of Boltzmann constant times the temperature [J]
-    double m_kbt = 0.0;
+    CanteraDouble m_kbt = 0.0;
 
     //! current value of temperature to 1/2 power
-    double m_sqrt_t = 0.0;
+    CanteraDouble m_sqrt_t = 0.0;
 
     //! Current value of the log of the temperature
-    double m_logt = 0.0;
+    CanteraDouble m_logt = 0.0;
 
     //! Current value of temperature to 1/4 power
-    double m_t14 = 0.0;
+    CanteraDouble m_t14 = 0.0;
 
     //! Polynomial fits to the binary diffusivity of each species
     /*!
@@ -371,7 +371,7 @@ protected:
      * }
      * @endcode
      */
-    vector<vector<double>> m_diffcoeffs;
+    vector<vector<CanteraDouble>> m_diffcoeffs;
 
     //! Matrix of binary diffusion coefficients at the reference pressure and
     //! the current temperature Size is #m_nsp x #m_nsp.
@@ -382,7 +382,7 @@ protected:
      *  Dimensions are number of species (#m_nsp) and polynomial order of the collision
      *  integral fit (degree+1).
      */
-    vector<vector<double>> m_condcoeffs;
+    vector<vector<CanteraDouble>> m_condcoeffs;
 
     //! Indices for the (i,j) interaction in collision integral fits
     /*!
@@ -396,7 +396,7 @@ protected:
      * `m_omega22_poly[m_poly[i][j]]` is the vector of polynomial coefficients
      * (length degree+1) for the collision integral fit for the species pair (i,j).
      */
-    vector<vector<double>> m_omega22_poly;
+    vector<vector<CanteraDouble>> m_omega22_poly;
 
     //! Flag to indicate for which (i,j) interaction pairs the
     //! actual temperature is used instead of the reduced temperature
@@ -407,27 +407,27 @@ protected:
      * `m_astar_poly[m_poly[i][j]]` is the vector of polynomial coefficients
      * (length degree+1) for the collision integral fit for the species pair (i,j).
      */
-    vector<vector<double>> m_astar_poly;
+    vector<vector<CanteraDouble>> m_astar_poly;
 
     //! Fit for bstar collision integral
     /*!
      * `m_bstar_poly[m_poly[i][j]]` is the vector of polynomial coefficients
      * (length degree+1) for the collision integral fit for the species pair (i,j).
      */
-    vector<vector<double>> m_bstar_poly;
+    vector<vector<CanteraDouble>> m_bstar_poly;
 
     //! Fit for cstar collision integral
     /*!
      * `m_bstar_poly[m_poly[i][j]]` is the vector of polynomial coefficients
      * (length degree+1) for the collision integral fit for the species pair (i,j).
      */
-    vector<vector<double>> m_cstar_poly;
+    vector<vector<CanteraDouble>> m_cstar_poly;
 
     //! Rotational relaxation number for each species
     /*!
      * length is the number of species in the phase. units are dimensionless
      */
-    vector<double> m_zrot;
+    vector<CanteraDouble> m_zrot;
 
     //! Dimensionless rotational heat capacity of each species
     /*!
@@ -435,7 +435,7 @@ protected:
      * species respectively. length is the number of species in the phase.
      * Dimensionless  (Cr / R)
      */
-    vector<double> m_crot;
+    vector<CanteraDouble> m_crot;
 
     //! Vector of booleans indicating whether a species is a polar molecule
     /*!
@@ -444,17 +444,17 @@ protected:
     vector<bool> m_polar;
 
     //! Polarizability [m³] of each species in the phase
-    vector<double> m_alpha;
+    vector<CanteraDouble> m_alpha;
 
     //! Lennard-Jones well-depth [J] of the species in the current phase
     /*!
      * length is the number of species in the phase. Note this is not J/kmol; this is a
      * per molecule amount.
      */
-    vector<double> m_eps;
+    vector<CanteraDouble> m_eps;
 
     //! Lennard-Jones diameter [m] of the species in the current phase
-    vector<double> m_sigma;
+    vector<CanteraDouble> m_sigma;
 
     //! This is the reduced mass [kg] of the interaction between species i and j
     /*!
@@ -510,13 +510,13 @@ protected:
     /*!
      * Length is the number of species in the phase.
      */
-    vector<double> m_w_ac;
+    vector<CanteraDouble> m_w_ac;
 
     //! Dispersion coefficient normalized by the square of the elementary charge [m⁵].
-    vector<double> m_disp;
+    vector<CanteraDouble> m_disp;
 
     //! Quadrupole polarizability
-    vector<double> m_quad_polar;
+    vector<CanteraDouble> m_quad_polar;
 };
 
 } // namespace Cantera

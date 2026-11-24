@@ -51,7 +51,7 @@ void DustyGasTransport::updateBinaryDiffCoeffs()
 
     // get the gaseous binary diffusion coefficients
     m_gastran->getBinaryDiffCoeffs(m_nsp, m_d.data());
-    double por2tort = m_porosity / m_tortuosity;
+    CanteraDouble por2tort = m_porosity / m_tortuosity;
     for (size_t n = 0; n < m_nsp; n++) {
         for (size_t m = 0; m < m_nsp; m++) {
             m_d(n,m) *= por2tort;
@@ -65,7 +65,7 @@ void DustyGasTransport::updateKnudsenDiffCoeffs()
     if (m_knudsen_ok) {
         return;
     }
-    double K_g = m_pore_radius * m_porosity / m_tortuosity;
+    CanteraDouble K_g = m_pore_radius * m_porosity / m_tortuosity;
     for (size_t k = 0; k < m_nsp; k++) {
         m_dk[k] = 2.0/3.0 * K_g * sqrt((8.0 * GasConstant * m_temp)/
                                          (Pi * m_mw[k]));
@@ -84,7 +84,7 @@ void DustyGasTransport::eval_H_matrix()
         }
 
         // evaluate diagonal term
-        double sum = 0.0;
+        CanteraDouble sum = 0.0;
         for (size_t j = 0; j < m_nsp; j++) {
             if (j != k) {
                 sum += m_x[j]/m_d(k,j);
@@ -94,27 +94,27 @@ void DustyGasTransport::eval_H_matrix()
     }
 }
 
-void DustyGasTransport::getMolarFluxes(span<const double> state1,
-                                       span<const double> state2,
-                                       const double delta, span<double> fluxes)
+void DustyGasTransport::getMolarFluxes(span<const CanteraDouble> state1,
+                                       span<const CanteraDouble> state2,
+                                       const CanteraDouble delta, span<CanteraDouble> fluxes)
 {
     checkArraySize("DustyGasTransport::getMolarFluxes: state1", state1.size(), m_nsp + 2);
     checkArraySize("DustyGasTransport::getMolarFluxes: state2", state2.size(), m_nsp + 2);
     checkArraySize("DustyGasTransport::getMolarFluxes: fluxes", fluxes.size(), m_nsp);
     // cbar will be the average concentration between the two points
-    span<double> cbar(m_spwork);
-    span<double> gradc(m_spwork2);
-    const double t1 = state1[0];
-    const double t2 = state2[0];
-    const double rho1 = state1[1];
-    const double rho2 = state2[1];
-    span<const double> y1 = state1.subspan(2, m_nsp);
-    span<const double> y2 = state2.subspan(2, m_nsp);
-    double c1sum = 0.0, c2sum = 0.0;
+    span<CanteraDouble> cbar(m_spwork);
+    span<CanteraDouble> gradc(m_spwork2);
+    const CanteraDouble t1 = state1[0];
+    const CanteraDouble t2 = state2[0];
+    const CanteraDouble rho1 = state1[1];
+    const CanteraDouble rho2 = state2[1];
+    span<const CanteraDouble> y1 = state1.subspan(2, m_nsp);
+    span<const CanteraDouble> y2 = state2.subspan(2, m_nsp);
+    CanteraDouble c1sum = 0.0, c2sum = 0.0;
 
     for (size_t k = 0; k < m_nsp; k++) {
-        double conc1 = rho1 * y1[k] / m_mw[k];
-        double conc2 = rho2 * y2[k] / m_mw[k];
+        CanteraDouble conc1 = rho1 * y1[k] / m_mw[k];
+        CanteraDouble conc2 = rho2 * y2[k] / m_mw[k];
         cbar[k] = 0.5*(conc1 + conc2);
         gradc[k] = (conc2 - conc1) / delta;
         c1sum += conc1;
@@ -122,11 +122,11 @@ void DustyGasTransport::getMolarFluxes(span<const double> state1,
     }
 
     // Calculate the pressures at p1 p2 and pbar
-    double p1 = c1sum * GasConstant * t1;
-    double p2 = c2sum * GasConstant * t2;
-    double pbar = 0.5*(p1 + p2);
-    double gradp = (p2 - p1)/delta;
-    double tbar = 0.5*(t1 + t2);
+    CanteraDouble p1 = c1sum * GasConstant * t1;
+    CanteraDouble p2 = c2sum * GasConstant * t2;
+    CanteraDouble pbar = 0.5*(p1 + p2);
+    CanteraDouble gradp = (p2 - p1)/delta;
+    CanteraDouble tbar = 0.5*(t1 + t2);
     m_thermo->setState_TPX(tbar, pbar, cbar);
     updateMultiDiffCoeffs();
 
@@ -138,11 +138,11 @@ void DustyGasTransport::getMolarFluxes(span<const double> state1,
 
     // if no permeability has been specified, use result for
     // close-packed spheres
-    double b = 0.0;
+    CanteraDouble b = 0.0;
     if (m_perm < 0.0) {
-        double p = m_porosity;
-        double d = m_diam;
-        double t = m_tortuosity;
+        CanteraDouble p = m_porosity;
+        CanteraDouble d = m_diam;
+        CanteraDouble t = m_tortuosity;
         b = p*p*p*d*d/(72.0*t*(1.0-p)*(1.0-p));
     } else {
         b = m_perm;
@@ -168,7 +168,7 @@ void DustyGasTransport::updateMultiDiffCoeffs()
     invert(m_multidiff);
 }
 
-void DustyGasTransport::getMultiDiffCoeffs(const size_t ld, span<double> d)
+void DustyGasTransport::getMultiDiffCoeffs(const size_t ld, span<CanteraDouble> d)
 {
     if (ld < m_nsp) {
         throw CanteraError("DustyGasTransport::getMultiDiffCoeffs", "ld is too small");
@@ -205,32 +205,32 @@ void DustyGasTransport::updateTransport_C()
     m_bulk_ok = false;
 }
 
-void DustyGasTransport::setPorosity(double porosity)
+void DustyGasTransport::setPorosity(CanteraDouble porosity)
 {
     m_porosity = porosity;
     m_knudsen_ok = false;
     m_bulk_ok = false;
 }
 
-void DustyGasTransport::setTortuosity(double tort)
+void DustyGasTransport::setTortuosity(CanteraDouble tort)
 {
     m_tortuosity = tort;
     m_knudsen_ok = false;
     m_bulk_ok = false;
 }
 
-void DustyGasTransport::setMeanPoreRadius(double rbar)
+void DustyGasTransport::setMeanPoreRadius(CanteraDouble rbar)
 {
     m_pore_radius = rbar;
     m_knudsen_ok = false;
 }
 
-void DustyGasTransport::setMeanParticleDiameter(double dbar)
+void DustyGasTransport::setMeanParticleDiameter(CanteraDouble dbar)
 {
     m_diam = dbar;
 }
 
-void DustyGasTransport::setPermeability(double B)
+void DustyGasTransport::setPermeability(CanteraDouble B)
 {
     m_perm = B;
 }

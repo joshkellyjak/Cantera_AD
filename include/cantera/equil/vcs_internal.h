@@ -51,7 +51,7 @@ public:
  * @param vec vector of doubles
  * @returns   the l2 norm of the vector
  */
-double vcs_l2norm(span<const double> vec);
+CanteraDouble vcs_l2norm(span<const CanteraDouble> vec);
 
 //! Returns a const char string representing the type of the species given by
 //! the first argument
@@ -73,7 +73,7 @@ const char* vcs_speciesType_string(int speciesStatus, int length = 100);
  *
  * @returns true if the doubles are "equal" and false otherwise
  */
-bool vcs_doubleEqual(double d1, double d2);
+bool vcs_doubleEqual(CanteraDouble d1, CanteraDouble d2);
 }
 
 #endif

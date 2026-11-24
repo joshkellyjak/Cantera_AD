@@ -32,7 +32,7 @@ void GasTransport::update_T()
         init(m_thermo, m_mode);
     }
 
-    double T = m_thermo->temperature();
+    CanteraDouble T = m_thermo->temperature();
     if (T == m_temp) {
         return;
     }
@@ -57,7 +57,7 @@ void GasTransport::update_T()
     m_bindiff_ok = false;
 }
 
-double GasTransport::viscosity()
+CanteraDouble GasTransport::viscosity()
 {
     update_T();
     update_C();
@@ -66,7 +66,7 @@ double GasTransport::viscosity()
         return m_viscmix;
     }
 
-    double vismix = 0.0;
+    CanteraDouble vismix = 0.0;
     // update m_visc and m_phi if necessary
     if (!m_viscwt_ok) {
         updateViscosity_T();
@@ -90,11 +90,11 @@ void GasTransport::updateViscosity_T()
     // see Eq. (9-5.14) of Poling et al. (2001)
     for (size_t j = 0; j < m_nsp; j++) {
         for (size_t k = j; k < m_nsp; k++) {
-            double vratiokj = m_visc[k]/m_visc[j];
-            double wratiojk = m_mw[j]/m_mw[k];
+            CanteraDouble vratiokj = m_visc[k]/m_visc[j];
+            CanteraDouble wratiojk = m_mw[j]/m_mw[k];
 
             // Note that m_wratjk(k,j) holds the square root of m_wratjk(j,k)!
-            double factor1 = 1.0 + (m_sqvisc[k]/m_sqvisc[j]) * m_wratjk(k,j);
+            CanteraDouble factor1 = 1.0 + (m_sqvisc[k]/m_sqvisc[j]) * m_wratjk(k,j);
             m_phi(k,j) = factor1*factor1 / (sqrt(8.0) * m_wratkj1(j,k));
             m_phi(j,k) = m_phi(k,j)/(vratiokj * wratiojk);
         }
@@ -146,7 +146,7 @@ void GasTransport::updateDiff_T()
     m_bindiff_ok = true;
 }
 
-void GasTransport::getBinaryDiffCoeffs(const size_t ld, span<double> d)
+void GasTransport::getBinaryDiffCoeffs(const size_t ld, span<CanteraDouble> d)
 {
     update_T();
     // if necessary, evaluate the binary diffusion coefficients from the polynomial fits
@@ -157,7 +157,7 @@ void GasTransport::getBinaryDiffCoeffs(const size_t ld, span<double> d)
         throw CanteraError("GasTransport::getBinaryDiffCoeffs", "ld is too small");
     }
     checkArraySize("GasTransport::getBinaryDiffCoeffs", d.size(), ld * m_nsp);
-    double rp = 1.0/m_thermo->pressure();
+    CanteraDouble rp = 1.0/m_thermo->pressure();
     for (size_t i = 0; i < m_nsp; i++) {
         for (size_t j = 0; j < m_nsp; j++) {
             d[ld*j + i] = rp * m_bdiff(i,j);
@@ -165,7 +165,7 @@ void GasTransport::getBinaryDiffCoeffs(const size_t ld, span<double> d)
     }
 }
 
-void GasTransport::getMixDiffCoeffs(span<double> d)
+void GasTransport::getMixDiffCoeffs(span<CanteraDouble> d)
 {
     checkArraySize("GasTransport::getMixDiffCoeffs", d.size(), m_nsp);
     update_T();
@@ -176,13 +176,13 @@ void GasTransport::getMixDiffCoeffs(span<double> d)
         updateDiff_T();
     }
 
-    double mmw = m_thermo->meanMolecularWeight();
-    double p = m_thermo->pressure();
+    CanteraDouble mmw = m_thermo->meanMolecularWeight();
+    CanteraDouble p = m_thermo->pressure();
     if (m_nsp == 1) {
         d[0] = m_bdiff(0,0) / p;
     } else {
         for (size_t k = 0; k < m_nsp; k++) {
-            double sum2 = 0.0;
+            CanteraDouble sum2 = 0.0;
             for (size_t j = 0; j < m_nsp; j++) {
                 if (j != k) {
                     sum2 += m_molefracs[j] / m_bdiff(j,k);
@@ -197,7 +197,7 @@ void GasTransport::getMixDiffCoeffs(span<double> d)
     }
 }
 
-void GasTransport::getMixDiffCoeffsMole(span<double> d)
+void GasTransport::getMixDiffCoeffsMole(span<CanteraDouble> d)
 {
     checkArraySize("GasTransport::getMixDiffCoeffsMole", d.size(), m_nsp);
     update_T();
@@ -208,12 +208,12 @@ void GasTransport::getMixDiffCoeffsMole(span<double> d)
         updateDiff_T();
     }
 
-    double p = m_thermo->pressure();
+    CanteraDouble p = m_thermo->pressure();
     if (m_nsp == 1) {
         d[0] = m_bdiff(0,0) / p;
     } else {
         for (size_t k = 0; k < m_nsp; k++) {
-            double sum2 = 0.0;
+            CanteraDouble sum2 = 0.0;
             for (size_t j = 0; j < m_nsp; j++) {
                 if (j != k) {
                     sum2 += m_molefracs[j] / m_bdiff(j,k);
@@ -228,7 +228,7 @@ void GasTransport::getMixDiffCoeffsMole(span<double> d)
     }
 }
 
-void GasTransport::getMixDiffCoeffsMass(span<double> d)
+void GasTransport::getMixDiffCoeffsMass(span<CanteraDouble> d)
 {
     checkArraySize("GasTransport::getMixDiffCoeffsMass", d.size(), m_nsp);
     update_T();
@@ -239,15 +239,15 @@ void GasTransport::getMixDiffCoeffsMass(span<double> d)
         updateDiff_T();
     }
 
-    double mmw = m_thermo->meanMolecularWeight();
-    double p = m_thermo->pressure();
+    CanteraDouble mmw = m_thermo->meanMolecularWeight();
+    CanteraDouble p = m_thermo->pressure();
 
     if (m_nsp == 1) {
         d[0] = m_bdiff(0,0) / p;
     } else {
         for (size_t k=0; k<m_nsp; k++) {
-            double sum1 = 0.0;
-            double sum2 = 0.0;
+            CanteraDouble sum1 = 0.0;
+            CanteraDouble sum2 = 0.0;
             for (size_t i=0; i<m_nsp; i++) {
                 if (i==k) {
                     continue;
@@ -255,7 +255,7 @@ void GasTransport::getMixDiffCoeffsMass(span<double> d)
                 sum1 += m_molefracs[i] / m_bdiff(k,i);
                 sum2 += m_molefracs[i] * m_mw[i] / m_bdiff(k,i);
             }
-            double delta_mw = mmw - m_mw[k]*m_molefracs[k];
+            CanteraDouble delta_mw = mmw - m_mw[k]*m_molefracs[k];
             d[k] = delta_mw / std::max(Tiny, p*(delta_mw*sum1 + m_molefracs[k]*sum2));
         }
     }
@@ -320,7 +320,7 @@ void GasTransport::setupCollisionParameters()
         m_star_poly_uses_actualT[i].resize(m_nsp);
     }
 
-    double f_eps, f_sigma;
+    CanteraDouble f_eps, f_sigma;
 
     for (size_t i = 0; i < m_nsp; i++) {
         for (size_t j = i; j < m_nsp; j++) {
@@ -337,7 +337,7 @@ void GasTransport::setupCollisionParameters()
             m_dipole(i,j) = sqrt(m_dipole(i,i)*m_dipole(j,j));
 
             // reduced dipole moment delta* (nondimensional)
-            double d = m_diam(i,j);
+            CanteraDouble d = m_diam(i,j);
             m_delta(i,j) = 0.5 * m_dipole(i,j)*m_dipole(i,j)
                            / (4 * Pi * epsilon_0 * m_epsilon(i,j) * d * d * d);
             makePolarCorrections(i, j, f_eps, f_sigma);
@@ -366,7 +366,7 @@ void GasTransport::invalidateCache()
 
 void GasTransport::setupCollisionIntegral()
 {
-    double tstar_min = 1.e8, tstar_max = 0.0;
+    CanteraDouble tstar_min = 1.e8, tstar_max = 0.0;
     for (size_t i = 0; i < m_nsp; i++) {
         for (size_t j = i; j < m_nsp; j++) {
             // The polynomial fits of collision integrals vs. T*
@@ -428,7 +428,7 @@ void GasTransport::getTransportData()
 }
 
 void GasTransport::makePolarCorrections(size_t i, size_t j,
-        double& f_eps, double& f_sigma)
+        CanteraDouble& f_eps, CanteraDouble& f_sigma)
 {
     // no correction if both are nonpolar, or both are polar
     if (m_polar[i] == m_polar[j]) {
@@ -441,7 +441,7 @@ void GasTransport::makePolarCorrections(size_t i, size_t j,
     // if one is polar and one is non-polar
     size_t kp = (m_polar[i] ? i : j); // the polar one
     size_t knp = (i == kp ? j : i); // the nonpolar one
-    double d3np, d3p, alpha_star, mu_p_star, xi;
+    CanteraDouble d3np, d3p, alpha_star, mu_p_star, xi;
     d3np = pow(m_sigma[knp],3);
     d3p = pow(m_sigma[kp],3);
     alpha_star = m_alpha[knp]/d3np;
@@ -456,7 +456,7 @@ void GasTransport::fitCollisionIntegrals(MMCollisionInt& integrals)
 {
     // Chemkin fits to sixth order polynomials
     int degree = (m_mode == CK_Mode ? 6 : COLL_INT_POLY_DEGREE);
-    vector<double> fitlist;
+    vector<CanteraDouble> fitlist;
     m_omega22_poly.clear();
     m_astar_poly.clear();
     m_bstar_poly.clear();
@@ -464,7 +464,7 @@ void GasTransport::fitCollisionIntegrals(MMCollisionInt& integrals)
     for (size_t i = 0; i < m_nsp; i++) {
         for (size_t j = i; j < m_nsp; j++) {
             // Chemkin fits only delta* = 0
-            double dstar = (m_mode != CK_Mode) ? m_delta(i,j) : 0.0;
+            CanteraDouble dstar = (m_mode != CK_Mode) ? m_delta(i,j) : 0.0;
 
             // if a fit has already been generated for delta* = m_delta(i,j),
             // then use it. Otherwise, make a new fit, and add m_delta(i,j) to
@@ -473,8 +473,8 @@ void GasTransport::fitCollisionIntegrals(MMCollisionInt& integrals)
             // 'find' returns a pointer to end() if not found
             auto dptr = find(fitlist.begin(), fitlist.end(), dstar);
             if (dptr == fitlist.end()) {
-                vector<double> ca(degree+1), cb(degree+1), cc(degree+1);
-                vector<double> co22(degree+1);
+                vector<CanteraDouble> ca(degree+1), cb(degree+1), cc(degree+1);
+                vector<CanteraDouble> co22(degree+1);
                 integrals.fit(degree, dstar, ca, cb, cc);
                 integrals.fit_omega22(degree, dstar, co22);
                 m_omega22_poly.push_back(co22);
@@ -500,47 +500,47 @@ void GasTransport::fitProperties(MMCollisionInt& integrals)
     // number of points to use in generating fit data
     const size_t np = 50;
     int degree = (m_mode == CK_Mode ? 3 : 4);
-    double dt = (m_thermo->maxTemp() - m_thermo->minTemp())/(np-1);
-    vector<double> tlog(np), spvisc(np), spcond(np);
-    vector<double> w(np), w2(np);
+    CanteraDouble dt = (m_thermo->maxTemp() - m_thermo->minTemp())/(np-1);
+    vector<CanteraDouble> tlog(np), spvisc(np), spcond(np);
+    vector<CanteraDouble> w(np), w2(np);
 
     m_visccoeffs.clear();
     m_condcoeffs.clear();
 
     // generate array of log(t) values
     for (size_t n = 0; n < np; n++) {
-        double t = m_thermo->minTemp() + dt*n;
+        CanteraDouble t = m_thermo->minTemp() + dt*n;
         tlog[n] = log(t);
     }
 
     // vector of polynomial coefficients
-    vector<double> c(degree + 1), c2(degree + 1);
+    vector<CanteraDouble> c(degree + 1), c2(degree + 1);
 
     // fit the pure-species viscosity and thermal conductivity for each species
-    double visc, err, relerr,
+    CanteraDouble visc, err, relerr,
                mxerr = 0.0, mxrelerr = 0.0, mxerr_cond = 0.0, mxrelerr_cond = 0.0;
-    double T_save = m_thermo->temperature();
+    CanteraDouble T_save = m_thermo->temperature();
     auto mw = m_thermo->molecularWeights();
     for (size_t k = 0; k < m_nsp; k++) {
-        double tstar = Boltzmann * 298.0 / m_eps[k];
+        CanteraDouble tstar = Boltzmann * 298.0 / m_eps[k];
         // Scaling factor for temperature dependence of z_rot. [Kee2003] Eq.
         // 12.112 or [Kee2017] Eq. 11.115
-        double fz_298 = 1.0 + pow(Pi, 1.5) / sqrt(tstar) * (0.5 + 1.0 / tstar) +
+        CanteraDouble fz_298 = 1.0 + pow(Pi, 1.5) / sqrt(tstar) * (0.5 + 1.0 / tstar) +
             (0.25 * Pi * Pi + 2) / tstar;
 
         for (size_t n = 0; n < np; n++) {
-            double t = m_thermo->minTemp() + dt*n;
+            CanteraDouble t = m_thermo->minTemp() + dt*n;
             m_thermo->setTemperature(t);
-            vector<double> cp_R_all(m_thermo->nSpecies());
+            vector<CanteraDouble> cp_R_all(m_thermo->nSpecies());
             m_thermo->getCp_R_ref(cp_R_all);
-            double cp_R = cp_R_all[k];
+            CanteraDouble cp_R = cp_R_all[k];
             tstar = Boltzmann * t / m_eps[k];
-            double sqrt_T = sqrt(t);
-            double om22 = integrals.omega22(tstar, m_delta(k,k));
-            double om11 = integrals.omega11(tstar, m_delta(k,k));
+            CanteraDouble sqrt_T = sqrt(t);
+            CanteraDouble om22 = integrals.omega22(tstar, m_delta(k,k));
+            CanteraDouble om11 = integrals.omega11(tstar, m_delta(k,k));
 
             // self-diffusion coefficient, without polar corrections
-            double diffcoeff = 3.0/16.0 * sqrt(2.0 * Pi/m_reducedMass(k,k)) *
+            CanteraDouble diffcoeff = 3.0/16.0 * sqrt(2.0 * Pi/m_reducedMass(k,k)) *
                                pow((Boltzmann * t), 1.5)/
                                (Pi * m_sigma[k] * m_sigma[k] * om11);
 
@@ -549,17 +549,17 @@ void GasTransport::fitProperties(MMCollisionInt& integrals)
                    (om22 * Pi * m_sigma[k]*m_sigma[k]);
 
             // thermal conductivity
-            double f_int = mw[k]/(GasConstant * t) * diffcoeff/visc;
-            double cv_rot = m_crot[k];
-            double A_factor = 2.5 - f_int;
-            double fz_tstar = 1.0 + pow(Pi, 1.5) / sqrt(tstar) * (0.5 + 1.0 / tstar) +
+            CanteraDouble f_int = mw[k]/(GasConstant * t) * diffcoeff/visc;
+            CanteraDouble cv_rot = m_crot[k];
+            CanteraDouble A_factor = 2.5 - f_int;
+            CanteraDouble fz_tstar = 1.0 + pow(Pi, 1.5) / sqrt(tstar) * (0.5 + 1.0 / tstar) +
                 (0.25 * Pi * Pi + 2) / tstar;
-            double B_factor = m_zrot[k] * fz_298 / fz_tstar + 2.0/Pi * (5.0/3.0 * cv_rot + f_int);
-            double c1 = 2.0/Pi * A_factor/B_factor;
-            double cv_int = cp_R - 2.5 - cv_rot;
-            double f_rot = f_int * (1.0 + c1);
-            double f_trans = 2.5 * (1.0 - c1 * cv_rot/1.5);
-            double cond = (visc/mw[k])*GasConstant*(f_trans * 1.5
+            CanteraDouble B_factor = m_zrot[k] * fz_298 / fz_tstar + 2.0/Pi * (5.0/3.0 * cv_rot + f_int);
+            CanteraDouble c1 = 2.0/Pi * A_factor/B_factor;
+            CanteraDouble cv_int = cp_R - 2.5 - cv_rot;
+            CanteraDouble f_rot = f_int * (1.0 + c1);
+            CanteraDouble f_trans = 2.5 * (1.0 - c1 * cv_rot/1.5);
+            CanteraDouble cond = (visc/mw[k])*GasConstant*(f_trans * 1.5
                                                 + f_rot * cv_rot + f_int * cv_int);
 
             if (m_mode == CK_Mode) {
@@ -589,12 +589,12 @@ void GasTransport::fitProperties(MMCollisionInt& integrals)
 
         // evaluate max fit errors for viscosity
         for (size_t n = 0; n < np; n++) {
-            double val, fit;
+            CanteraDouble val, fit;
             if (m_mode == CK_Mode) {
                 val = exp(spvisc[n]);
                 fit = exp(poly3(tlog[n], c));
             } else {
-                double sqrt_T = exp(0.5*tlog[n]);
+                CanteraDouble sqrt_T = exp(0.5*tlog[n]);
                 val = sqrt_T * pow(spvisc[n],2);
                 fit = sqrt_T * pow(poly4(tlog[n], c),2);
             }
@@ -608,12 +608,12 @@ void GasTransport::fitProperties(MMCollisionInt& integrals)
 
         // evaluate max fit errors for conductivity
         for (size_t n = 0; n < np; n++) {
-            double val, fit;
+            CanteraDouble val, fit;
             if (m_mode == CK_Mode) {
                 val = exp(spcond[n]);
                 fit = exp(poly3(tlog[n], c2));
             } else {
-                double sqrt_T = exp(0.5*tlog[n]);
+                CanteraDouble sqrt_T = exp(0.5*tlog[n]);
                 val = sqrt_T * spcond[n];
                 fit = sqrt_T * poly4(tlog[n], c2);
             }
@@ -636,36 +636,36 @@ void GasTransport::fitDiffCoeffs(MMCollisionInt& integrals)
     // number of points to use in generating fit data
     const size_t np = 50;
     int degree = (m_mode == CK_Mode ? 3 : 4);
-    double dt = (m_thermo->maxTemp() - m_thermo->minTemp())/(np-1);
-    vector<double> tlog(np);
-    vector<double> w(np), w2(np);
+    CanteraDouble dt = (m_thermo->maxTemp() - m_thermo->minTemp())/(np-1);
+    vector<CanteraDouble> tlog(np);
+    vector<CanteraDouble> w(np), w2(np);
 
     // generate array of log(t) values
     for (size_t n = 0; n < np; n++) {
-        double t = m_thermo->minTemp() + dt*n;
+        CanteraDouble t = m_thermo->minTemp() + dt*n;
         tlog[n] = log(t);
     }
 
     // vector of polynomial coefficients
-    vector<double> c(degree + 1), c2(degree + 1);
-    double err, relerr, mxerr = 0.0, mxrelerr = 0.0;
+    vector<CanteraDouble> c(degree + 1), c2(degree + 1);
+    CanteraDouble err, relerr, mxerr = 0.0, mxrelerr = 0.0;
 
-    vector<double> diff(np + 1);
+    vector<CanteraDouble> diff(np + 1);
     m_diffcoeffs.clear();
     for (size_t k = 0; k < m_nsp; k++) {
         for (size_t j = k; j < m_nsp; j++) {
             for (size_t n = 0; n < np; n++) {
-                double t = m_thermo->minTemp() + dt*n;
-                double eps = m_epsilon(j,k);
-                double tstar = Boltzmann * t/eps;
-                double sigma = m_diam(j,k);
-                double om11 = integrals.omega11(tstar, m_delta(j,k));
-                double diffcoeff = 3.0/16.0 * sqrt(2.0 * Pi/m_reducedMass(k,j))
+                CanteraDouble t = m_thermo->minTemp() + dt*n;
+                CanteraDouble eps = m_epsilon(j,k);
+                CanteraDouble tstar = Boltzmann * t/eps;
+                CanteraDouble sigma = m_diam(j,k);
+                CanteraDouble om11 = integrals.omega11(tstar, m_delta(j,k));
+                CanteraDouble diffcoeff = 3.0/16.0 * sqrt(2.0 * Pi/m_reducedMass(k,j))
                     * pow(Boltzmann * t, 1.5) / (Pi * sigma * sigma * om11);
 
                 // 2nd order correction
                 // NOTE: THIS CORRECTION IS NOT APPLIED
-                double fkj, fjk;
+                CanteraDouble fkj, fjk;
                 getBinDiffCorrection(t, integrals, k, j, 1.0, 1.0, fkj, fjk);
 
                 if (m_mode == CK_Mode) {
@@ -679,13 +679,13 @@ void GasTransport::fitDiffCoeffs(MMCollisionInt& integrals)
             polyfit(degree, tlog, diff, w, c);
 
             for (size_t n = 0; n < np; n++) {
-                double val, fit;
+                CanteraDouble val, fit;
                 if (m_mode == CK_Mode) {
                     val = exp(diff[n]);
                     fit = exp(poly3(tlog[n], c));
                 } else {
-                    double t = exp(tlog[n]);
-                    double pre = pow(t, 1.5);
+                    CanteraDouble t = exp(tlog[n]);
+                    CanteraDouble pre = pow(t, 1.5);
                     val = pre * diff[n];
                     fit = pre * poly4(tlog[n], c);
                 }
@@ -702,45 +702,45 @@ void GasTransport::fitDiffCoeffs(MMCollisionInt& integrals)
     m_fittingErrors["diff-coeff-max-rel-error"] = mxrelerr;
 }
 
-void GasTransport::getBinDiffCorrection(double t, MMCollisionInt& integrals,
-        size_t k, size_t j, double xk, double xj, double& fkj, double& fjk)
+void GasTransport::getBinDiffCorrection(CanteraDouble t, MMCollisionInt& integrals,
+        size_t k, size_t j, CanteraDouble xk, CanteraDouble xj, CanteraDouble& fkj, CanteraDouble& fjk)
 {
-    double w1 = m_thermo->molecularWeight(k);
-    double w2 = m_thermo->molecularWeight(j);
-    double wsum = w1 + w2;
-    double wmwp = (w1 - w2)/wsum;
-    double sqw12 = sqrt(w1*w2);
-    double sig1 = m_sigma[k];
-    double sig2 = m_sigma[j];
-    double sig12 = 0.5*(m_sigma[k] + m_sigma[j]);
-    double sigratio = sig1*sig1/(sig2*sig2);
-    double sigratio2 = sig1*sig1/(sig12*sig12);
-    double sigratio3 = sig2*sig2/(sig12*sig12);
-    double tstar1 = Boltzmann * t / m_eps[k];
-    double tstar2 = Boltzmann * t / m_eps[j];
-    double tstar12 = Boltzmann * t / sqrt(m_eps[k] * m_eps[j]);
-    double om22_1 = integrals.omega22(tstar1, m_delta(k,k));
-    double om22_2 = integrals.omega22(tstar2, m_delta(j,j));
-    double om11_12 = integrals.omega11(tstar12, m_delta(k,j));
-    double astar_12 = integrals.astar(tstar12, m_delta(k,j));
-    double bstar_12 = integrals.bstar(tstar12, m_delta(k,j));
-    double cstar_12 = integrals.cstar(tstar12, m_delta(k,j));
+    CanteraDouble w1 = m_thermo->molecularWeight(k);
+    CanteraDouble w2 = m_thermo->molecularWeight(j);
+    CanteraDouble wsum = w1 + w2;
+    CanteraDouble wmwp = (w1 - w2)/wsum;
+    CanteraDouble sqw12 = sqrt(w1*w2);
+    CanteraDouble sig1 = m_sigma[k];
+    CanteraDouble sig2 = m_sigma[j];
+    CanteraDouble sig12 = 0.5*(m_sigma[k] + m_sigma[j]);
+    CanteraDouble sigratio = sig1*sig1/(sig2*sig2);
+    CanteraDouble sigratio2 = sig1*sig1/(sig12*sig12);
+    CanteraDouble sigratio3 = sig2*sig2/(sig12*sig12);
+    CanteraDouble tstar1 = Boltzmann * t / m_eps[k];
+    CanteraDouble tstar2 = Boltzmann * t / m_eps[j];
+    CanteraDouble tstar12 = Boltzmann * t / sqrt(m_eps[k] * m_eps[j]);
+    CanteraDouble om22_1 = integrals.omega22(tstar1, m_delta(k,k));
+    CanteraDouble om22_2 = integrals.omega22(tstar2, m_delta(j,j));
+    CanteraDouble om11_12 = integrals.omega11(tstar12, m_delta(k,j));
+    CanteraDouble astar_12 = integrals.astar(tstar12, m_delta(k,j));
+    CanteraDouble bstar_12 = integrals.bstar(tstar12, m_delta(k,j));
+    CanteraDouble cstar_12 = integrals.cstar(tstar12, m_delta(k,j));
 
-    double cnst = sigratio * sqrt(2.0*w2/wsum) * 2.0 * w1*w1/(wsum * w2);
-    double p1 = cnst * om22_1 / om11_12;
+    CanteraDouble cnst = sigratio * sqrt(2.0*w2/wsum) * 2.0 * w1*w1/(wsum * w2);
+    CanteraDouble p1 = cnst * om22_1 / om11_12;
 
     cnst = (1.0/sigratio) * sqrt(2.0*w1/wsum) * 2.0*w2*w2/(wsum*w1);
-    double p2 = cnst * om22_2 / om11_12;
-    double p12 = 15.0 * wmwp*wmwp + 8.0*w1*w2*astar_12/(wsum*wsum);
+    CanteraDouble p2 = cnst * om22_2 / om11_12;
+    CanteraDouble p12 = 15.0 * wmwp*wmwp + 8.0*w1*w2*astar_12/(wsum*wsum);
 
     cnst = (2.0/(w2*wsum))*sqrt(2.0*w2/wsum)*sigratio2;
-    double q1 = cnst*((2.5 - 1.2*bstar_12)*w1*w1 + 3.0*w2*w2
+    CanteraDouble q1 = cnst*((2.5 - 1.2*bstar_12)*w1*w1 + 3.0*w2*w2
                + 1.6*w1*w2*astar_12);
 
     cnst = (2.0/(w1*wsum))*sqrt(2.0*w1/wsum)*sigratio3;
-    double q2 = cnst*((2.5 - 1.2*bstar_12)*w2*w2 + 3.0*w1*w1
+    CanteraDouble q2 = cnst*((2.5 - 1.2*bstar_12)*w2*w2 + 3.0*w1*w1
                + 1.6*w1*w2*astar_12);
-    double q12 = wmwp*wmwp*15.0*(2.5 - 1.2*bstar_12)
+    CanteraDouble q12 = wmwp*wmwp*15.0*(2.5 - 1.2*bstar_12)
           + 4.0*w1*w2*astar_12*(11.0 - 2.4*bstar_12)/(wsum*wsum)
           +  1.6*wsum*om22_1*om22_2/(om11_12*om11_12*sqw12)
           * sigratio2 * sigratio3;
@@ -754,7 +754,7 @@ void GasTransport::getBinDiffCorrection(double t, MMCollisionInt& integrals,
           (q2*xk*xk + q1*xj*xj + q12*xk*xj);
 }
 
-void GasTransport::getViscosityPolynomial(size_t i, span<double> coeffs) const
+void GasTransport::getViscosityPolynomial(size_t i, span<CanteraDouble> coeffs) const
 {
     checkSpeciesIndex(i);
     size_t N = (m_mode == CK_Mode) ? 4 : 5;
@@ -764,7 +764,7 @@ void GasTransport::getViscosityPolynomial(size_t i, span<double> coeffs) const
     }
 }
 
-void GasTransport::getConductivityPolynomial(size_t i, span<double> coeffs) const
+void GasTransport::getConductivityPolynomial(size_t i, span<CanteraDouble> coeffs) const
 {
     checkSpeciesIndex(i);
     size_t N = (m_mode == CK_Mode) ? 4 : 5;
@@ -774,7 +774,7 @@ void GasTransport::getConductivityPolynomial(size_t i, span<double> coeffs) cons
     }
 }
 
-void GasTransport::getBinDiffusivityPolynomial(size_t i, size_t j, span<double> coeffs) const
+void GasTransport::getBinDiffusivityPolynomial(size_t i, size_t j, span<CanteraDouble> coeffs) const
 {
     checkSpeciesIndex(i);
     checkSpeciesIndex(j);
@@ -794,9 +794,9 @@ void GasTransport::getBinDiffusivityPolynomial(size_t i, size_t j, span<double> 
 }
 
 void GasTransport::getCollisionIntegralPolynomial(size_t i, size_t j,
-                                                 span<double> astar_coeffs,
-                                                 span<double> bstar_coeffs,
-                                                 span<double> cstar_coeffs) const
+                                                 span<CanteraDouble> astar_coeffs,
+                                                 span<CanteraDouble> bstar_coeffs,
+                                                 span<CanteraDouble> cstar_coeffs) const
 {
     checkSpeciesIndex(i);
     checkSpeciesIndex(j);
@@ -814,7 +814,7 @@ void GasTransport::getCollisionIntegralPolynomial(size_t i, size_t j,
     }
 }
 
-void GasTransport::setViscosityPolynomial(size_t i, span<double> coeffs)
+void GasTransport::setViscosityPolynomial(size_t i, span<CanteraDouble> coeffs)
 {
     checkSpeciesIndex(i);
     size_t N = (m_mode == CK_Mode) ? 4 : 5;
@@ -825,7 +825,7 @@ void GasTransport::setViscosityPolynomial(size_t i, span<double> coeffs)
     invalidateCache();
 }
 
-void GasTransport::setConductivityPolynomial(size_t i, span<double> coeffs)
+void GasTransport::setConductivityPolynomial(size_t i, span<CanteraDouble> coeffs)
 {
     checkSpeciesIndex(i);
     size_t N = (m_mode == CK_Mode) ? 4 : 5;
@@ -836,7 +836,7 @@ void GasTransport::setConductivityPolynomial(size_t i, span<double> coeffs)
     invalidateCache();
 }
 
-void GasTransport::setBinDiffusivityPolynomial(size_t i, size_t j, span<double> coeffs)
+void GasTransport::setBinDiffusivityPolynomial(size_t i, size_t j, span<CanteraDouble> coeffs)
 {
     checkSpeciesIndex(i);
     checkSpeciesIndex(j);
@@ -857,7 +857,7 @@ void GasTransport::setBinDiffusivityPolynomial(size_t i, size_t j, span<double> 
 }
 
 void GasTransport::setCollisionIntegralPolynomial(size_t i, size_t j,
-    span<double> astar_coeffs, span<double> bstar_coeffs, span<double> cstar_coeffs,
+    span<CanteraDouble> astar_coeffs, span<CanteraDouble> bstar_coeffs, span<CanteraDouble> cstar_coeffs,
     bool actualT)
 {
     checkSpeciesIndex(i);
@@ -869,7 +869,7 @@ void GasTransport::setCollisionIntegralPolynomial(size_t i, size_t j,
                    bstar_coeffs.size(), N);
     checkArraySize("GasTransport::setCollisionIntegralPolynomial[cstar]",
                    cstar_coeffs.size(), N);
-    vector<double> ca(N), cb(N), cc(N);
+    vector<CanteraDouble> ca(N), cb(N), cc(N);
 
     for (size_t k = 0; k < N; k++) {
         ca[k] = astar_coeffs[k];

@@ -121,14 +121,14 @@ ReactorSurface* ReactorBase::surface(size_t n)
     return m_surfaces[n];
 }
 
-Eigen::SparseMatrix<double> ReactorBase::jacobian()
+Eigen::SparseMatrix<CanteraDouble> ReactorBase::jacobian()
 {
-    vector<Eigen::Triplet<double>> trips;
+    vector<Eigen::Triplet<CanteraDouble>> trips;
     getJacobianElements(trips);
     for (auto& trip : trips) {
-        trip = Eigen::Triplet<double>(trip.row() - m_offset, trip.col() - m_offset, trip.value());
+        trip = Eigen::Triplet<CanteraDouble>(trip.row() - m_offset, trip.col() - m_offset, trip.value());
     }
-    Eigen::SparseMatrix<double> J(m_nv, m_nv);
+    Eigen::SparseMatrix<CanteraDouble> J(m_nv, m_nv);
     J.setFromTriplets(trips.begin(), trips.end());
     return J;
 }
@@ -143,7 +143,7 @@ void ReactorBase::syncState()
     }
 }
 
-void ReactorBase::setAbsoluteTolerances(span<const double> atol)
+void ReactorBase::setAbsoluteTolerances(span<const CanteraDouble> atol)
 {
     if (atol.size() != m_nv) {
         throw CanteraError("ReactorBase::setAbsoluteTolerances",
@@ -155,7 +155,7 @@ void ReactorBase::setAbsoluteTolerances(span<const double> atol)
     }
 }
 
-bool ReactorBase::getAbsoluteTolerances(span<double> atol) const
+bool ReactorBase::getAbsoluteTolerances(span<CanteraDouble> atol) const
 {
     if (atol.size() != m_nv) {
         throw CanteraError("ReactorBase::getAbsoluteTolerances",
@@ -184,7 +184,7 @@ void ReactorBase::updateConnected(bool updatePressure) {
     }
 
     // Update the mass flow rate of connected flow devices
-    double time = 0.0;
+    CanteraDouble time = 0.0;
     if (m_net != nullptr) {
         time = (timeIsIndependent()) ? m_net->time() : m_net->distance();
     }
@@ -220,31 +220,31 @@ void ReactorBase::setNetwork(ReactorNet* net)
     m_net = net;
 }
 
-double ReactorBase::residenceTime()
+CanteraDouble ReactorBase::residenceTime()
 {
-    double mout = 0.0;
+    CanteraDouble mout = 0.0;
     for (size_t i = 0; i < m_outlet.size(); i++) {
         mout += m_outlet[i]->massFlowRate();
     }
     return mass()/mout;
 }
 
-double ReactorBase::density() const
+CanteraDouble ReactorBase::density() const
 {
     return m_thermo->density();
 }
 
-double ReactorBase::temperature() const
+CanteraDouble ReactorBase::temperature() const
 {
     return m_thermo->temperature();
 }
 
-span<const double> ReactorBase::massFractions() const
+span<const CanteraDouble> ReactorBase::massFractions() const
 {
     return m_thermo->massFractions();
 }
 
-double ReactorBase::massFraction(size_t k) const
+CanteraDouble ReactorBase::massFraction(size_t k) const
 {
     return m_thermo->massFraction(k);
 }

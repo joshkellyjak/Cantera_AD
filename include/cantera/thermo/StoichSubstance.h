@@ -114,7 +114,7 @@ public:
      * For an incompressible substance, the density is independent of pressure.
      * This method simply returns the stored pressure value.
      */
-    double pressure() const override;
+    CanteraDouble pressure() const override;
 
     //! Set the pressure at constant temperature. Units: Pa.
     /*!
@@ -124,11 +124,11 @@ public:
      *
      * @param p Pressure (units - Pa)
      */
-    void setPressure(double p) override;
+    void setPressure(CanteraDouble p) override;
 
-    double isothermalCompressibility() const override;
-    double thermalExpansionCoeff() const override;
-    double internalPressure() const override;
+    CanteraDouble isothermalCompressibility() const override;
+    CanteraDouble thermalExpansionCoeff() const override;
+    CanteraDouble internalPressure() const override;
 
     //! @}
     //! @name Activities, Standard States, and Activity Concentrations
@@ -154,7 +154,7 @@ public:
      *           units depend upon the implementation of the
      *           reaction rate expressions within the phase.
      */
-    void getActivityConcentrations(span<double> c) const override;
+    void getActivityConcentrations(span<CanteraDouble> c) const override;
 
     //! Return the standard concentration for the kth species
     /*!
@@ -168,8 +168,8 @@ public:
      * @return
      *   Returns The standard Concentration as 1.0
      */
-    double standardConcentration(size_t k=0) const override;
-    double logStandardConc(size_t k=0) const override;
+    CanteraDouble standardConcentration(size_t k=0) const override;
+    CanteraDouble logStandardConc(size_t k=0) const override;
 
     //! Get the array of chemical potentials at unit activity for the species at
     //! their standard states at the current *T* and *P* of the solution.
@@ -185,16 +185,16 @@ public:
      * @param mu0     Output vector of chemical potentials.
      *                Length: m_kk.
      */
-    void getStandardChemPotentials(span<double> mu0) const override;
+    void getStandardChemPotentials(span<CanteraDouble> mu0) const override;
 
     //! @}
     //! @name  Properties of the Standard State of the Species in the Solution
     //! @{
 
-    void getEnthalpy_RT(span<double> hrt) const override;
-    void getEntropy_R(span<double> sr) const override;
-    void getGibbs_RT(span<double> grt) const override;
-    void getCp_R(span<double> cpr) const override;
+    void getEnthalpy_RT(span<CanteraDouble> hrt) const override;
+    void getEntropy_R(span<CanteraDouble> sr) const override;
+    void getGibbs_RT(span<CanteraDouble> grt) const override;
+    void getCp_R(span<CanteraDouble> cpr) const override;
 
     //! Returns the vector of nondimensional Internal Energies of the standard
     //! state species at the current *T* and *P* of the solution
@@ -208,7 +208,7 @@ public:
      * @param urt  output vector of nondimensional standard state
      *             internal energies of the species. Length: m_kk.
      */
-    void getIntEnergy_RT(span<double> urt) const override;
+    void getIntEnergy_RT(span<CanteraDouble> urt) const override;
 
     //! @}
     //! @name Thermodynamic Values for the Species Reference States
@@ -221,7 +221,7 @@ public:
      * @param urt    Output vector of nondimensional reference state internal
      *               energies of the species. Length: m_kk
      */
-    void getIntEnergy_RT_ref(span<double> urt) const override;
+    void getIntEnergy_RT_ref(span<CanteraDouble> urt) const override;
     //! @}
 
     void initThermo() override;

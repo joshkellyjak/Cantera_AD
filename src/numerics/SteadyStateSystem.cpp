@@ -16,7 +16,7 @@ namespace Cantera
 
 SteadyStateSystem::SteadyStateSystem()
 {
-    m_state = make_shared<vector<double>>();
+    m_state = make_shared<vector<CanteraDouble>>();
     m_newt = make_unique<MultiNewton>(1);
     clearStats();
 }
@@ -29,7 +29,7 @@ void SteadyStateSystem::factorizeJacobian()
 {
     auto t0 = std::chrono::steady_clock::now();
     m_jac->updateTransient(m_rdt, m_mask);
-    recordFactorization(std::chrono::duration<double>(
+    recordFactorization(std::chrono::duration<CanteraDouble>(
         std::chrono::steady_clock::now() - t0).count());
 }
 
@@ -44,14 +44,14 @@ void SteadyStateSystem::saveStats()
             static_cast<long int>(gridSize()));
         m_stats["steps"].asVector<long int>().push_back(m_nsteps);
         m_stats["residual_evals"].asVector<long int>().push_back(m_nevals);
-        m_stats["residual_time"].asVector<double>().push_back(m_evaltime);
+        m_stats["residual_time"].asVector<CanteraDouble>().push_back(m_evaltime);
         m_stats["jacobian_evals"].asVector<long int>().push_back(nev);
-        m_stats["jacobian_time"].asVector<double>().push_back(m_jac->elapsedTime());
+        m_stats["jacobian_time"].asVector<CanteraDouble>().push_back(m_jac->elapsedTime());
         m_stats["factorizations"].asVector<long int>().push_back(m_factorizations);
-        m_stats["factor_time"].asVector<double>().push_back(m_factorTime);
+        m_stats["factor_time"].asVector<CanteraDouble>().push_back(m_factorTime);
         m_stats["linear_solves"].asVector<long int>().push_back(m_linearSolves);
-        m_stats["solve_time"].asVector<double>().push_back(m_solveTime);
-        m_stats["total_time"].asVector<double>().push_back(m_gridTime);
+        m_stats["solve_time"].asVector<CanteraDouble>().push_back(m_solveTime);
+        m_stats["total_time"].asVector<CanteraDouble>().push_back(m_gridTime);
         m_nevals = 0;
         m_evaltime = 0.0;
         m_factorizations = 0;
@@ -68,14 +68,14 @@ void SteadyStateSystem::clearStats()
     m_stats["grid_points"] = vector<long int>();
     m_stats["steps"] = vector<long int>();
     m_stats["residual_evals"] = vector<long int>();
-    m_stats["residual_time"] = vector<double>();
+    m_stats["residual_time"] = vector<CanteraDouble>();
     m_stats["jacobian_evals"] = vector<long int>();
-    m_stats["jacobian_time"] = vector<double>();
+    m_stats["jacobian_time"] = vector<CanteraDouble>();
     m_stats["factorizations"] = vector<long int>();
-    m_stats["factor_time"] = vector<double>();
+    m_stats["factor_time"] = vector<CanteraDouble>();
     m_stats["linear_solves"] = vector<long int>();
-    m_stats["solve_time"] = vector<double>();
-    m_stats["total_time"] = vector<double>();
+    m_stats["solve_time"] = vector<CanteraDouble>();
+    m_stats["total_time"] = vector<CanteraDouble>();
     m_nevals = 0;
     m_evaltime = 0.0;
     m_factorizations = 0;
@@ -86,14 +86,14 @@ void SteadyStateSystem::clearStats()
     m_nsteps = 0;
 }
 
-void SteadyStateSystem::setInitialGuess(span<const double> x)
+void SteadyStateSystem::setInitialGuess(span<const CanteraDouble> x)
 {
     clearDebugFile();
     m_attempt_counter = 0;
     m_state->assign(x.begin(), x.end());
 }
 
-void SteadyStateSystem::getState(span<double> x) const
+void SteadyStateSystem::getState(span<CanteraDouble> x) const
 {
     copy(m_xnew.begin(), m_xnew.end(), x.begin());
 }
@@ -104,7 +104,7 @@ void SteadyStateSystem::solve(int loglevel)
     size_t istep = 0;
     int nsteps = m_steps[istep];
     m_nsteps = 0;
-    double dt = m_tstep;
+    CanteraDouble dt = m_tstep;
 
     while (true) {
         // Keep the attempt_counter in the range of [1, max_history]
@@ -141,7 +141,7 @@ void SteadyStateSystem::solve(int loglevel)
             *m_state = m_xnew;
             writeDebugInfo("NewtonSuccess", "After successful Newton solve",
                            loglevel, m_attempt_counter);
-            m_gridTime += std::chrono::duration<double>(
+            m_gridTime += std::chrono::duration<CanteraDouble>(
                 std::chrono::steady_clock::now() - tStart).count();
             return;
         } else {
@@ -222,38 +222,38 @@ string SteadyStateSystem::timeStepGrowthStrategy() const
     return timeStepGrowthStrategyName(m_tstep_growth_strategy);
 }
 
-double SteadyStateSystem::calculateTimeStepGrowthFactor(span<const double> x_before,
-                                                        span<const double> x_after)
+CanteraDouble SteadyStateSystem::calculateTimeStepGrowthFactor(span<const CanteraDouble> x_before,
+                                                        span<const CanteraDouble> x_after)
 {
     if (m_tstep_growth_strategy == TimeStepGrowthStrategy::fixed) {
         return m_tstep_growth;
     }
 
     m_work1.resize(m_size);
-    const double growth = m_tstep_growth;
+    const CanteraDouble growth = m_tstep_growth;
 
     switch (m_tstep_growth_strategy) {
     case TimeStepGrowthStrategy::fixed:
         return growth;
     case TimeStepGrowthStrategy::steadyNorm: {
-        double ss_before = ssnorm(x_before, m_work1);
-        double ss_after = ssnorm(x_after, m_work1);
+        CanteraDouble ss_before = ssnorm(x_before, m_work1);
+        CanteraDouble ss_after = ssnorm(x_after, m_work1);
         return (ss_after < ss_before) ? growth : 1.0;
     }
     case TimeStepGrowthStrategy::transientResidual: {
-        double ts_before = tsnorm(x_before, m_work1);
-        double ts_after = tsnorm(x_after, m_work1);
+        CanteraDouble ts_before = tsnorm(x_before, m_work1);
+        CanteraDouble ts_after = tsnorm(x_after, m_work1);
         return (ts_after < ts_before) ? growth : 1.0;
     }
     case TimeStepGrowthStrategy::residualRatio: {
-        double ts_before = tsnorm(x_before, m_work1);
-        double ts_after = tsnorm(x_after, m_work1);
+        CanteraDouble ts_before = tsnorm(x_before, m_work1);
+        CanteraDouble ts_after = tsnorm(x_after, m_work1);
         if (!(ts_after > 0.0) || !(ts_before > ts_after)) {
             return 1.0;
         }
-        const double exponent = 0.2;
-        double ratio = ts_before / ts_after;
-        double factor = std::pow(ratio, exponent);
+        const CanteraDouble exponent = 0.2;
+        CanteraDouble ratio = ts_before / ts_after;
+        CanteraDouble factor = std::pow(ratio, exponent);
         return std::min(growth, std::max(1.0, factor));
     }
     case TimeStepGrowthStrategy::newtonIterations: {
@@ -265,8 +265,8 @@ double SteadyStateSystem::calculateTimeStepGrowthFactor(span<const double> x_bef
         "Unknown time step growth strategy '{}'.", timeStepGrowthStrategy());
 }
 
-double SteadyStateSystem::timeStep(int nsteps, double dt, span<double> x,
-                                   span<double> r, int loglevel)
+CanteraDouble SteadyStateSystem::timeStep(int nsteps, CanteraDouble dt, span<CanteraDouble> x,
+                                   span<CanteraDouble> r, int loglevel)
 {
     // set the Jacobian age parameter to the transient value
     newton().setOptions(m_ts_jac_age);
@@ -282,10 +282,10 @@ double SteadyStateSystem::timeStep(int nsteps, double dt, span<double> x,
     }
     while (n < nsteps) {
         if (loglevel == 1) { // At level 1, output concise information
-            double ss = ssnorm(x, r);
+            CanteraDouble ss = ssnorm(x, r);
             writelog("\n{:<5d}  {:<6.4e}   {:>7.4f}", n, dt, log10(ss));
         } else if (loglevel > 1) {
-            double ss = ssnorm(x, r);
+            CanteraDouble ss = ssnorm(x, r);
             writelog("\nTimestep ({}) dt= {:<11.4e}  log(ss)= {:<7.4f}", n, dt, log10(ss));
         }
 
@@ -345,11 +345,11 @@ double SteadyStateSystem::timeStep(int nsteps, double dt, span<double> x,
 
     // Write the final step to the log
     if (loglevel == 1) {
-        double ss = ssnorm(x, r);
+        CanteraDouble ss = ssnorm(x, r);
         writelog("\n{:<5d}  {:<6.4e}   {:>7.4f}", n, dt, log10(ss));
         writelog("\n============================");
     } else if (loglevel > 1) {
-        double ss = ssnorm(x, r);
+        CanteraDouble ss = ssnorm(x, r);
         writelog("\nTimestep ({}) dt= {:<11.4e} log10(ss)= {:<7.4f}\n", n, dt, log10(ss));
     }
 
@@ -358,27 +358,27 @@ double SteadyStateSystem::timeStep(int nsteps, double dt, span<double> x,
     return dt;
 }
 
-double SteadyStateSystem::ssnorm(span<const double> x, span<double> r)
+CanteraDouble SteadyStateSystem::ssnorm(span<const CanteraDouble> x, span<CanteraDouble> r)
 {
     eval(x, r, 0.0, 0);
-    double ss = 0.0;
+    CanteraDouble ss = 0.0;
     for (size_t i = 0; i < m_size; i++) {
         ss = std::max(fabs(r[i]),ss);
     }
     return ss;
 }
 
-double SteadyStateSystem::tsnorm(span<const double> x, span<double> r)
+CanteraDouble SteadyStateSystem::tsnorm(span<const CanteraDouble> x, span<CanteraDouble> r)
 {
     eval(x, r, m_rdt, 0);
-    double ts = 0.0;
+    CanteraDouble ts = 0.0;
     for (size_t i = 0; i < m_size; i++) {
         ts = std::max(fabs(r[i]), ts);
     }
     return ts;
 }
 
-void SteadyStateSystem::setTimeStep(double stepsize, span<const int> tsteps)
+void SteadyStateSystem::setTimeStep(CanteraDouble stepsize, span<const int> tsteps)
 {
     m_tstep = stepsize;
     m_steps.assign(tsteps.begin(), tsteps.end());
@@ -409,18 +409,18 @@ void SteadyStateSystem::setLinearSolver(shared_ptr<SystemJacobian> solver)
     m_jac_ok = false;
 }
 
-void SteadyStateSystem::evalSSJacobian(span<const double> x)
+void SteadyStateSystem::evalSSJacobian(span<const CanteraDouble> x)
 {
-    double rdt_save = m_rdt;
+    CanteraDouble rdt_save = m_rdt;
     m_jac_ok = false;
     setSteadyMode();
     evalJacobian(x);
     m_rdt = rdt_save;
 }
 
-void SteadyStateSystem::initTimeInteg(double dt, span<const double> x)
+void SteadyStateSystem::initTimeInteg(CanteraDouble dt, span<const CanteraDouble> x)
 {
-    double rdt_old = m_rdt;
+    CanteraDouble rdt_old = m_rdt;
     m_rdt = 1.0/dt;
 
     // if the stepsize has changed, then update the transient part of the Jacobian

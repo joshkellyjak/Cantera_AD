@@ -26,8 +26,8 @@ StarikovskiyVibrationalRelaxationRate::
 
 StarikovskiyVibrationalRelaxationRate::
     StarikovskiyVibrationalRelaxationRate(
-        double A, double b, double C0, double C13, double Cm, double m,
-        double Cn, double n)
+        CanteraDouble A, CanteraDouble b, CanteraDouble C0, CanteraDouble C13, CanteraDouble Cm, CanteraDouble m,
+        CanteraDouble Cn, CanteraDouble n)
     : VibrationalRelaxationRate(A, b, C0, C13, Cm, m, Cn, n)
 {
     if (m <= 0.0 || n <= 0.0) {
@@ -50,9 +50,9 @@ void StarikovskiyVibrationalRelaxationRate::setParameters(
         rateMap, type(), WhereSetParameters,
         {"C23", "Ea", "a", "reference-pressure"});
 
-    const double m = rateMap.getDouble("m", 1.0);
+    const CanteraDouble m = rateMap.getDouble("m", 1.0);
 
-    const double n = rateMap.getDouble("n", 1.0);
+    const CanteraDouble n = rateMap.getDouble("n", 1.0);
 
     if (m <= 0.0 || n <= 0.0) {
         throw InputFileError(

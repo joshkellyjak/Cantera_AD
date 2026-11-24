@@ -58,12 +58,12 @@ public:
     }
 
     //! Set the temperature.
-    virtual void setTemperature(double t) {
+    virtual void setTemperature(CanteraDouble t) {
         m_temp = t;
     }
 
     //! Temperature [K].
-    virtual double temperature() {
+    virtual CanteraDouble temperature() {
         return m_temp;
     }
 
@@ -78,36 +78,36 @@ public:
     }
 
     //! Set the mole fractions by specifying an array.
-    virtual void setMoleFractions(span<const double> xin) {
+    virtual void setMoleFractions(span<const CanteraDouble> xin) {
         throw NotImplementedError("Boundary1D::setMoleFractions");
     }
 
     //! Mass fraction of species k.
-    virtual double massFraction(size_t k) {
+    virtual CanteraDouble massFraction(size_t k) {
         throw NotImplementedError("Boundary1D::massFraction");
     }
 
     //! Set the total mass flow rate [kg/m²/s].
-    virtual void setMdot(double mdot) {
+    virtual void setMdot(CanteraDouble mdot) {
         m_mdot = mdot;
     }
 
     //! Set tangential velocity gradient [1/s] at this boundary.
-    virtual void setSpreadRate(double V0) {
+    virtual void setSpreadRate(CanteraDouble V0) {
         throw NotImplementedError("Boundary1D::setSpreadRate");
     }
 
     //! Tangential velocity gradient [1/s] at this boundary.
-    virtual double spreadRate() {
+    virtual CanteraDouble spreadRate() {
         throw NotImplementedError("Boundary1D::spreadRate");
     }
 
     //! The total mass flow rate [kg/m2/s].
-    virtual double mdot() {
+    virtual CanteraDouble mdot() {
         return m_mdot;
     }
 
-    void setupGrid(span<const double> z) override {}
+    void setupGrid(span<const CanteraDouble> z) override {}
 
     void fromArray(const shared_ptr<SolutionArray>& arr) override;
 
@@ -126,9 +126,9 @@ protected:
     ThermoPhase* m_phase_right = nullptr; //!< Thermo object used by right flow domain
 
     //! Temperature of the boundary.
-    double m_temp = 0.0;
+    CanteraDouble m_temp = 0.0;
     //! Mass flow rate at the boundary.
-    double m_mdot = 0.0;
+    CanteraDouble m_mdot = 0.0;
 };
 
 
@@ -152,30 +152,30 @@ public:
         return "inlet";
     }
 
-    void setSpreadRate(double V0) override;
+    void setSpreadRate(CanteraDouble V0) override;
 
-    double spreadRate() override {
+    CanteraDouble spreadRate() override {
         return m_V0;
     }
 
-    void setTemperature(double T) override;
+    void setTemperature(CanteraDouble T) override;
 
-    void show(span<const double> x) override;
+    void show(span<const CanteraDouble> x) override;
 
     size_t nSpecies() override {
         return m_nsp;
     }
 
     void setMoleFractions(const string& xin) override;
-    void setMoleFractions(span<const double> xin) override;
-    double massFraction(size_t k) override {
+    void setMoleFractions(span<const CanteraDouble> xin) override;
+    CanteraDouble massFraction(size_t k) override {
         return m_yin[k];
     }
 
     void updateState(size_t loc) override;
     void init() override;
-    void eval(size_t jg, span<const double> xg, span<double> rg, span<int> diagg,
-              double rdt) override;
+    void eval(size_t jg, span<const CanteraDouble> xg, span<CanteraDouble> rg, span<int> diagg,
+              CanteraDouble rdt) override;
     shared_ptr<SolutionArray> toArray(bool normalize=false) override;
     void fromArray(const shared_ptr<SolutionArray>& arr) override;
 
@@ -184,10 +184,10 @@ protected:
     int m_ilr;
 
     //! The spread rate of the inlet [1/s]
-    double m_V0 = 0.0;
+    CanteraDouble m_V0 = 0.0;
 
     size_t m_nsp = 0; //!< Number of species in the adjacent flow domain
-    vector<double> m_yin; //!< inlet mass fractions
+    vector<CanteraDouble> m_yin; //!< inlet mass fractions
     string m_xstr; //!< inlet mass fractions. Parsing deferred to init()
     Flow1D* m_flow = nullptr; //!< the adjacent flow domain
 };
@@ -215,12 +215,12 @@ public:
         return "empty";
     }
 
-    void show(span<const double> x) override {}
+    void show(span<const CanteraDouble> x) override {}
 
     void init() override;
 
-    void eval(size_t jg, span<const double> xg, span<double> rg, span<int> diagg,
-              double rdt) override;
+    void eval(size_t jg, span<const CanteraDouble> xg, span<CanteraDouble> rg, span<int> diagg,
+              CanteraDouble rdt) override;
 
     shared_ptr<SolutionArray> toArray(bool normalize=false) override;
 };
@@ -251,8 +251,8 @@ public:
 
     void init() override;
 
-    void eval(size_t jg, span<const double> xg, span<double> rg, span<int> diagg,
-              double rdt) override;
+    void eval(size_t jg, span<const CanteraDouble> xg, span<CanteraDouble> rg, span<int> diagg,
+              CanteraDouble rdt) override;
 
     shared_ptr<SolutionArray> toArray(bool normalize=false) override;
 };
@@ -283,8 +283,8 @@ public:
 
     void init() override;
 
-    void eval(size_t jg, span<const double> xg, span<double> rg, span<int> diagg,
-              double rdt) override;
+    void eval(size_t jg, span<const CanteraDouble> xg, span<CanteraDouble> rg, span<int> diagg,
+              CanteraDouble rdt) override;
 
     shared_ptr<SolutionArray> toArray(bool normalize=false) override;
 };
@@ -309,27 +309,27 @@ public:
         return "outlet-reservoir";
     }
 
-    void show(span<const double> x) override {}
+    void show(span<const CanteraDouble> x) override {}
 
     size_t nSpecies() override {
         return m_nsp;
     }
 
     void setMoleFractions(const string& xin) override;
-    void setMoleFractions(span<const double> xin) override;
-    double massFraction(size_t k) override {
+    void setMoleFractions(span<const CanteraDouble> xin) override;
+    CanteraDouble massFraction(size_t k) override {
         return m_yres[k];
     }
 
     void init() override;
-    void eval(size_t jg, span<const double> xg, span<double> rg, span<int> diagg,
-              double rdt) override;
+    void eval(size_t jg, span<const CanteraDouble> xg, span<CanteraDouble> rg, span<int> diagg,
+              CanteraDouble rdt) override;
     shared_ptr<SolutionArray> toArray(bool normalize=false) override;
     void fromArray(const shared_ptr<SolutionArray>& arr) override;
 
 protected:
     size_t m_nsp = 0; //!< Number of species in the adjacent flow domain
-    vector<double> m_yres; //!< Mass fractions in the reservoir
+    vector<CanteraDouble> m_yres; //!< Mass fractions in the reservoir
     string m_xstr; //!< Mole fractions in the reservoir
     Flow1D* m_flow = nullptr; //!< The adjacent flow domain
 };
@@ -360,11 +360,11 @@ public:
     }
 
     void init() override;
-    void eval(size_t jg, span<const double> xg, span<double> rg, span<int> diagg,
-              double rdt) override;
+    void eval(size_t jg, span<const CanteraDouble> xg, span<CanteraDouble> rg, span<int> diagg,
+              CanteraDouble rdt) override;
     shared_ptr<SolutionArray> toArray(bool normalize=false) override;
     void fromArray(const shared_ptr<SolutionArray>& arr) override;
-    void show(span<const double> x) override;
+    void show(span<const CanteraDouble> x) override;
 };
 
 
@@ -401,24 +401,24 @@ public:
     size_t componentIndex(const string& name, bool checkAlias=true) const override;
 
     void init() override;
-    void resetBadValues(span<double> xg) override;
+    void resetBadValues(span<CanteraDouble> xg) override;
 
-    void eval(size_t jg, span<const double> xg, span<double> rg, span<int> diagg,
-              double rdt) override;
+    void eval(size_t jg, span<const CanteraDouble> xg, span<CanteraDouble> rg, span<int> diagg,
+              CanteraDouble rdt) override;
 
-    double value(const string& component) const override;
+    CanteraDouble value(const string& component) const override;
     shared_ptr<SolutionArray> toArray(bool normalize=false) override;
     void fromArray(const shared_ptr<SolutionArray>& arr) override;
 
-    void _getInitialSoln(span<double> x) override {
+    void _getInitialSoln(span<CanteraDouble> x) override {
         m_sphase->getCoverages(x);
     }
 
-    void _finalize(span<const double> x) override {
+    void _finalize(span<const CanteraDouble> x) override {
         std::copy(x.begin(), x.end(), m_fixed_cov.begin());
     }
 
-    void show(span<const double> x) override;
+    void show(span<const CanteraDouble> x) override;
 
 protected:
     InterfaceKinetics* m_kin = nullptr; //!< surface kinetics mechanism
@@ -428,11 +428,11 @@ protected:
 
     //! temporary vector used to store coverages and production rates. Size is total
     //! number of species in the kinetic mechanism
-    vector<double> m_work;
+    vector<CanteraDouble> m_work;
 
     //! Fixed values of the coverages used when coverage equations are not being solved.
     //! Length is #m_nsp.
-    vector<double> m_fixed_cov;
+    vector<CanteraDouble> m_fixed_cov;
 };
 
 //! @} End of bdryGroup

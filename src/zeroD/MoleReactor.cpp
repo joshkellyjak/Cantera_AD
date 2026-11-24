@@ -30,7 +30,7 @@ MoleReactor::MoleReactor(shared_ptr<Solution> sol, bool clone, const string& nam
     m_nv = 2 + m_nsp; // internal energy, volume, and moles of each species
 }
 
-void MoleReactor::getMoles(span<double> y)
+void MoleReactor::getMoles(span<CanteraDouble> y)
 {
     // Use inverse molecular weights to convert to moles
     auto Y = m_thermo->massFractions();
@@ -40,7 +40,7 @@ void MoleReactor::getMoles(span<double> y)
     }
 }
 
-void MoleReactor::setMassFromMoles(span<const double> y)
+void MoleReactor::setMassFromMoles(span<const CanteraDouble> y)
 {
     auto mw = m_thermo->molecularWeights();
     // calculate mass from moles
@@ -50,7 +50,7 @@ void MoleReactor::setMassFromMoles(span<const double> y)
     }
 }
 
-void MoleReactor::getState(span<double> y)
+void MoleReactor::getState(span<CanteraDouble> y)
 {
     // set the first component to the internal energy
     m_mass = m_thermo->density() * m_vol;
@@ -61,12 +61,12 @@ void MoleReactor::getState(span<double> y)
     getMoles(y.subspan(m_sidx));
 }
 
-void MoleReactor::updateDefaultTolerances(span<double> atol, double baseAtol)
+void MoleReactor::updateDefaultTolerances(span<CanteraDouble> atol, CanteraDouble baseAtol)
 {
-    vector<double> y(neq());
+    vector<CanteraDouble> y(neq());
     getState(y);
     size_t sidx = speciesOffset();
-    double totalMoles = std::accumulate(y.begin() + sidx,
+    CanteraDouble totalMoles = std::accumulate(y.begin() + sidx,
                                         y.begin() + sidx + m_nsp, 0.0);
     if (totalMoles <= 0.0) {
         return;
@@ -75,7 +75,7 @@ void MoleReactor::updateDefaultTolerances(span<double> atol, double baseAtol)
               baseAtol * totalMoles);
 }
 
-void MoleReactor::updateState(span<const double> y)
+void MoleReactor::updateState(span<const CanteraDouble> y)
 {
     // The components of y are [0] total internal energy, [1] the total volume, and
     // [2...K+3] are the moles of each species, and [K+3...] are the moles
@@ -84,24 +84,24 @@ void MoleReactor::updateState(span<const double> y)
     m_vol = y[1];
     m_thermo->setMolesNoTruncate(y.subspan(m_sidx, m_nsp));
     if (m_energy) {
-        double U = y[0];
+        CanteraDouble U = y[0];
         // Residual function: error in internal energy as a function of T
-        auto u_err = [this, U](double T) {
+        auto u_err = [this, U](CanteraDouble T) {
             m_thermo->setState_TD(T, m_mass / m_vol);
             return m_thermo->intEnergy_mass() * m_mass - U;
         };
-        double T = m_thermo->temperature();
+        CanteraDouble T = m_thermo->temperature();
         boost::uintmax_t maxiter = 100;
-        pair<double, double> TT;
+        pair<CanteraDouble, CanteraDouble> TT;
         try {
             TT = bmt::bracket_and_solve_root(
-                u_err, T, 1.2, true, bmt::eps_tolerance<double>(48), maxiter);
+                u_err, T, 1.2, true, bmt::eps_tolerance<CanteraDouble>(48), maxiter);
         } catch (std::exception&) {
             // Try full-range bisection if bracketing fails (for example, near
             // temperature limits for the phase's equation of state)
             try {
                 TT = bmt::bisect(u_err, m_thermo->minTemp(), m_thermo->maxTemp(),
-                    bmt::eps_tolerance<double>(48), maxiter);
+                    bmt::eps_tolerance<CanteraDouble>(48), maxiter);
             } catch (std::exception& err2) {
                 // Set m_thermo back to a reasonable state if root finding fails
                 m_thermo->setState_TD(T, m_mass / m_vol);
@@ -119,7 +119,7 @@ void MoleReactor::updateState(span<const double> y)
     updateConnected(true);
 }
 
-void MoleReactor::eval(double time, span<double> LHS, span<double> RHS)
+void MoleReactor::eval(CanteraDouble time, span<CanteraDouble> LHS, span<CanteraDouble> RHS)
 {
     auto dndt = RHS.subspan(m_sidx); // moles per time
 
@@ -157,7 +157,7 @@ void MoleReactor::eval(double time, span<double> LHS, span<double> RHS)
             dndt[n] -= outlet->outletSpeciesMassFlowRate(n) * imw[n];
         }
         // energy update based on mass flow
-        double mdot = outlet->massFlowRate();
+        CanteraDouble mdot = outlet->massFlowRate();
         if (m_energy) {
             RHS[0] -= mdot * m_enthalpy;
         }
@@ -165,7 +165,7 @@ void MoleReactor::eval(double time, span<double> LHS, span<double> RHS)
 
     // add terms for inlets
     for (auto inlet : m_inlet) {
-        double mdot = inlet->massFlowRate();
+        CanteraDouble mdot = inlet->massFlowRate();
         for (size_t n = 0; n < m_nsp; n++) {
             // flow of species into system and dilution by other species
             dndt[n] += inlet->outletSpeciesMassFlowRate(n) * imw[n];
@@ -204,12 +204,12 @@ string MoleReactor::componentName(size_t k) {
     throw IndexError("MoleReactor::componentName", "component", k, m_nv);
 }
 
-double MoleReactor::upperBound(size_t k) const {
+CanteraDouble MoleReactor::upperBound(size_t k) const {
     // Component is either int_energy, volume, or moles of a bulk or surface species
     return BigNumber;
 }
 
-double MoleReactor::lowerBound(size_t k) const {
+CanteraDouble MoleReactor::lowerBound(size_t k) const {
     if (k == 0) {
         return -BigNumber; // int_energy
     } else if (k == 1) {
@@ -221,7 +221,7 @@ double MoleReactor::lowerBound(size_t k) const {
     }
 }
 
-void MoleReactor::resetBadValues(span<double> y) {
+void MoleReactor::resetBadValues(span<CanteraDouble> y) {
     for (size_t k = m_sidx; k < m_nv; k++) {
         y[k] = std::max(y[k], 0.0);
     }

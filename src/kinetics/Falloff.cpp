@@ -23,13 +23,13 @@ FalloffData::FalloffData()
     m_conc_3b_buf.resize(1, NAN);
 }
 
-void FalloffData::update(double T)
+void FalloffData::update(CanteraDouble T)
 {
     throw CanteraError("FalloffData::update",
         "Missing state information: 'FalloffData' requires third-body concentration.");
 }
 
-void FalloffData::update(double T, double M)
+void FalloffData::update(CanteraDouble T, CanteraDouble M)
 {
     ReactionData::update(T);
     conc_3b[0] = M;
@@ -37,9 +37,9 @@ void FalloffData::update(double T, double M)
 
 bool FalloffData::update(const ThermoPhase& phase, const Kinetics& kin)
 {
-    double rho_m = phase.molarDensity();
+    CanteraDouble rho_m = phase.molarDensity();
     int mf = phase.stateMFNumber();
-    double T = phase.temperature();
+    CanteraDouble T = phase.temperature();
     bool changed = false;
     if (T != temperature) {
         ReactionData::update(T);
@@ -55,7 +55,7 @@ bool FalloffData::update(const ThermoPhase& phase, const Kinetics& kin)
     return changed;
 }
 
-void FalloffData::perturbThirdBodies(double deltaM)
+void FalloffData::perturbThirdBodies(CanteraDouble deltaM)
 {
     if (m_perturbed) {
         throw CanteraError("FalloffData::perturbThirdBodies",
@@ -117,7 +117,7 @@ void FalloffRate::setHighRate(const ArrheniusRate& high)
     m_highRate = std::move(_high);
 }
 
-void FalloffRate::setFalloffCoeffs(span<const double> c)
+void FalloffRate::setFalloffCoeffs(span<const CanteraDouble> c)
 {
     if (c.size() != 0) {
         throw InputFileError("FalloffRate::setFalloffCoeffs", m_input,
@@ -209,7 +209,7 @@ LindemannRate::LindemannRate(const AnyMap& node, const UnitStack& rate_units)
 }
 
 LindemannRate::LindemannRate(const ArrheniusRate& low, const ArrheniusRate& high,
-                             span<const double> c)
+                             span<const CanteraDouble> c)
     : LindemannRate()
 {
     m_lowRate = low;
@@ -224,7 +224,7 @@ TroeRate::TroeRate(const AnyMap& node, const UnitStack& rate_units)
 }
 
 TroeRate::TroeRate(const ArrheniusRate& low, const ArrheniusRate& high,
-                   span<const double> c)
+                   span<const CanteraDouble> c)
     : TroeRate()
 {
     m_lowRate = low;
@@ -232,7 +232,7 @@ TroeRate::TroeRate(const ArrheniusRate& low, const ArrheniusRate& high,
     setFalloffCoeffs(c);
 }
 
-void TroeRate::setFalloffCoeffs(span<const double> c)
+void TroeRate::setFalloffCoeffs(span<const CanteraDouble> c)
 {
     if (c.size() != 3 && c.size() != 4) {
         throw InputFileError("TroeRate::setFalloffCoeffs", m_input,
@@ -241,13 +241,13 @@ void TroeRate::setFalloffCoeffs(span<const double> c)
     }
     m_a = c[0];
     if (std::abs(c[1]) < SmallNumber) {
-        m_rt3 = std::numeric_limits<double>::infinity();
+        m_rt3 = std::numeric_limits<CanteraDouble>::infinity();
     } else {
         m_rt3 = 1.0 / c[1];
     }
 
     if (std::abs(c[2]) < SmallNumber) {
-        m_rt1 = std::numeric_limits<double>::infinity();
+        m_rt1 = std::numeric_limits<CanteraDouble>::infinity();
     } else {
         m_rt1 = 1.0 / c[2];
     }
@@ -269,7 +269,7 @@ void TroeRate::setFalloffCoeffs(span<const double> c)
     m_valid = true;
 }
 
-void TroeRate::getFalloffCoeffs(span<double> c) const
+void TroeRate::getFalloffCoeffs(span<CanteraDouble> c) const
 {
     checkArraySize("TroeRate::getFalloffCoeffs", c.size(), nParameters());
     c[0] = m_a;
@@ -280,22 +280,22 @@ void TroeRate::getFalloffCoeffs(span<double> c) const
     }
 }
 
-void TroeRate::updateTemp(double T, span<double> work) const
+void TroeRate::updateTemp(CanteraDouble T, span<CanteraDouble> work) const
 {
-    double Fcent = (1.0 - m_a) * exp(-T*m_rt3) + m_a * exp(-T*m_rt1);
+    CanteraDouble Fcent = (1.0 - m_a) * exp(-T*m_rt3) + m_a * exp(-T*m_rt1);
     if (m_t2) {
         Fcent += exp(- m_t2 / T);
     }
     work[0] = log10(std::max(Fcent, SmallNumber));
 }
 
-double TroeRate::F(double pr, span<const double> work) const
+CanteraDouble TroeRate::F(CanteraDouble pr, span<const CanteraDouble> work) const
 {
-    double lpr = log10(std::max(pr,SmallNumber));
-    double cc = -0.4 - 0.67 * work[0];
-    double nn = 0.75 - 1.27 * work[0];
-    double f1 = (lpr + cc)/ (nn - 0.14 * (lpr + cc));
-    double lgf = work[0] / (1.0 + f1 * f1);
+    CanteraDouble lpr = log10(std::max(pr,SmallNumber));
+    CanteraDouble cc = -0.4 - 0.67 * work[0];
+    CanteraDouble nn = 0.75 - 1.27 * work[0];
+    CanteraDouble f1 = (lpr + cc)/ (nn - 0.14 * (lpr + cc));
+    CanteraDouble lgf = work[0] / (1.0 + f1 * f1);
     return pow(10.0, lgf);
 }
 
@@ -310,7 +310,7 @@ void TroeRate::setParameters(const AnyMap& node, const UnitStack& rate_units)
     if (f.empty()) {
         return;
     }
-    vector<double> params{
+    vector<CanteraDouble> params{
         f["A"].asDouble(),
         f["T3"].asDouble(),
         f["T1"].asDouble()
@@ -344,7 +344,7 @@ SriRate::SriRate(const AnyMap& node, const UnitStack& rate_units)
     setParameters(node, rate_units);
 }
 
-void SriRate::setFalloffCoeffs(span<const double> c)
+void SriRate::setFalloffCoeffs(span<const CanteraDouble> c)
 {
     if (c.size() != 3 && c.size() != 5) {
         throw InputFileError("SriRate::setFalloffCoeffs", m_input,
@@ -374,7 +374,7 @@ void SriRate::setFalloffCoeffs(span<const double> c)
     m_valid = true;
 }
 
-void SriRate::getFalloffCoeffs(span<double> c) const
+void SriRate::getFalloffCoeffs(span<CanteraDouble> c) const
 {
     checkArraySize("SriRate::getFalloffCoeffs", c.size(), nParameters());
     c[0] = m_a;
@@ -386,7 +386,7 @@ void SriRate::getFalloffCoeffs(span<double> c) const
     }
 }
 
-void SriRate::updateTemp(double T, span<double> work) const
+void SriRate::updateTemp(CanteraDouble T, span<CanteraDouble> work) const
 {
     work[0] = m_a * exp(- m_b / T);
     if (m_c != 0.0) {
@@ -395,10 +395,10 @@ void SriRate::updateTemp(double T, span<double> work) const
     work[1] = m_d * pow(T,m_e);
 }
 
-double SriRate::F(double pr, span<const double> work) const
+CanteraDouble SriRate::F(CanteraDouble pr, span<const CanteraDouble> work) const
 {
-    double lpr = log10(std::max(pr,SmallNumber));
-    double xx = 1.0/(1.0 + lpr*lpr);
+    CanteraDouble lpr = log10(std::max(pr,SmallNumber));
+    CanteraDouble xx = 1.0/(1.0 + lpr*lpr);
     return pow(work[0], xx) * work[1];
 }
 
@@ -413,7 +413,7 @@ void SriRate::setParameters(const AnyMap& node, const UnitStack& rate_units)
     if (f.empty()) {
         return;
     }
-    vector<double> params{
+    vector<CanteraDouble> params{
         f["A"].asDouble(),
         f["B"].asDouble(),
         f["C"].asDouble()
@@ -451,7 +451,7 @@ TsangRate::TsangRate(const AnyMap& node, const UnitStack& rate_units)
     setParameters(node, rate_units);
 }
 
-void TsangRate::setFalloffCoeffs(span<const double> c)
+void TsangRate::setFalloffCoeffs(span<const CanteraDouble> c)
 {
     if (c.size() != 1 && c.size() != 2) {
         throw InputFileError("TsangRate::init", m_input,
@@ -468,7 +468,7 @@ void TsangRate::setFalloffCoeffs(span<const double> c)
     m_valid = true;
 }
 
-void TsangRate::getFalloffCoeffs(span<double> c) const
+void TsangRate::getFalloffCoeffs(span<CanteraDouble> c) const
 {
     checkArraySize("TsangRate::getFalloffCoeffs", c.size(), nParameters());
     c[0] = m_a;
@@ -477,19 +477,19 @@ void TsangRate::getFalloffCoeffs(span<double> c) const
     }
 }
 
-void TsangRate::updateTemp(double T, span<double> work) const
+void TsangRate::updateTemp(CanteraDouble T, span<CanteraDouble> work) const
 {
-    double Fcent = m_a + (m_b * T);
+    CanteraDouble Fcent = m_a + (m_b * T);
     work[0] = log10(std::max(Fcent, SmallNumber));
 }
 
-double TsangRate::F(double pr, span<const double> work) const
+CanteraDouble TsangRate::F(CanteraDouble pr, span<const CanteraDouble> work) const
 {   //identical to TroeRate::F
-    double lpr = log10(std::max(pr,SmallNumber));
-    double cc = -0.4 - 0.67 * work[0];
-    double nn = 0.75 - 1.27 * work[0];
-    double f1 = (lpr + cc)/ (nn - 0.14 * (lpr + cc));
-    double lgf = work[0] / (1.0 + f1 * f1);
+    CanteraDouble lpr = log10(std::max(pr,SmallNumber));
+    CanteraDouble cc = -0.4 - 0.67 * work[0];
+    CanteraDouble nn = 0.75 - 1.27 * work[0];
+    CanteraDouble f1 = (lpr + cc)/ (nn - 0.14 * (lpr + cc));
+    CanteraDouble lgf = work[0] / (1.0 + f1 * f1);
     return pow(10.0, lgf);
 }
 
@@ -504,7 +504,7 @@ void TsangRate::setParameters(const AnyMap& node, const UnitStack& rate_units)
     if (f.empty()) {
         return;
     }
-    vector<double> params{
+    vector<CanteraDouble> params{
         f["A"].asDouble(),
         f.getDouble("B", 0.0)
     };

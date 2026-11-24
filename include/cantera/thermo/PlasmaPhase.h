@@ -176,11 +176,11 @@ public:
     //! Set electron energy levels.
     //! @param  levels The vector of electron energy levels [eV].
     //!                Length: #m_nPoints.
-    void setElectronEnergyLevels(span<const double> levels);
+    void setElectronEnergyLevels(span<const CanteraDouble> levels);
 
     //! Get electron energy levels.
     //! @param  levels The vector of electron energy levels [eV]. Length: #m_nPoints
-    void getElectronEnergyLevels(span<double> levels) const {
+    void getElectronEnergyLevels(span<CanteraDouble> levels) const {
         Eigen::Map<Eigen::ArrayXd>(levels.data(), levels.size()) = m_electronEnergyLevels;
     }
 
@@ -189,13 +189,13 @@ public:
     //!                Length: #m_nPoints.
     //! @param  distrb The vector of electron energy distribution.
     //!                Length: #m_nPoints.
-    void setDiscretizedElectronEnergyDist(span<const double> levels,
-                                          span<const double> distrb);
+    void setDiscretizedElectronEnergyDist(span<const CanteraDouble> levels,
+                                          span<const CanteraDouble> distrb);
 
     //! Get electron energy distribution.
     //! @param  distrb The vector of electron energy distribution.
     //!                Length: #m_nPoints.
-    void getElectronEnergyDistribution(span<double> distrb) const {
+    void getElectronEnergyDistribution(span<CanteraDouble> distrb) const {
         Eigen::Map<Eigen::ArrayXd>(distrb.data(), distrb.size()) = m_electronEnergyDist;
     }
 
@@ -203,30 +203,30 @@ public:
     //! Note that @f$ x = 1 @f$ and @f$ x = 2 @f$ correspond to the
     //! Maxwellian and Druyvesteyn distribution, respectively.
     //! @param  x The shape factor
-    void setIsotropicShapeFactor(double x);
+    void setIsotropicShapeFactor(CanteraDouble x);
 
     //! The shape factor of isotropic electron energy distribution.
-    double isotropicShapeFactor() const {
+    CanteraDouble isotropicShapeFactor() const {
         return m_isotropicShapeFactor;
     }
 
     //! Electron Temperature [K].
     //!     @return The electron temperature of the phase.
-    double electronTemperature() const override {
+    CanteraDouble electronTemperature() const override {
         return m_electronTemp;
     }
     //! Set the internally stored electron temperature of the phase [K].
     //! @param  Te Electron temperature in Kelvin.
-    void setElectronTemperature(double Te) override;
+    void setElectronTemperature(CanteraDouble Te) override;
 
     //! Mean electron energy [eV].
-    double meanElectronEnergy() const {
+    CanteraDouble meanElectronEnergy() const {
         return 3.0 / 2.0 * electronTemperature() * Boltzmann / ElectronCharge;
     }
 
     //! Set mean electron energy [eV].
     //! This method also sets electron temperature accordingly.
-    void setMeanElectronEnergy(double energy);
+    void setMeanElectronEnergy(CanteraDouble energy);
 
     //! Get electron energy distribution type.
     string electronEnergyDistributionType() const {
@@ -315,17 +315,17 @@ public:
 
     //! Get the frequency of the applied electric field [Hz].
     //! @since New in %Cantera 3.2.
-    double electricFieldFrequency() const {
+    CanteraDouble electricFieldFrequency() const {
         return m_electricFieldFrequency;
     }
 
     //! Get the applied electric field strength [V/m].
-    double electricField() const {
+    CanteraDouble electricField() const {
         return m_electricField;
     }
 
     //! Set the absolute electric field strength [V/m].
-    void setElectricField(double E) {
+    void setElectricField(CanteraDouble E) {
         m_electricField = E;
     }
 
@@ -337,12 +337,12 @@ public:
     //}
 
     //! Get the reduced electric field strength [V·m²].
-    double reducedElectricField() const {
+    CanteraDouble reducedElectricField() const {
         return m_electricField / (molarDensity() * Avogadro);
     }
 
     //! Set reduced electric field given in [V·m²].
-    void setReducedElectricField(double EN) {
+    void setReducedElectricField(CanteraDouble EN) {
         m_electricField = EN * molarDensity() * Avogadro; // [V/m]
     }
 
@@ -354,7 +354,7 @@ public:
      * where @f$ \nu_d @f$ is the drift velocity (m²/s), and @f$ E @f$ is the electric
      * field strength (V/m).
      */
-    double electronMobility() const;
+    CanteraDouble electronMobility() const;
 
     /**
      * The elastic power loss [J/s/m³]
@@ -365,7 +365,7 @@ public:
      * target species and electrons, respectively. @f$ K_k @f$ is the elastic
      * electron energy loss coefficient (eV-m³/s).
      */
-    double elasticPowerLoss();
+    CanteraDouble elasticPowerLoss();
 
     /**
      * The joule heating power (W/m³)
@@ -378,13 +378,13 @@ public:
      *   @f]
      * and @f$ E @f$ is the electric field strength (V/m).
      */
-    double jouleHeatingPower() const;
+    CanteraDouble jouleHeatingPower() const;
 
     void beginEquilibrate() override;
 
     void endEquilibrate() override;
 
-    double intrinsicHeating() override;
+    CanteraDouble intrinsicHeating() override;
 
     //! Set parameters for the electron energy distribution.
     /*!
@@ -463,7 +463,7 @@ public:
      * The standard-state pure-species enthalpies @f$ h^0_k(T_k) @f$ are
      * computed by the species thermodynamic property manager.
      */
-    double enthalpy_mole() const override;
+    CanteraDouble enthalpy_mole() const override;
 
     //! Return the molar entropy. Units: J/kmol/K.
     /*!
@@ -475,7 +475,7 @@ public:
      * where heavy-species properties are evaluated at @f$ T @f$, electron properties
      * at @f$ T_\text{e} @f$, and @f$ P @f$ is the total pressure of the mixture.
      */
-    double entropy_mole() const override;
+    CanteraDouble entropy_mole() const override;
 
     //! Return the molar Gibbs free energy. Units: J/kmol.
     /*!
@@ -493,7 +493,7 @@ public:
      * where heavy-species properties are evaluated at @f$ T @f$, electron properties
      * at @f$ T_\text{e} @f$, and @f$ P @f$ is the total pressure of the mixture.
      */
-    double gibbs_mole() const override;
+    CanteraDouble gibbs_mole() const override;
 
     //! Return the molar internal energy. Units: J/kmol.
     /*!
@@ -508,7 +508,7 @@ public:
      * at @f$ T_\text{e} @f$, and @f$ P @f$ is the total pressure of the mixture.
      * For an ideal gas, internal energy is independent of pressure.
      */
-    double intEnergy_mole() const override;
+    CanteraDouble intEnergy_mole() const override;
 
     //! @}
     //! @name Mechanical Equation of State
@@ -530,7 +530,7 @@ public:
      * See the #pressure() method for usage of the mean temperature in
      * calculating the pressure of the plasma phase.
      */
-    double meanTemperature() const;
+    CanteraDouble meanTemperature() const;
 
     //! Return the pressure of the plasma phase. Units: Pa.
     /*!
@@ -572,7 +572,7 @@ public:
      * @f]
      * where @f$ \overline{W} @f$ is the mean molecular weight.
      */
-    double pressure() const override;
+    CanteraDouble pressure() const override;
 
     //! Set the pressure at constant temperature and composition. Units: Pa.
     /*!
@@ -586,12 +586,12 @@ public:
      *
      * @param p Pressure [Pa].
      */
-    void setPressure(double p) override {
+    void setPressure(CanteraDouble p) override {
         setDensity(p * meanMolecularWeight() / (GasConstant * meanTemperature()));
     }
 
     //! Return the Gas Constant multiplied by the current electron temperature [J/kmol].
-    double RTe() const {
+    CanteraDouble RTe() const {
         return electronTemperature() * GasConstant;
     }
 
@@ -607,18 +607,18 @@ public:
      * @f$ R @f$ is the gas constant [J/kmol/K], and
      * @f$ T_\text{e} @f$ is the electron temperature [K].
      */
-    virtual double electronPressure() const {
+    virtual CanteraDouble electronPressure() const {
         return GasConstant * concentration(m_electronSpeciesIndex) *
                electronTemperature();
     }
 
     //! Raise NotImplementedError, as there is an ambiguity on the temperature to use.
-    double thermalExpansionCoeff() const override {
+    CanteraDouble thermalExpansionCoeff() const override {
         throw NotImplementedError("PlasmaPhase::thermalExpansionCoeff");
     }
 
     //! Raise NotImplementedError, as there is an ambiguity on the temperature to use.
-    double soundSpeed() const override {
+    CanteraDouble soundSpeed() const override {
         throw NotImplementedError("PlasmaPhase::soundSpeed");
     }
 
@@ -644,7 +644,7 @@ public:
      * @param k Parameter indicating the species. The default
      *          is to assume this refers to species 0.
      */
-    double standardConcentration(size_t k=0) const override;
+    CanteraDouble standardConcentration(size_t k=0) const override;
 
     //! Get the array of non-dimensional activities at the current solution
     //! temperature, pressure, and solution concentration.
@@ -661,7 +661,7 @@ public:
      *
      * @param a   Output vector of activities. Length: m_kk.
      */
-    void getActivities(span<double> a) const override;
+    void getActivities(span<CanteraDouble> a) const override;
 
     //! Get the array of non-dimensional activity coefficients at the current
     //! solution temperature, pressure, and solution concentration.
@@ -672,7 +672,7 @@ public:
      *
      * @param ac Output vector of activity coefficients. Length: m_kk.
      */
-    void getActivityCoefficients(span<double> ac) const override;
+    void getActivityCoefficients(span<CanteraDouble> ac) const override;
 
     //! @}
     //! @name Partial Molar Properties of the Solution
@@ -695,7 +695,7 @@ public:
      * @f]
      * Note that it is also equal to the partial molar Gibbs free energy.
      */
-    void getChemPotentials(span<double> mu) const override;
+    void getChemPotentials(span<CanteraDouble> mu) const override;
 
     //! Return the partial molar enthalpies of the species in the solution. Units: J/kmol.
     /*!
@@ -704,7 +704,7 @@ public:
      * where heavy-species properties are evaluated at the gas temperature @f$ T @f$,
      * and electron properties are evaluated at the electron temperature @f$ T_e @f$.
      */
-    void getPartialMolarEnthalpies(span<double> hbar) const override;
+    void getPartialMolarEnthalpies(span<CanteraDouble> hbar) const override;
 
     //! Return the partial molar entropies of the species in the solution. Units: J/kmol/K.
     /*!
@@ -716,7 +716,7 @@ public:
      * and electron properties are evaluated at the electron temperature.
      * Here, @f$ P @f$ is the total pressure of the mixture, as defined in #pressure().
      */
-    void getPartialMolarEntropies(span<double> sbar) const override;
+    void getPartialMolarEntropies(span<CanteraDouble> sbar) const override;
 
     //! Return the partial molar internal energies of the species in the solution. Units: J/kmol.
     /*!
@@ -729,7 +729,7 @@ public:
      * For heavy species, the partial molar enthalpy is evaluated at the gas temperature,
      * while for electrons, it is evaluated at the electron temperature.
      */
-    void getPartialMolarIntEnergies(span<double> ubar) const override;
+    void getPartialMolarIntEnergies(span<CanteraDouble> ubar) const override;
 
     //! Return the partial molar volumes of the species in the solution. Units: m³/kmol.
     /*!
@@ -740,7 +740,7 @@ public:
      * where @f$ T_k @f$ is the temperature at which the
      * partial molar enthalpy is evaluated.
      */
-    void getPartialMolarVolumes(span<double> vbar) const override;
+    void getPartialMolarVolumes(span<CanteraDouble> vbar) const override;
 
     //! @}
     //! @name  Properties of the Standard State of the Species in the Solution
@@ -761,7 +761,7 @@ public:
      * @f]
      * Here, @f$ P @f$ is the total pressure of the mixture, as defined in #pressure().
      */
-    void getStandardChemPotentials(span<double> muStar) const override;
+    void getStandardChemPotentials(span<CanteraDouble> muStar) const override;
 
     //! Return the standard molar volumes of the species. Units: m³/kmol.
     /*!
@@ -772,7 +772,7 @@ public:
      * where @f$ T_k @f$ is the temperature at which
      * the standard molar volume is evaluated.
      */
-    void getStandardVolumes(span<double> vol) const override;
+    void getStandardVolumes(span<CanteraDouble> vol) const override;
 
     //! @}
     //! @name Thermodynamic Values for the Species Reference States
@@ -786,7 +786,7 @@ public:
      *  \mu^0_k(T_k) = h^0_k(T_k) - T_k s^0_k(T_k)
      * @f]
      */
-    void getGibbs_ref(span<double> g) const override;
+    void getGibbs_ref(span<CanteraDouble> g) const override;
 
     //! Return the molar volumes of the species reference states. Units: m³/kmol.
     /*!
@@ -800,7 +800,7 @@ public:
      *                Length: m_kk.
 
      */
-    void getStandardVolumes_ref(span<double> vol) const override;
+    void getStandardVolumes_ref(span<CanteraDouble> vol) const override;
 
     //! @}
     //! @name Setting the State
@@ -905,7 +905,7 @@ protected:
     void updateElectronEnergyDistDifference();
 
     // Electron energy order in the exponential term
-    double m_isotropicShapeFactor = 1.0;
+    CanteraDouble m_isotropicShapeFactor = 1.0;
 
     //! Number of points of electron energy levels
     size_t m_nPoints = 1001;
@@ -921,7 +921,7 @@ protected:
     size_t m_electronSpeciesIndex = npos;
 
     //! Electron temperature [K].
-    double m_electronTemp;
+    CanteraDouble m_electronTemp;
 
     //! Electron energy distribution type. Can be "isotropic", "discretized" or "Boltzmann-two-term".
     string m_distributionType = "isotropic";
@@ -939,18 +939,18 @@ protected:
     vector<size_t> m_kElastic;
 
     //! electric field [V/m].
-    double m_electricField = 0.0;
+    CanteraDouble m_electricField = 0.0;
 
     //! electric field freq [Hz].
-    double m_electricFieldFrequency = 0.0;
+    CanteraDouble m_electricFieldFrequency = 0.0;
 
     //! Cross section data. m_crossSections[i][j], where i is the specific process,
     //! j is the index of vector. Unit: [m^2]
-    vector<vector<double>> m_crossSections;
+    vector<vector<CanteraDouble>> m_crossSections;
 
     //! Electron energy levels corresponding to the cross section data. m_energyLevels[i][j],
     //! where i is the specific process, j is the index of vector. Unit: [eV]
-    vector<vector<double>> m_energyLevels;
+    vector<vector<CanteraDouble>> m_energyLevels;
 
     //! ionization degree for the electron-electron collisions (tmp is the previous one)
     //double m_ionDegree = 0.0;
@@ -969,7 +969,7 @@ protected:
      * electron energy, @f$ \sigma_k @f$ [m2] is the reaction collision cross section,
      * @f$ F_0 @f$ [V^(-3/2)] is the normalized electron energy distribution function.
      */
-    vector<double> m_elasticElectronEnergyLossCoefficients;
+    vector<CanteraDouble> m_elasticElectronEnergyLossCoefficients;
 
     //! Updates the elastic electron energy loss coefficient for collision index i
     /*! Calculates the elastic energy loss coefficient using the current electron
@@ -1018,13 +1018,13 @@ private:
     void addCollision(shared_ptr<Reaction> collision);
 
     //! Saved electron temperature during an equilibrium solve
-    double m_electronTempEquil = 0.0;
+    CanteraDouble m_electronTempEquil = 0.0;
 
     //! Lock flag (default off)
     bool m_inEquilibrate = false;
 
     //! Work array
-    mutable std::vector<double> m_work;
+    mutable std::vector<CanteraDouble> m_work;
 
     //! A structure to describe species serving as mean vibrational energy reservoirs
     struct VibrationalReservoirSpecies {
@@ -1050,11 +1050,11 @@ private:
 
     //! Threshold fraction of vibrational reservoirs to their ground state
     //! above which they may be at risk of hindering phase chemistry.
-    double m_vibrationalMoleFractionThreshold = 1e-2;
+    CanteraDouble m_vibrationalMoleFractionThreshold = 1e-2;
 
     //! The absolute mole threshold below which a the chemistry is
     //! assumed to be safe from alterations from vibrational reservoirs.
-    double m_vibrationalAbsoluteMoleFractionThreshold = 1e-20;
+    CanteraDouble m_vibrationalAbsoluteMoleFractionThreshold = 1e-20;
 
     //! Resolve configured vibrational reservoir and base species names
     //! to their corresponding phase species indices.

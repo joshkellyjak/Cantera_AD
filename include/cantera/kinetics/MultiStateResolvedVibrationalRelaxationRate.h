@@ -27,8 +27,8 @@ class MultiStateResolvedVibrationalRelaxationRate final
 public:
     MultiStateResolvedVibrationalRelaxationRate() = default;
 
-    MultiStateResolvedVibrationalRelaxationRate(double A, double b,
-        double C0 = 0.0, double C13 = 0.0, double C23 = 0.0);
+    MultiStateResolvedVibrationalRelaxationRate(CanteraDouble A, CanteraDouble b,
+        CanteraDouble C0 = 0.0, CanteraDouble C13 = 0.0, CanteraDouble C23 = 0.0);
 
     explicit MultiStateResolvedVibrationalRelaxationRate(
         const AnyMap& node, const UnitStack& rate_units = {});

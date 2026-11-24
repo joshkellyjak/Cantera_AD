@@ -34,7 +34,7 @@ class ConstantVibrationalRelaxationRate final
 public:
     ConstantVibrationalRelaxationRate() = default;
 
-    explicit ConstantVibrationalRelaxationRate(double A);
+    explicit ConstantVibrationalRelaxationRate(CanteraDouble A);
 
     explicit ConstantVibrationalRelaxationRate(
         const AnyMap& node, const UnitStack& rate_units = {});

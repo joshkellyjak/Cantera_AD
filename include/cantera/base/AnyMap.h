@@ -181,15 +181,15 @@ public:
     //! Assign a scalar quantity with units as a string, for example
     //! `{3.0, "m^2"}`. If the `is_act_energy` flag is set to `true`, the units
     //! will be converted using the special rules for activation energies.
-    void setQuantity(double value, const string& units, bool is_act_energy=false);
+    void setQuantity(CanteraDouble value, const string& units, bool is_act_energy=false);
 
     //! Assign a scalar quantity with units as a Units object, for cases where
     //! the units vary and are determined dynamically, such as reaction
     //! pre-exponential factors
-    void setQuantity(double value, const Units& units);
+    void setQuantity(CanteraDouble value, const Units& units);
 
     //! Assign a vector where all the values have the same units
-    void setQuantity(const vector<double>& values, const string& units);
+    void setQuantity(const vector<CanteraDouble>& values, const string& units);
 
     typedef function<void(AnyValue&, const UnitSystem&)> unitConverter;
 
@@ -198,15 +198,15 @@ public:
     void setQuantity(const AnyValue& value, const unitConverter& converter);
     //! @} end group quantity conversions
 
-    explicit AnyValue(double value);
-    AnyValue& operator=(double value);
+    explicit AnyValue(CanteraDouble value);
+    AnyValue& operator=(CanteraDouble value);
     //! Return the held value as a `double`, if it is a `double` or a `long int`.
-    double& asDouble();
-    const double& asDouble() const;
-    bool operator==(const double& other) const;
-    bool operator!=(const double& other) const;
-    friend bool operator==(const double& lhs, const AnyValue& rhs);
-    friend bool operator!=(const double& lhs, const AnyValue& rhs);
+    CanteraDouble& asDouble();
+    const CanteraDouble& asDouble() const;
+    bool operator==(const CanteraDouble& other) const;
+    bool operator!=(const CanteraDouble& other) const;
+    friend bool operator==(const CanteraDouble& lhs, const AnyValue& rhs);
+    friend bool operator!=(const CanteraDouble& lhs, const AnyValue& rhs);
 
     explicit AnyValue(bool value);
     AnyValue& operator=(bool value);
@@ -338,18 +338,18 @@ vector<AnyValue>& AnyValue::asVector<AnyValue>(size_t nMin, size_t nMax);
 
 //! Implicit conversion of long int to double if accessed as a vector<double>
 template<>
-const vector<double>& AnyValue::asVector<double>(size_t nMin, size_t nMax) const;
+const vector<CanteraDouble>& AnyValue::asVector<CanteraDouble>(size_t nMin, size_t nMax) const;
 
 template<>
-vector<double>& AnyValue::asVector<double>(size_t nMin, size_t nMax);
+vector<CanteraDouble>& AnyValue::asVector<CanteraDouble>(size_t nMin, size_t nMax);
 
 //! Implicit conversion of long int to double if accessed as a vector<vector<double>>
 template<>
-const vector<vector<double>>& AnyValue::asVector<vector<double>>(size_t nMin,
+const vector<vector<CanteraDouble>>& AnyValue::asVector<vector<CanteraDouble>>(size_t nMin,
                                                                  size_t nMax) const;
 
 template<>
-vector<vector<double>>& AnyValue::asVector<vector<double>>(size_t nMin, size_t nMax);
+vector<vector<CanteraDouble>>& AnyValue::asVector<vector<CanteraDouble>>(size_t nMin, size_t nMax);
 
 //! Implicit conversion of AnyMap to a vector<AnyMap> of length 1, or an empty
 //! vector<AnyValue> an empty vector<AnyMap>
@@ -505,7 +505,7 @@ public:
     long int getInt(const string& key, long int default_) const;
 
     //! If `key` exists, return it as a `double`, otherwise return `default_`.
-    double getDouble(const string& key, double default_) const;
+    CanteraDouble getDouble(const string& key, CanteraDouble default_) const;
 
     //! If `key` exists, return it as a `string`, otherwise return `default_`.
     const string& getString(const string& key,
@@ -515,16 +515,16 @@ public:
     //! `units`. If the stored value is a double, convert it using the default
     //! units. If the input is a string, treat this as a dimensioned value, such
     //! as '988 kg/m^3' and convert from the specified units.
-    double convert(const string& key, const string& units) const;
-    double convert(const string& key, const Units& units) const;
+    CanteraDouble convert(const string& key, const string& units) const;
+    CanteraDouble convert(const string& key, const Units& units) const;
 
     //! Convert the item stored by the given `key` to the units specified in
     //! `units`. If the stored value is a double, convert it using the default
     //! units. If the input is a string, treat this as a dimensioned value, such
     //! as '988 kg/m^3' and convert from the specified units. If the key is
     //! missing, the `default_` value is returned.
-    double convert(const string& key, const string& units,
-                   double default_) const;
+    CanteraDouble convert(const string& key, const string& units,
+                   CanteraDouble default_) const;
 
     //! Convert a vector of dimensional values
     /*!
@@ -541,7 +541,7 @@ public:
      * @param nMax   Maximum allowed length of the vector. An exception is
      *     thrown if this condition is not met.
      */
-    vector<double> convertVector(const string& key, const string& units,
+    vector<CanteraDouble> convertVector(const string& key, const string& units,
                                  size_t nMin=npos, size_t nMax=npos) const;
 
     //! Defined to allow use with range-based for loops. Iteration automatically

@@ -44,10 +44,10 @@ public:
     }
 
     //! Returns the surface area [m²]
-    double area() const override;
+    CanteraDouble area() const override;
 
     //! Set the surface area [m²]
-    void setArea(double a) override;
+    void setArea(CanteraDouble a) override;
 
     //! Accessor for the SurfPhase object
     SurfPhase* thermo() {
@@ -91,7 +91,7 @@ public:
 
     //! Set the surface coverages. Array `cov` has length equal to the number of
     //! surface species.
-    void setCoverages(span<const double> cov);
+    void setCoverages(span<const CanteraDouble> cov);
 
     //! Set the surface coverages by name
     void setCoverages(const Composition& cov);
@@ -101,30 +101,30 @@ public:
 
     //! Get the surface coverages. Array `cov` should have length equal to the
     //! number of surface species.
-    void getCoverages(span<double> cov) const;
+    void getCoverages(span<CanteraDouble> cov) const;
 
-    void getState(span<double> y) override;
-    void initialize(double t0=0.0) override;
+    void getState(span<CanteraDouble> y) override;
+    void initialize(CanteraDouble t0=0.0) override;
     vector<size_t> initializeSteady() override;
-    void updateState(span<const double> y) override;
-    void eval(double t, span<double> LHS, span<double> RHS) override;
-    void evalSteady(double t, span<double> LHS, span<double> RHS) override;
+    void updateState(span<const CanteraDouble> y) override;
+    void eval(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS) override;
+    void evalSteady(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS) override;
 
     void addSensitivityReaction(size_t rxn) override;
     // void addSensitivitySpeciesEnthalpy(size_t k) override;
-    void applySensitivity(span<const double> params) override;
-    void resetSensitivity(span<const double> params) override;
+    void applySensitivity(span<const CanteraDouble> params) override;
+    void resetSensitivity(span<const CanteraDouble> params) override;
 
     size_t componentIndex(const string& nm) const override;
     string componentName(size_t k) override;
 
-    double upperBound(size_t k) const override;
-    double lowerBound(size_t k) const override;
-    void resetBadValues(span<double> y) override;
+    CanteraDouble upperBound(size_t k) const override;
+    CanteraDouble lowerBound(size_t k) const override;
+    void resetBadValues(span<CanteraDouble> y) override;
     // void setDerivativeSettings(AnyMap& settings) override;
 
 protected:
-    double m_area = 1.0;
+    CanteraDouble m_area = 1.0;
 
     shared_ptr<SurfPhase> m_surf;
     shared_ptr<InterfaceKinetics> m_kinetics;
@@ -144,30 +144,30 @@ class MoleReactorSurface : public ReactorSurface
 public:
     using ReactorSurface::ReactorSurface;
     string type() const override { return "MoleReactorSurface"; }
-    void initialize(double t0=0.0) override;
-    void getState(span<double> y) override;
-    void updateDefaultTolerances(span<double> atol, double baseAtol) override;
-    void updateState(span<const double> y) override;
-    void eval(double t, span<double> LHS, span<double> RHS) override;
-    void evalSteady(double t, span<double> LHS, span<double> RHS) override;
-    double upperBound(size_t k) const override;
-    double lowerBound(size_t k) const override;
-    void resetBadValues(span<double> y) override;
-    void getJacobianElements(vector<Eigen::Triplet<double>>& trips) override;
+    void initialize(CanteraDouble t0=0.0) override;
+    void getState(span<CanteraDouble> y) override;
+    void updateDefaultTolerances(span<CanteraDouble> atol, CanteraDouble baseAtol) override;
+    void updateState(span<const CanteraDouble> y) override;
+    void eval(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS) override;
+    void evalSteady(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS) override;
+    CanteraDouble upperBound(size_t k) const override;
+    CanteraDouble lowerBound(size_t k) const override;
+    void resetBadValues(span<CanteraDouble> y) override;
+    void getJacobianElements(vector<Eigen::Triplet<CanteraDouble>>& trips) override;
 
 protected:
     //! Temporary storage for coverages
-    vector<double> m_cov_tmp;
+    vector<CanteraDouble> m_cov_tmp;
 
     //! Temporary storage for d(moles)/d(moles) scaling factor
-    vector<double> m_f_species;
+    vector<CanteraDouble> m_f_species;
 
     //! Temporary storage for d(energy)/d(moles) scaling factors
-    vector<double> m_f_energy;
+    vector<CanteraDouble> m_f_energy;
 
     //! Mapping from InterfaceKinetics species index to ReactorNet state vector index.
     //! Set to -1 for species not included in the reactor network state vector.
-    vector<Eigen::SparseMatrix<double>::StorageIndex> m_kin2net;
+    vector<Eigen::SparseMatrix<CanteraDouble>::StorageIndex> m_kin2net;
 
     //! Mapping from InterfaceKinetics species index to the corresponding reactor.
     //! Set to `nullptr` for surface species.
@@ -194,50 +194,50 @@ public:
 
     bool timeIsIndependent() const override { return false; }
 
-    void evalDae(double t, span<const double> y, span<const double> ydot,
-                 span<double> residual) override;
-    void getStateDae(span<double> y, span<double> ydot) override;
-    void getConstraints(span<double> constraints) override;
+    void evalDae(CanteraDouble t, span<const CanteraDouble> y, span<const CanteraDouble> ydot,
+                 span<CanteraDouble> residual) override;
+    void getStateDae(span<CanteraDouble> y, span<CanteraDouble> ydot) override;
+    void getConstraints(span<CanteraDouble> constraints) override;
 
     //! Surface area per unit length [m]
     //! @note If unspecified by the user, this will be calculated assuming the surface
     //!     is the wall of a cylindrical reactor.
-    double area() const override;
+    CanteraDouble area() const override;
 
     //! Set the reactor surface area per unit length [m].
     //!
     //! If the surface is the wall of the reactor, then this is the perimeter of the
     //! reactor. If the surface represents something like a catalyst monolith, this is
     //! the inverse of the surface area to volume ratio.
-    void setArea(double A) override { m_area = A; }
+    void setArea(CanteraDouble A) override { m_area = A; }
 
     //! Get the steady state tolerances used to determine the initial state for
     //! surface coverages
-    double initialAtol() const {
+    CanteraDouble initialAtol() const {
         return m_ss_atol;
     }
 
     //! Set the steady state tolerances used to determine the initial state for
     //! surface coverages
-    void setInitialAtol(double atol) {
+    void setInitialAtol(CanteraDouble atol) {
         m_ss_atol = atol;
     }
 
     //! Get the steady state tolerances used to determine the initial state for
     //! surface coverages
-    double initialRtol() const {
+    CanteraDouble initialRtol() const {
         return m_ss_rtol;
     }
 
     //! Set the steady state tolerances used to determine the initial state for
     //! surface coverages
-    void setInitialRtol(double rtol) {
+    void setInitialRtol(CanteraDouble rtol) {
         m_ss_rtol = rtol;
     }
 
     //! Get the steady state tolerances used to determine the initial state for
     //! surface coverages
-    double initialMaxSteps() const {
+    CanteraDouble initialMaxSteps() const {
         return m_max_ss_steps;
     }
 
@@ -249,7 +249,7 @@ public:
 
     //! Get the steady state tolerances used to determine the initial state for
     //! surface coverages
-    double initialMaxErrorFailures() const {
+    CanteraDouble initialMaxErrorFailures() const {
         return m_max_ss_error_fails;
     }
 
@@ -261,9 +261,9 @@ public:
 
 protected:
     //! steady-state relative tolerance, used to determine initial surface coverages
-    double m_ss_rtol = 1e-7;
+    CanteraDouble m_ss_rtol = 1e-7;
     //! steady-state absolute tolerance, used to determine initial surface coverages
-    double m_ss_atol = 1e-14;
+    CanteraDouble m_ss_atol = 1e-14;
     //! maximum number of steady-state coverage integrator-steps
     int m_max_ss_steps = 20000;
     //! maximum number of steady-state integrator error test failures

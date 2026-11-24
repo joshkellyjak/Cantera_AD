@@ -52,8 +52,8 @@ public:
     //! @param rdt  Reciprocal of the time step. if omitted, then the internally stored
     //!     value (accessible using the rdt() method) is used.
     //! @param count   Set to zero to omit this call from the statistics
-    virtual void eval(span<const double> x, span<double> r,
-                      double rdt=-1.0, int count=1) = 0;
+    virtual void eval(span<const CanteraDouble> x, span<CanteraDouble> r,
+                      CanteraDouble rdt=-1.0, int count=1) = 0;
 
     //! Evaluates the Jacobian at x0 using finite differences.
     //!
@@ -62,7 +62,7 @@ public:
     //! finite differences to determine the corresponding column of the Jacobian.
     //!
     //! @param x0  State vector at which to evaluate the Jacobian
-    virtual void evalJacobian(span<const double> x0) = 0;
+    virtual void evalJacobian(span<const CanteraDouble> x0) = 0;
 
     //! Compute the weighted norm of `step`.
     //!
@@ -73,10 +73,10 @@ public:
     //! tolerances. This makes the norm dimensionless and scaled appropriately, avoiding
     //! issues where some components dominate due to differences in their scales. See
     //! OneDim::weightedNorm() for a representative implementation.
-    virtual double weightedNorm(span<const double> step) const = 0;
+    virtual CanteraDouble weightedNorm(span<const CanteraDouble> step) const = 0;
 
     //! Set the initial guess. Should be called before solve().
-    void setInitialGuess(span<const double> x);
+    void setInitialGuess(span<const CanteraDouble> x);
 
     //! Solve the steady-state problem, taking internal timesteps as necessary until
     //! the Newton solver can converge for the steady problem.
@@ -84,16 +84,16 @@ public:
     void solve(int loglevel=0);
 
     //! Get the converged steady-state solution after calling solve().
-    void getState(span<double> x) const;
+    void getState(span<CanteraDouble> x) const;
 
     //! Steady-state max norm (infinity norm) of the residual evaluated using solution
     //! x. On return, array r contains the steady-state residual values.
-    double ssnorm(span<const double> x, span<double> r);
+    CanteraDouble ssnorm(span<const CanteraDouble> x, span<CanteraDouble> r);
 
     //! Transient max norm (infinity norm) of the residual evaluated using solution
     //! x and the current timestep (rdt). On return, array r contains the
     //! transient residual values.
-    double tsnorm(span<const double> x, span<double> r);
+    CanteraDouble tsnorm(span<const CanteraDouble> x, span<CanteraDouble> r);
 
     //! Total solution vector length;
     size_t size() const {
@@ -127,10 +127,10 @@ public:
     virtual string componentTableLabel(size_t i) const { return componentName(i); }
 
     //! Get the upper bound for global component *i* in the state vector
-    virtual double upperBound(size_t i) const = 0;
+    virtual CanteraDouble upperBound(size_t i) const = 0;
 
     //! Get the lower bound for global component *i* in the state vector
-    virtual double lowerBound(size_t i) const = 0;
+    virtual CanteraDouble lowerBound(size_t i) const = 0;
 
     //! Return a reference to the Newton iterator.
     MultiNewton& newton();
@@ -175,14 +175,14 @@ public:
 
     //! Record wall-clock time [s] spent factorizing the Jacobian. Called by
     //! the Newton solver.
-    void recordFactorization(double wallTime) {
+    void recordFactorization(CanteraDouble wallTime) {
         m_factorTime += wallTime;
         m_factorizations++;
     }
 
     //! Record wall-clock time [s] spent in a linear solve. Called by the
     //! Newton solver.
-    void recordLinearSolve(double wallTime) {
+    void recordLinearSolve(CanteraDouble wallTime) {
         m_solveTime += wallTime;
         m_linearSolves++;
     }
@@ -196,7 +196,7 @@ public:
     //! @}
 
     //! Reciprocal of the time step.
-    double rdt() const {
+    CanteraDouble rdt() const {
         return m_rdt;
     }
 
@@ -211,7 +211,7 @@ public:
     }
 
     //! Prepare for time stepping beginning with solution *x* and timestep *dt*.
-    virtual void initTimeInteg(double dt, span<const double> x);
+    virtual void initTimeInteg(CanteraDouble dt, span<const CanteraDouble> x);
 
     //! Prepare to solve the steady-state problem. After invoking this method,
     //! subsequent calls to solve() will solve the steady-state problem. Sets the
@@ -233,11 +233,11 @@ public:
     //! @param r  solution vector after time stepping
     //! @param loglevel  controls amount of printed diagnostics
     //! @returns size of last timestep taken
-    double timeStep(int nsteps, double dt, span<double> x, span<double> r,
+    CanteraDouble timeStep(int nsteps, CanteraDouble dt, span<CanteraDouble> x, span<CanteraDouble> r,
                     int loglevel);
 
     //! Reset values such as negative species concentrations
-    virtual void resetBadValues(span<double> x) {}
+    virtual void resetBadValues(span<CanteraDouble> x) {}
 
     //! @name Options
     //! @{
@@ -248,15 +248,15 @@ public:
     //! @param tsteps  A sequence of time step counts to take after subsequent failures
     //!     of the steady-state solver. The last value in `tsteps` will be used again
     //!     after further unsuccessful solution attempts.
-    void setTimeStep(double stepsize, span<const int> tsteps);
+    void setTimeStep(CanteraDouble stepsize, span<const int> tsteps);
 
     //! Set the minimum time step allowed during time stepping
-    void setMinTimeStep(double tmin) {
+    void setMinTimeStep(CanteraDouble tmin) {
         m_tmin = tmin;
     }
 
     //! Set the maximum time step allowed during time stepping
-    void setMaxTimeStep(double tmax) {
+    void setMaxTimeStep(CanteraDouble tmax) {
         m_tmax = tmax;
     }
 
@@ -264,7 +264,7 @@ public:
     //! The default value is 0.5.
     //!
     //! @param tfactor  factor time step is multiplied by if time stepping fails
-    void setTimeStepFactor(double tfactor) {
+    void setTimeStepFactor(CanteraDouble tfactor) {
         m_tfactor = tfactor;
     }
 
@@ -277,7 +277,7 @@ public:
     //! The default value is 1.5, matching historical behavior.
     //! @param tfactor  Finite growth factor applied to successful timesteps;
     //!     must be >= 1.0.
-    void setTimeStepGrowthFactor(double tfactor) {
+    void setTimeStepGrowthFactor(CanteraDouble tfactor) {
         if (!std::isfinite(tfactor) || tfactor < 1.0) {
             throw CanteraError("SteadyStateSystem::setTimeStepGrowthFactor",
                 "Time step growth factor must be finite and >= 1.0. Got {}.",
@@ -287,7 +287,7 @@ public:
     }
 
     //! Get the successful-step time step growth factor.
-    double timeStepGrowthFactor() const {
+    CanteraDouble timeStepGrowthFactor() const {
         return m_tstep_growth;
     }
 
@@ -351,7 +351,7 @@ public:
     //!     Default `1.0e-10`.
     //! @param threshold  Threshold below which to exclude elements from the Jacobian
     //!     Default `0.0`.
-    void setJacobianPerturbation(double relative, double absolute, double threshold) {
+    void setJacobianPerturbation(CanteraDouble relative, CanteraDouble absolute, CanteraDouble threshold) {
         m_jacobianRelPerturb = relative;
         m_jacobianAbsPerturb = absolute;
         m_jacobianThreshold = threshold;
@@ -383,7 +383,7 @@ protected:
 
     //! Evaluate the steady-state Jacobian, accessible via linearSolver()
     //! @param[in] x  Current state vector, length size()
-    void evalSSJacobian(span<const double> x);
+    void evalSSJacobian(span<const CanteraDouble> x);
 
     static TimeStepGrowthStrategy parseTimeStepGrowthStrategy(const string& strategy);
     static string timeStepGrowthStrategyName(TimeStepGrowthStrategy strategy);
@@ -391,40 +391,40 @@ protected:
     //! Determine the timestep growth factor after a successful step.
     //!
     //! Called only when a successful step reuses the current Jacobian.
-    double calculateTimeStepGrowthFactor(span<const double> x_before,
-                                         span<const double> x_after);
+    CanteraDouble calculateTimeStepGrowthFactor(span<const CanteraDouble> x_before,
+                                         span<const CanteraDouble> x_after);
 
     //! Array of number of steps to take after each unsuccessful steady-state solve
     //! before re-attempting the steady-state solution. For subsequent time stepping
     //! calls, the final value is reused. See setTimeStep().
     vector<int> m_steps = { 10 };
 
-    double m_tstep = 1.0e-5; //!< Initial timestep
-    double m_tmin = 1e-16; //!< Minimum timestep size
-    double m_tmax = 1e+08; //!< Maximum timestep size
+    CanteraDouble m_tstep = 1.0e-5; //!< Initial timestep
+    CanteraDouble m_tmin = 1e-16; //!< Minimum timestep size
+    CanteraDouble m_tmax = 1e+08; //!< Maximum timestep size
 
     //! Factor time step is multiplied by if time stepping fails ( < 1 )
-    double m_tfactor = 0.5;
+    CanteraDouble m_tfactor = 0.5;
 
     //! Growth factor for successful steps that reuse the Jacobian.
     //!
     //! Used directly for `fixed-growth`, and as the base / cap value for the
     //! other named growth strategies.
-    double m_tstep_growth = 1.5;
+    CanteraDouble m_tstep_growth = 1.5;
 
     //! Selected strategy for successful-step growth.
     TimeStepGrowthStrategy m_tstep_growth_strategy = TimeStepGrowthStrategy::fixed;
 
-    shared_ptr<vector<double>> m_state; //!< Solution vector
+    shared_ptr<vector<CanteraDouble>> m_state; //!< Solution vector
 
     //! Work array used to hold the residual or the new solution
-    vector<double> m_xnew;
+    vector<CanteraDouble> m_xnew;
 
     //! State vector after the last successful set of time steps
-    vector<double> m_xlast_ts;
+    vector<CanteraDouble> m_xlast_ts;
 
     unique_ptr<MultiNewton> m_newt; //!< Newton iterator
-    double m_rdt = 0.0; //!< Reciprocal of time step
+    CanteraDouble m_rdt = 0.0; //!< Reciprocal of time step
 
     shared_ptr<SystemJacobian> m_jac; //!< Jacobian evaluator
     bool m_jac_ok = false; //!< If `true`, Jacobian is current
@@ -433,7 +433,7 @@ protected:
     size_t m_size = 0; //!< %Solution vector size
 
     //! Work arrays used during Jacobian evaluation
-    vector<double> m_work1, m_work2;
+    vector<CanteraDouble> m_work1, m_work2;
 
     vector<int> m_mask; //!< Transient mask. See transientMask()
     int m_ss_jac_age = 20; //!< Maximum age of the Jacobian in steady-state mode.
@@ -467,20 +467,20 @@ protected:
     AnyMap m_stats;
 
     int m_nevals = 0; //!< Standalone residual evaluations (not Jacobian fill)
-    double m_evaltime = 0.0; //!< Wall time [s] in standalone residual evals
+    CanteraDouble m_evaltime = 0.0; //!< Wall time [s] in standalone residual evals
     int m_factorizations = 0; //!< Jacobian factorizations on the current grid
-    double m_factorTime = 0.0; //!< Wall time [s] factorizing the Jacobian
+    CanteraDouble m_factorTime = 0.0; //!< Wall time [s] factorizing the Jacobian
     int m_linearSolves = 0; //!< Linear solves on the current grid
-    double m_solveTime = 0.0; //!< Wall time [s] in linear solves
-    double m_gridTime = 0.0; //!< Total wall time [s] solving on the current grid
+    CanteraDouble m_solveTime = 0.0; //!< Wall time [s] in linear solves
+    CanteraDouble m_gridTime = 0.0; //!< Total wall time [s] solving on the current grid
     //! @}
 
     //! Threshold for ignoring small elements in Jacobian
-    double m_jacobianThreshold = 0.0;
+    CanteraDouble m_jacobianThreshold = 0.0;
     //! Relative perturbation of each component in finite difference Jacobian
-    double m_jacobianRelPerturb = 1e-5;
+    CanteraDouble m_jacobianRelPerturb = 1e-5;
     //! Absolute perturbation of each component in finite difference Jacobian
-    double m_jacobianAbsPerturb = 1e-10;
+    CanteraDouble m_jacobianAbsPerturb = 1e-10;
 
 };
 

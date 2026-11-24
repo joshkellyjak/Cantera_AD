@@ -35,14 +35,14 @@ public:
      * @param b    Vector to do the rh multiplication
      * @param prod OUTPUT vector to receive the result
      */
-    virtual void mult(span<const double> b, span<double> prod) const = 0;
+    virtual void mult(span<const CanteraDouble> b, span<CanteraDouble> prod) const = 0;
 
     //! Multiply b*A and write result to prod.
     /*!
      * @param b    Vector to do the lh multiplication
      * @param prod OUTPUT vector to receive the result
      */
-    virtual void leftMult(span<const double> b, span<double> prod) const = 0;
+    virtual void leftMult(span<const CanteraDouble> b, span<CanteraDouble> prod) const = 0;
 
     //! Factors the A matrix, overwriting A.
     /*!
@@ -66,7 +66,7 @@ public:
      *
      * @returns the inverse of the condition number
      */
-    virtual double rcondQR() {
+    virtual CanteraDouble rcondQR() {
         throw NotImplementedError("GeneralMatrix::rcondQR");
     }
 
@@ -77,7 +77,7 @@ public:
      * @param a1norm Norm of the matrix
      * @returns the inverse of the condition number
      */
-    virtual double rcond(double a1norm) = 0;
+    virtual CanteraDouble rcond(CanteraDouble a1norm) = 0;
 
     //! Change the way the matrix is factored
     /*!
@@ -93,7 +93,7 @@ public:
     virtual int factorAlgorithm() const = 0;
 
     //! Calculate the one norm of the matrix
-    virtual double oneNorm() const = 0;
+    virtual CanteraDouble oneNorm() const = 0;
 
     //! Return the number of rows in the matrix
     virtual size_t nRows() const = 0;
@@ -110,7 +110,7 @@ public:
      * @param ldb  Leading dimension of the right-hand side array. Defaults to
      *              nRows()
      */
-    virtual void solve(span<double> b, size_t nrhs=1, size_t ldb=0) = 0;
+    virtual void solve(span<CanteraDouble> b, size_t nrhs=1, size_t ldb=0) = 0;
 
     //! true if the current factorization is up to date with the matrix
     virtual bool factored() const {
@@ -118,12 +118,12 @@ public:
     }
 
     //! Return a writable span over column `j`.
-    virtual span<double> col(size_t j) {
+    virtual span<CanteraDouble> col(size_t j) {
         throw NotImplementedError("GeneralMatrix::col");
     };
 
     //! Return a read-only span over column `j`.
-    virtual span<const double> col(size_t j) const {
+    virtual span<const CanteraDouble> col(size_t j) const {
         throw NotImplementedError("GeneralMatrix::col");
     };
 
@@ -133,7 +133,7 @@ public:
      * @param j  column
      * @returns a changeable reference to the matrix entry
      */
-    virtual double& operator()(size_t i, size_t j) = 0;
+    virtual CanteraDouble& operator()(size_t i, size_t j) = 0;
 
     //! Constant Index into the (i,j) element
     /*!
@@ -141,7 +141,7 @@ public:
      * @param j  column
      * @returns an unchangeable reference to the matrix entry
      */
-    virtual double operator()(size_t i, size_t j) const = 0;
+    virtual CanteraDouble operator()(size_t i, size_t j) const = 0;
 
     //! Check to see if we have any zero rows in the Jacobian
     /*!
@@ -151,7 +151,7 @@ public:
      * @param valueSmall  OUTPUT value of the largest coefficient in the smallest row
      * @return index of the row that is most nearly zero
      */
-    virtual size_t checkRows(double& valueSmall) const = 0;
+    virtual size_t checkRows(CanteraDouble& valueSmall) const = 0;
 
     //! Check to see if we have any zero columns in the Jacobian
     /*!
@@ -161,7 +161,7 @@ public:
      * @param valueSmall  OUTPUT value of the largest coefficient in the smallest column
      * @return index of the column that is most nearly zero
      */
-    virtual size_t checkColumns(double& valueSmall) const = 0;
+    virtual size_t checkColumns(CanteraDouble& valueSmall) const = 0;
 
 protected:
     //! Indicates whether the matrix is factored. 0 for unfactored; Non-zero

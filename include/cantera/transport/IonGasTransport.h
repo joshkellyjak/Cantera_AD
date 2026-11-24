@@ -44,19 +44,19 @@ public:
 
     //! Viscosity [Pa·s] of the mixture.
     //! Only neutral species contribute to viscosity.
-    double viscosity() override;
+    CanteraDouble viscosity() override;
 
     //! Returns the mixture thermal conductivity [W/m/K].
     //! Only neutral species contribute to thermal conductivity.
-    double thermalConductivity() override;
+    CanteraDouble thermalConductivity() override;
 
     //! The mobilities for ions in gas.
     //! The ion mobilities are calculated by Blanc's law.
-    void getMobilities(span<double> mobi) override;
+    void getMobilities(span<CanteraDouble> mobi) override;
 
     //! The mixture transport for ionized gas.
     //! The binary transport between two charged species is neglected.
-    void getMixDiffCoeffs(span<double> d) override;
+    void getMixDiffCoeffs(span<CanteraDouble> d) override;
 
     /**
      * The electrical conductivity [siemens/m].
@@ -64,7 +64,7 @@ public:
      *     \sigma = \sum_k{\left|C_k\right| \mu_k \frac{X_k P}{k_b T}}
      * @f]
      */
-    double electricalConductivity() override;
+    CanteraDouble electricalConductivity() override;
 
 protected:
     //! setup parameters for n64 model
@@ -81,10 +81,10 @@ protected:
      * Note: Han release the range to 1000, but Selle suggested that
      * a high temperature model is needed for T* > 10.
      */
-    double omega11_n64(const double tstar, const double gamma);
+    CanteraDouble omega11_n64(const CanteraDouble tstar, const CanteraDouble gamma);
 
     //! electrical properties
-    vector<double> m_speciesCharge;
+    vector<CanteraDouble> m_speciesCharge;
 
     //! index of ions (exclude electron.)
     vector<size_t> m_kIon;
@@ -99,7 +99,7 @@ protected:
     DenseMatrix m_gamma;
 
     //! polynomial of the collision integral for O2/O2-
-    vector<double> m_om11_O2;
+    vector<CanteraDouble> m_om11_O2;
 };
 
 }

@@ -66,17 +66,17 @@ const vector<string>& Phase::elementNames() const
     return m_elementNames;
 }
 
-double Phase::atomicWeight(size_t m) const
+CanteraDouble Phase::atomicWeight(size_t m) const
 {
     return m_atomicWeights[m];
 }
 
-double Phase::entropyElement298(size_t m) const
+CanteraDouble Phase::entropyElement298(size_t m) const
 {
     return m_entropy298[checkElementIndex(m)];
 }
 
-span<const double> Phase::atomicWeights() const
+span<const CanteraDouble> Phase::atomicWeights() const
 {
     return m_atomicWeights;
 }
@@ -98,7 +98,7 @@ int Phase::changeElementType(int m, int elem_type)
     return old;
 }
 
-double Phase::nAtoms(size_t k, size_t m) const
+CanteraDouble Phase::nAtoms(size_t k, size_t m) const
 {
     checkElementIndex(m);
     checkSpeciesIndex(k);
@@ -222,7 +222,7 @@ vector<string> Phase::partialStates() const
     }
 }
 
-void Phase::savePartialState(span<double> state) const
+void Phase::savePartialState(span<CanteraDouble> state) const
 {
     checkArraySize("Phase::savePartialState", state.size(), partialStateSize());
     auto native = nativeState();
@@ -234,7 +234,7 @@ void Phase::savePartialState(span<double> state) const
     }
 }
 
-void Phase::restorePartialState(span<const double> state)
+void Phase::restorePartialState(span<const CanteraDouble> state)
 {
     checkArraySize("Phase::restorePartialState", state.size(), partialStateSize());
     auto native = nativeState();
@@ -254,7 +254,7 @@ size_t Phase::stateSize() const {
     }
 }
 
-void Phase::saveState(span<double> state) const
+void Phase::saveState(span<CanteraDouble> state) const
 {
     checkArraySize("Phase::saveState", state.size(), stateSize());
     savePartialState(state);
@@ -266,7 +266,7 @@ void Phase::saveState(span<double> state) const
     }
 }
 
-void Phase::restoreState(span<const double> state)
+void Phase::restoreState(span<const CanteraDouble> state)
 {
     checkArraySize("Phase::restoreState", state.size(), stateSize());
     restorePartialState(state);
@@ -280,15 +280,15 @@ void Phase::restoreState(span<const double> state)
     compositionChanged();
 }
 
-void Phase::setMoleFractions(span<const double> x)
+void Phase::setMoleFractions(span<const CanteraDouble> x)
 {
     checkArraySize("Phase::setMoleFractions", x.size(), m_kk);
     // Use m_y as a temporary work vector for the non-negative mole fractions
-    double norm = 0.0;
+    CanteraDouble norm = 0.0;
     // sum is calculated below as the unnormalized molecular weight
-    double sum = 0;
+    CanteraDouble sum = 0;
     for (size_t k = 0; k < m_kk; k++) {
-        double xk = std::max(x[k], 0.0); // Ignore negative mole fractions
+        CanteraDouble xk = std::max(x[k], 0.0); // Ignore negative mole fractions
         m_y[k] = xk;
         norm += xk;
         sum += m_molwts[k] * xk;
@@ -297,7 +297,7 @@ void Phase::setMoleFractions(span<const double> x)
     // Set m_ym to the normalized mole fractions divided by the normalized mean
     // molecular weight:
     //     m_ym_k = X_k / (sum_k X_k M_k)
-    const double invSum = 1.0/sum;
+    const CanteraDouble invSum = 1.0/sum;
     if (!std::isfinite(invSum) && m_kk != 0) {
         throw CanteraError("Phase::setMoleFractions",
             "The sum of the species mole fractions is zero, too small to normalize,"
@@ -318,19 +318,19 @@ void Phase::setMoleFractions(span<const double> x)
     compositionChanged();
 }
 
-void Phase::setMoleFractions_NoNorm(span<const double> x)
+void Phase::setMoleFractions_NoNorm(span<const CanteraDouble> x)
 {
     checkArraySize("Phase::setMoleFractions_NoNorm", x.size(), m_kk);
     m_mmw = dot(x.begin(), x.begin() + m_kk, m_molwts.begin());
     scale(x.begin(), x.begin() + m_kk, m_ym.begin(), 1.0/m_mmw);
     transform(m_ym.begin(), m_ym.begin() + m_kk, m_molwts.begin(),
-              m_y.begin(), multiplies<double>());
+              m_y.begin(), multiplies<CanteraDouble>());
     compositionChanged();
 }
 
 void Phase::setMoleFractionsByName(const Composition& xMap)
 {
-    vector<double> mf = getCompositionFromMap(xMap);
+    vector<CanteraDouble> mf = getCompositionFromMap(xMap);
     setMoleFractions(mf);
 }
 
@@ -339,13 +339,13 @@ void Phase::setMoleFractionsByName(const string& x)
     setMoleFractionsByName(parseCompString(x));
 }
 
-void Phase::setMassFractions(span<const double> y)
+void Phase::setMassFractions(span<const CanteraDouble> y)
 {
     checkArraySize("Phase::setMassFractions", y.size(), m_kk);
     for (size_t k = 0; k < m_kk; k++) {
         m_y[k] = std::max(y[k], 0.0); // Ignore negative mass fractions
     }
-    double invSum = 1.0 / accumulate(m_y.begin(), m_y.end(), 0.0);
+    CanteraDouble invSum = 1.0 / accumulate(m_y.begin(), m_y.end(), 0.0);
     if (!std::isfinite(invSum) && m_kk != 0) {
         throw CanteraError("Phase::setMassFractions",
             "The sum of the species mass fractions is zero, too small to normalize,"
@@ -354,18 +354,18 @@ void Phase::setMassFractions(span<const double> y)
     scale(m_y.begin(), m_y.end(), m_y.begin(), invSum);
 
     transform(m_y.begin(), m_y.end(), m_rmolwts.begin(),
-              m_ym.begin(), multiplies<double>());
+              m_ym.begin(), multiplies<CanteraDouble>());
     m_mmw = 1.0 / accumulate(m_ym.begin(), m_ym.end(), 0.0);
     compositionChanged();
 }
 
-void Phase::setMassFractions_NoNorm(span<const double> y)
+void Phase::setMassFractions_NoNorm(span<const CanteraDouble> y)
 {
     checkArraySize("Phase::setMassFractions_NoNorm", y.size(), m_kk);
-    double sum = 0.0;
+    CanteraDouble sum = 0.0;
     copy(y.begin(), y.begin() + m_kk, m_y.begin());
     transform(m_y.begin(), m_y.end(), m_rmolwts.begin(), m_ym.begin(),
-              multiplies<double>());
+              multiplies<CanteraDouble>());
     sum = accumulate(m_ym.begin(), m_ym.end(), 0.0);
     m_mmw = 1.0/sum;
     compositionChanged();
@@ -373,7 +373,7 @@ void Phase::setMassFractions_NoNorm(span<const double> y)
 
 void Phase::setMassFractionsByName(const Composition& yMap)
 {
-    vector<double> mf = getCompositionFromMap(yMap);
+    vector<CanteraDouble> mf = getCompositionFromMap(yMap);
     setMassFractions(mf);
 }
 
@@ -382,9 +382,9 @@ void Phase::setMassFractionsByName(const string& y)
     setMassFractionsByName(parseCompString(y));
 }
 
-void Phase::setState_TD(double t, double rho)
+void Phase::setState_TD(CanteraDouble t, CanteraDouble rho)
 {
-    vector<double> state(partialStateSize());
+    vector<CanteraDouble> state(partialStateSize());
     savePartialState(state);
     try {
         setTemperature(t);
@@ -395,40 +395,40 @@ void Phase::setState_TD(double t, double rho)
     }
 }
 
-double Phase::molecularWeight(size_t k) const
+CanteraDouble Phase::molecularWeight(size_t k) const
 {
     checkSpeciesIndex(k);
     return m_molwts[k];
 }
 
-void Phase::getMolecularWeights(span<double> weights) const
+void Phase::getMolecularWeights(span<CanteraDouble> weights) const
 {
     auto mw = molecularWeights();
     checkArraySize("Phase::getMolecularWeights", weights.size(), mw.size());
     copy(mw.begin(), mw.end(), weights.begin());
 }
 
-span<const double> Phase::molecularWeights() const
+span<const CanteraDouble> Phase::molecularWeights() const
 {
     return m_molwts;
 }
 
-span<const double> Phase::inverseMolecularWeights() const
+span<const CanteraDouble> Phase::inverseMolecularWeights() const
 {
     return m_rmolwts;
 }
 
-void Phase::getCharges(span<double> charges) const
+void Phase::getCharges(span<CanteraDouble> charges) const
 {
     checkArraySize("Phase::getCharges", charges.size(), m_speciesCharge.size());
     copy(m_speciesCharge.begin(), m_speciesCharge.end(), charges.begin());
 }
 
-Composition Phase::getMoleFractionsByName(double threshold) const
+Composition Phase::getMoleFractionsByName(CanteraDouble threshold) const
 {
     Composition comp;
     for (size_t k = 0; k < m_kk; k++) {
-        double x = moleFraction(k);
+        CanteraDouble x = moleFraction(k);
         if (x > threshold) {
             comp[speciesName(k)] = x;
         }
@@ -436,11 +436,11 @@ Composition Phase::getMoleFractionsByName(double threshold) const
     return comp;
 }
 
-Composition Phase::getMassFractionsByName(double threshold) const
+Composition Phase::getMassFractionsByName(CanteraDouble threshold) const
 {
     Composition comp;
     for (size_t k = 0; k < m_kk; k++) {
-        double x = massFraction(k);
+        CanteraDouble x = massFraction(k);
         if (x > threshold) {
             comp[speciesName(k)] = x;
         }
@@ -448,19 +448,19 @@ Composition Phase::getMassFractionsByName(double threshold) const
     return comp;
 }
 
-void Phase::getMoleFractions(span<double> x) const
+void Phase::getMoleFractions(span<CanteraDouble> x) const
 {
     checkArraySize("Phase::getMoleFractions", x.size(), m_kk);
     scale(m_ym.begin(), m_ym.end(), x.begin(), m_mmw);
 }
 
-double Phase::moleFraction(size_t k) const
+CanteraDouble Phase::moleFraction(size_t k) const
 {
     checkSpeciesIndex(k);
     return m_ym[k] * m_mmw;
 }
 
-double Phase::moleFraction(const string& nameSpec) const
+CanteraDouble Phase::moleFraction(const string& nameSpec) const
 {
     size_t iloc = speciesIndex(nameSpec, false);
     if (iloc != npos) {
@@ -470,13 +470,13 @@ double Phase::moleFraction(const string& nameSpec) const
     }
 }
 
-double Phase::massFraction(size_t k) const
+CanteraDouble Phase::massFraction(size_t k) const
 {
     checkSpeciesIndex(k);
     return m_y[k];
 }
 
-double Phase::massFraction(const string& nameSpec) const
+CanteraDouble Phase::massFraction(const string& nameSpec) const
 {
     size_t iloc = speciesIndex(nameSpec, false);
     if (iloc != npos) {
@@ -486,40 +486,40 @@ double Phase::massFraction(const string& nameSpec) const
     }
 }
 
-void Phase::getMassFractions(span<double> y) const
+void Phase::getMassFractions(span<CanteraDouble> y) const
 {
     checkArraySize("Phase::getMassFractions", y.size(), m_kk);
     copy(m_y.begin(), m_y.end(), y.begin());
 }
 
-double Phase::concentration(const size_t k) const
+CanteraDouble Phase::concentration(const size_t k) const
 {
     checkSpeciesIndex(k);
     return m_y[k] * m_dens * m_rmolwts[k];
 }
 
-void Phase::getConcentrations(span<double> c) const
+void Phase::getConcentrations(span<CanteraDouble> c) const
 {
     checkArraySize("Phase::getConcentrations", c.size(), m_kk);
     scale(m_ym.begin(), m_ym.end(), c.begin(), m_dens);
 }
 
-void Phase::setConcentrations(span<const double> conc)
+void Phase::setConcentrations(span<const CanteraDouble> conc)
 {
     assertCompressible("setConcentrations");
     checkArraySize("Phase::setConcentrations", conc.size(), m_kk);
 
     // Use m_y as temporary storage for non-negative concentrations
-    double sum = 0.0, norm = 0.0;
+    CanteraDouble sum = 0.0, norm = 0.0;
     for (size_t k = 0; k != m_kk; ++k) {
-        double ck = std::max(conc[k], 0.0); // Ignore negative concentrations
+        CanteraDouble ck = std::max(conc[k], 0.0); // Ignore negative concentrations
         m_y[k] = ck;
         sum += ck * m_molwts[k];
         norm += ck;
     }
     m_mmw = sum/norm;
     setDensity(sum);
-    double rsum = 1.0/sum;
+    CanteraDouble rsum = 1.0/sum;
     for (size_t k = 0; k != m_kk; ++k) {
         m_ym[k] = m_y[k] * rsum;
         m_y[k] = m_ym[k] * m_molwts[k]; // m_y is now the mass fraction
@@ -527,19 +527,19 @@ void Phase::setConcentrations(span<const double> conc)
     compositionChanged();
 }
 
-void Phase::setConcentrationsNoNorm(span<const double> conc)
+void Phase::setConcentrationsNoNorm(span<const CanteraDouble> conc)
 {
     assertCompressible("setConcentrationsNoNorm");
     checkArraySize("Phase::setConcentrationsNoNorm", conc.size(), m_kk);
 
-    double sum = 0.0, norm = 0.0;
+    CanteraDouble sum = 0.0, norm = 0.0;
     for (size_t k = 0; k != m_kk; ++k) {
         sum += conc[k] * m_molwts[k];
         norm += conc[k];
     }
     m_mmw = sum/norm;
     setDensity(sum);
-    double rsum = 1.0/sum;
+    CanteraDouble rsum = 1.0/sum;
     for (size_t k = 0; k != m_kk; ++k) {
         m_ym[k] = conc[k] * rsum;
         m_y[k] = m_ym[k] * m_molwts[k];
@@ -547,16 +547,16 @@ void Phase::setConcentrationsNoNorm(span<const double> conc)
     compositionChanged();
 }
 
-void Phase::setMolesNoTruncate(span<const double> N)
+void Phase::setMolesNoTruncate(span<const CanteraDouble> N)
 {
     checkArraySize("Phase::setMolesNoTruncate", N.size(), m_kk);
     // get total moles
     copy(N.begin(), N.begin() + m_kk, m_ym.begin());
-    double totalMoles = accumulate(m_ym.begin(), m_ym.end(), 0.0);
+    CanteraDouble totalMoles = accumulate(m_ym.begin(), m_ym.end(), 0.0);
     // get total mass
     copy(N.begin(), N.begin() + m_kk, m_y.begin());
-    transform(m_y.begin(), m_y.end(), m_molwts.begin(), m_y.begin(), multiplies<double>());
-    double totalMass = accumulate(m_y.begin(), m_y.end(), 0.0);
+    transform(m_y.begin(), m_y.end(), m_molwts.begin(), m_y.begin(), multiplies<CanteraDouble>());
+    CanteraDouble totalMass = accumulate(m_y.begin(), m_y.end(), 0.0);
     // mean molecular weight
     m_mmw = totalMass/totalMoles;
     // mass fractions
@@ -567,9 +567,9 @@ void Phase::setMolesNoTruncate(span<const double> N)
     compositionChanged();
 }
 
-double Phase::elementalMassFraction(const size_t m) const
+CanteraDouble Phase::elementalMassFraction(const size_t m) const
 {
-    double Z_m = 0.0;
+    CanteraDouble Z_m = 0.0;
     for (size_t k = 0; k != m_kk; ++k) {
         Z_m += nAtoms(k, m) * atomicWeight(m) / molecularWeight(k)
             * massFraction(k);
@@ -577,34 +577,34 @@ double Phase::elementalMassFraction(const size_t m) const
     return Z_m;
 }
 
-double Phase::elementalMoleFraction(const size_t m) const
+CanteraDouble Phase::elementalMoleFraction(const size_t m) const
 {
-    double denom = 0;
+    CanteraDouble denom = 0;
     for (size_t k = 0; k < m_kk; k++) {
-        double atoms = 0;
+        CanteraDouble atoms = 0;
         for (size_t j = 0; j < nElements(); j++) {
             atoms += nAtoms(k, j);
         }
         denom += atoms * moleFraction(k);
     }
-    double numerator = 0.0;
+    CanteraDouble numerator = 0.0;
     for (size_t k = 0; k != m_kk; ++k) {
         numerator += nAtoms(k, m) * moleFraction(k);
     }
     return numerator / denom;
 }
 
-double Phase::molarDensity() const
+CanteraDouble Phase::molarDensity() const
 {
     return density()/meanMolecularWeight();
 }
 
-double Phase::molarVolume() const
+CanteraDouble Phase::molarVolume() const
 {
     return 1.0/molarDensity();
 }
 
-void Phase::setDensity(const double density_)
+void Phase::setDensity(const CanteraDouble density_)
 {
     assertCompressible("setDensity");
     if (density_ > 0.0) {
@@ -615,7 +615,7 @@ void Phase::setDensity(const double density_)
     }
 }
 
-void Phase::assignDensity(const double density_)
+void Phase::assignDensity(const CanteraDouble density_)
 {
     if (density_ > 0.0) {
         m_dens = density_;
@@ -625,32 +625,32 @@ void Phase::assignDensity(const double density_)
     }
 }
 
-double Phase::chargeDensity() const
+CanteraDouble Phase::chargeDensity() const
 {
-    double cdens = 0.0;
+    CanteraDouble cdens = 0.0;
     for (size_t k = 0; k < m_kk; k++) {
         cdens += charge(k)*moleFraction(k);
     }
     return cdens * Faraday;
 }
 
-double Phase::mean_X(span<const double> Q) const
+CanteraDouble Phase::mean_X(span<const CanteraDouble> Q) const
 {
     checkArraySize("Phase::mean_X", Q.size(), m_kk);
     return m_mmw*std::inner_product(m_ym.begin(), m_ym.end(), Q.begin(), 0.0);
 }
 
-double Phase::sum_xlogx() const
+CanteraDouble Phase::sum_xlogx() const
 {
-    double sumxlogx = 0;
+    CanteraDouble sumxlogx = 0;
     for (size_t k = 0; k < m_kk; k++) {
         sumxlogx += m_ym[k] * std::log(std::max(m_ym[k], SmallNumber));
     }
     return m_mmw * sumxlogx + std::log(m_mmw);
 }
 
-size_t Phase::addElement(const string& symbol, double weight, int atomic_number,
-                         double entropy298, int elem_type)
+size_t Phase::addElement(const string& symbol, CanteraDouble weight, int atomic_number,
+                         CanteraDouble entropy298, int elem_type)
 {
     // Look up the atomic weight if not given
     if (weight == 0.0) {
@@ -701,7 +701,7 @@ size_t Phase::addElement(const string& symbol, double weight, int atomic_number,
 
     // Update species compositions
     if (m_kk) {
-        vector<double> old(m_speciesComp);
+        vector<CanteraDouble> old(m_speciesComp);
         m_speciesComp.resize(m_kk*m_mm, 0.0);
         for (size_t k = 0; k < m_kk; k++) {
             size_t m_old = m_mm - 1;
@@ -751,7 +751,7 @@ vector<AnyMap> Phase::elementDefinitions() const
                 exportDefinition = true;
                 element["entropy298"].setQuantity(m_entropy298[m], "J/kmol/K");
             } else {
-                double defaultEntropy =
+                CanteraDouble defaultEntropy =
                     entropyIter->second->convert("entropy298", "J/kmol/K");
                 if (m_entropy298[m] != defaultEntropy) {
                     exportDefinition = true;
@@ -782,7 +782,7 @@ bool Phase::addSpecies(shared_ptr<Species> spec)
             m_name, spec->name);
     }
 
-    vector<double> comp(nElements());
+    vector<CanteraDouble> comp(nElements());
     for (const auto& [eName, stoich] : spec->composition) {
         size_t m = elementIndex(eName, false);
         if (m == npos) { // Element doesn't exist in this phase
@@ -811,7 +811,7 @@ bool Phase::addSpecies(shared_ptr<Species> spec)
     if (spec->charge != 0.0) {
         size_t eindex = elementIndex("E", false);
         if (eindex != npos) {
-            double ecomp = comp[eindex];
+            CanteraDouble ecomp = comp[eindex];
             if (fabs(spec->charge + ecomp) > 0.001) {
                 if (ecomp != 0.0) {
                     throw CanteraError("Phase::addSpecies",
@@ -832,7 +832,7 @@ bool Phase::addSpecies(shared_ptr<Species> spec)
         }
     }
 
-    double wt = 0.0;
+    CanteraDouble wt = 0.0;
     for (size_t m = 0; m < ne; m++) {
         wt += comp[m] * aw[m];
     }
@@ -974,13 +974,13 @@ void Phase::invalidateCache() {
     m_cache.clear();
 }
 
-void Phase::setMolecularWeight(const int k, const double mw)
+void Phase::setMolecularWeight(const int k, const CanteraDouble mw)
 {
     m_molwts[k] = mw;
     m_rmolwts[k] = 1.0/mw;
 
     transform(m_y.begin(), m_y.end(), m_rmolwts.begin(), m_ym.begin(),
-              multiplies<double>());
+              multiplies<CanteraDouble>());
     m_mmw = 1.0 / accumulate(m_ym.begin(), m_ym.end(), 0.0);
 }
 
@@ -988,9 +988,9 @@ void Phase::compositionChanged() {
     m_stateNum++;
 }
 
-vector<double> Phase::getCompositionFromMap(const Composition& comp) const
+vector<CanteraDouble> Phase::getCompositionFromMap(const Composition& comp) const
 {
-    vector<double> X(m_kk);
+    vector<CanteraDouble> X(m_kk);
     for (const auto& [name, value] : comp) {
         size_t loc = speciesIndex(name, true);
         X[loc] = value;
@@ -998,11 +998,11 @@ vector<double> Phase::getCompositionFromMap(const Composition& comp) const
     return X;
 }
 
-void Phase::massFractionsToMoleFractions(span<const double> Y, span<double> X) const
+void Phase::massFractionsToMoleFractions(span<const CanteraDouble> Y, span<CanteraDouble> X) const
 {
     checkArraySize("Phase::massFractionsToMoleFractions", Y.size(), m_kk);
     checkArraySize("Phase::massFractionsToMoleFractions", X.size(), m_kk);
-    double rmmw = 0.0;
+    CanteraDouble rmmw = 0.0;
     for (size_t k = 0; k != m_kk; ++k) {
         rmmw += Y[k]/m_molwts[k];
     }
@@ -1015,16 +1015,16 @@ void Phase::massFractionsToMoleFractions(span<const double> Y, span<double> X) c
     }
 }
 
-void Phase::moleFractionsToMassFractions(span<const double> X, span<double> Y) const
+void Phase::moleFractionsToMassFractions(span<const CanteraDouble> X, span<CanteraDouble> Y) const
 {
     checkArraySize("Phase::moleFractionsToMassFractions", X.size(), m_kk);
     checkArraySize("Phase::moleFractionsToMassFractions", Y.size(), m_kk);
-    double mmw = dot(m_molwts.begin(), m_molwts.end(), X.begin());
+    CanteraDouble mmw = dot(m_molwts.begin(), m_molwts.end(), X.begin());
     if (mmw == 0.0) {
         throw CanteraError("Phase::moleFractionsToMassFractions",
                            "no input composition given");
     }
-    double rmmw = 1.0/mmw;
+    CanteraDouble rmmw = 1.0/mmw;
     for (size_t k = 0; k != m_kk; ++k) {
         Y[k] = X[k]*m_molwts[k]*rmmw;
     }

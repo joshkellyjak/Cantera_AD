@@ -19,7 +19,7 @@ const string WhereSetParameters =
 
 MultiStateResolvedVibrationalRelaxationRate::
     MultiStateResolvedVibrationalRelaxationRate(
-        double A, double b, double C0, double C13, double C23)
+        CanteraDouble A, CanteraDouble b, CanteraDouble C0, CanteraDouble C13, CanteraDouble C23)
     : VibrationalRelaxationRate(
         A, b, C0, C13, C23, 2.0 / 3.0, 0.0, 1.0)
 {

@@ -22,7 +22,7 @@ namespace Cantera
 struct VibrationalRelaxationData : public ReactionData
 {
     //! Update cached temperature-dependent data directly from temperature.
-    void update(double T) override;
+    void update(CanteraDouble T) override;
 
     //! Update cached temperature-dependent data.
     /**
@@ -36,7 +36,7 @@ struct VibrationalRelaxationData : public ReactionData
 
     using ReactionData::update;
 
-    double recipT13 = 1.0; //!< @f$T^(-1/3)@f$
+    CanteraDouble recipT13 = 1.0; //!< @f$T^(-1/3)@f$
 };
 
 //! Common implementation for vibrational relaxation reaction rates.
@@ -78,7 +78,7 @@ public:
      */
     void setContext(const Reaction& rxn, const Kinetics& kin) override;
 
-    double evalFromStruct(const VibrationalRelaxationData& shared_data) const {
+    CanteraDouble evalFromStruct(const VibrationalRelaxationData& shared_data) const {
 
         return m_A * std::exp(
             m_b * shared_data.logT
@@ -108,7 +108,7 @@ public:
      * - n C_n T^{-n-1}
      * @f]
      */
-    double ddTScaledFromStruct(const VibrationalRelaxationData& shared_data) const;
+    CanteraDouble ddTScaledFromStruct(const VibrationalRelaxationData& shared_data) const;
 
     void check(const string& equation) override;
 
@@ -131,8 +131,8 @@ protected:
      * @param n Exponent associated with Cn.
      */
     VibrationalRelaxationRate(
-        double A, double b, double C0, double C13,
-        double Cm, double m, double Cn, double n);
+        CanteraDouble A, CanteraDouble b, CanteraDouble C0, CanteraDouble C13,
+        CanteraDouble Cm, CanteraDouble m, CanteraDouble Cn, CanteraDouble n);
 
     static void requireKeys(
         const AnyMap& node,
@@ -156,28 +156,28 @@ protected:
     void getPreExponentialFactor(AnyMap& rateNode) const;
 
     //! Pre-exponential constant for the reaction rate
-    double m_A = NAN;
+    CanteraDouble m_A = NAN;
 
     //! Temperature exponent for the reaction rate.
-    double m_b = NAN;
+    CanteraDouble m_b = NAN;
 
     //! Dimensionless constant in the exponential.
-    double m_C0 = 0.0;
+    CanteraDouble m_C0 = 0.0;
 
     //! Coefficient multiplying @f$ T^{-1/3} @f$.
-    double m_C13 = 0.0;
+    CanteraDouble m_C13 = 0.0;
 
     //! Coefficient multiplying @f$ T^{-m} @f$.
-    double m_Cm = 0.0;
+    CanteraDouble m_Cm = 0.0;
 
     //! Temperature exponent used by the Cm term.
-    double m_m = 1.0;
+    CanteraDouble m_m = 1.0;
 
     //! Coefficient multiplying @f$ T^{-n} @f$.
-    double m_Cn = 0.0;
+    CanteraDouble m_Cn = 0.0;
 
     //! Temperature exponent used by the Cn term.
-    double m_n = 1.0;
+    CanteraDouble m_n = 1.0;
 
 private:
 

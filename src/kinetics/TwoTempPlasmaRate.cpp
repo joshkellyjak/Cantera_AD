@@ -12,8 +12,8 @@ namespace Cantera
 
 bool TwoTempPlasmaData::update(const ThermoPhase& phase, const Kinetics& kin)
 {
-    double T = phase.temperature();
-    double Te = phase.electronTemperature();
+    CanteraDouble T = phase.temperature();
+    CanteraDouble Te = phase.electronTemperature();
     bool changed = false;
     if (T != temperature) {
         ReactionData::update(T);
@@ -26,19 +26,19 @@ bool TwoTempPlasmaData::update(const ThermoPhase& phase, const Kinetics& kin)
     return changed;
 }
 
-void TwoTempPlasmaData::update(double T)
+void TwoTempPlasmaData::update(CanteraDouble T)
 {
     throw CanteraError("TwoTempPlasmaData::update",
         "Missing state information: 'TwoTempPlasmaData' requires electron temperature.");
 }
 
-void TwoTempPlasmaData::update(double T, double Te)
+void TwoTempPlasmaData::update(CanteraDouble T, CanteraDouble Te)
 {
     ReactionData::update(T);
     updateTe(Te);
 }
 
-void TwoTempPlasmaData::updateTe(double Te)
+void TwoTempPlasmaData::updateTe(CanteraDouble Te)
 {
     electronTemp = Te;
     logTe = std::log(Te);
@@ -51,8 +51,8 @@ TwoTempPlasmaRate::TwoTempPlasmaRate()
     m_E4_str = "Ea-electron";
 }
 
-TwoTempPlasmaRate::TwoTempPlasmaRate(double A, double b, double Ea, double EE,
-                                     double bg, double Tinv)
+TwoTempPlasmaRate::TwoTempPlasmaRate(CanteraDouble A, CanteraDouble b, CanteraDouble Ea, CanteraDouble EE,
+                                     CanteraDouble bg, CanteraDouble Tinv)
     : ArrheniusBase(A, b, Ea)
 {
     m_Ea_str = "Ea-gas";
@@ -113,7 +113,7 @@ void TwoTempPlasmaRate::setParameters(const AnyMap& node, const UnitStack& rate_
 
         m_bg = rate.getDouble("b-gas", 0.0);
 
-        double Tinv = 0.0;
+        CanteraDouble Tinv = 0.0;
         if (rate.hasKey("T-inv")) {
             Tinv = rate.convert("T-inv", "K");
         }
@@ -147,12 +147,12 @@ void TwoTempPlasmaRate::setParameters(const AnyMap& node, const UnitStack& rate_
 
     // Option 3c: the vector has the T-inv parameter
     if (rate.size() == 6) {
-        double Tinv = node.units().convert(rate[5], "K");
+        CanteraDouble Tinv = node.units().convert(rate[5], "K");
         m_recip_Tinv = Tinv != 0.0 ? 1.0 / Tinv : 0.0;
     }
 }
 
-double TwoTempPlasmaRate::ddTScaledFromStruct(const TwoTempPlasmaData& shared_data) const
+CanteraDouble TwoTempPlasmaRate::ddTScaledFromStruct(const TwoTempPlasmaData& shared_data) const
 {
     warn_user("TwoTempPlasmaRate::ddTScaledFromStruct",
         "Temperature derivative does not consider changes of electron temperature.");

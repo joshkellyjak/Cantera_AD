@@ -169,14 +169,14 @@ ReactorNet::ReactorNet(span<shared_ptr<ReactorBase>> reactors)
     updateTolerances();
 }
 
-void ReactorNet::setInitialTime(double time)
+void ReactorNet::setInitialTime(CanteraDouble time)
 {
     m_time = time;
     m_initial_time = time;
     m_needIntegratorInit = true;
 }
 
-void ReactorNet::setMaxTimeStep(double maxstep)
+void ReactorNet::setMaxTimeStep(CanteraDouble maxstep)
 {
     m_maxstep = maxstep;
     integrator().setMaxStepSize(m_maxstep);
@@ -187,7 +187,7 @@ void ReactorNet::setMaxErrTestFails(int nmax)
     integrator().setMaxErrTestFails(nmax);
 }
 
-void ReactorNet::setRelativeTolerance(double rtol)
+void ReactorNet::setRelativeTolerance(CanteraDouble rtol)
 {
     if (rtol <= 0.0) {
         throw CanteraError("ReactorNet::setRelativeTolerance",
@@ -197,7 +197,7 @@ void ReactorNet::setRelativeTolerance(double rtol)
     updateTolerances();
 }
 
-void ReactorNet::setAbsoluteTolerance(double atol)
+void ReactorNet::setAbsoluteTolerance(CanteraDouble atol)
 {
     if (atol <= 0.0) {
         throw CanteraError("ReactorNet::setAbsoluteTolerance",
@@ -215,7 +215,7 @@ void ReactorNet::clearAbsoluteTolerance()
     updateTolerances();
 }
 
-void ReactorNet::setTolerances(double rtol, double atol)
+void ReactorNet::setTolerances(CanteraDouble rtol, CanteraDouble atol)
 {
     warn_deprecated("ReactorNet::setTolerances",
         "Use setRelativeTolerance and setAbsoluteTolerance instead."
@@ -234,7 +234,7 @@ void ReactorNet::updateTolerances()
 {
     fill(m_atol.begin(), m_atol.end(), m_atols);
     for (auto& R : m_reactors) {
-        auto localAtol = span<double>(m_atol.data() + R->offset(), R->neq());
+        auto localAtol = span<CanteraDouble>(m_atol.data() + R->offset(), R->neq());
         if (R->hasUserTolerances()) {
             R->getAbsoluteTolerances(localAtol);
         } else if (!m_atolUserSpecified) {
@@ -244,7 +244,7 @@ void ReactorNet::updateTolerances()
     m_integ->setTolerances(m_rtol, m_atol);
 }
 
-void ReactorNet::setSensitivityTolerances(double rtol, double atol)
+void ReactorNet::setSensitivityTolerances(CanteraDouble rtol, CanteraDouble atol)
 {
     if (rtol >= 0.0) {
         m_rtolsens = rtol;
@@ -255,7 +255,7 @@ void ReactorNet::setSensitivityTolerances(double rtol, double atol)
     m_integ->setSensitivityTolerances(m_rtolsens, m_atolsens);
 }
 
-double ReactorNet::time() {
+CanteraDouble ReactorNet::time() {
     if (m_timeIsIndependent) {
         return m_time;
     } else {
@@ -264,7 +264,7 @@ double ReactorNet::time() {
     }
 }
 
-double ReactorNet::distance() {
+CanteraDouble ReactorNet::distance() {
     if (!m_timeIsIndependent) {
         return m_time;
     } else {
@@ -348,7 +348,7 @@ int ReactorNet::maxSteps()
     return integrator().maxSteps();
 }
 
-void ReactorNet::advance(double time)
+void ReactorNet::advance(CanteraDouble time)
 {
     initialize();
     m_integ->integrate(time);
@@ -356,7 +356,7 @@ void ReactorNet::advance(double time)
     updateState(m_integ->solution());
 }
 
-double ReactorNet::advance(double time, bool applylimit)
+CanteraDouble ReactorNet::advance(CanteraDouble time, bool applylimit)
 {
     initialize();
     if (!applylimit || !hasAdvanceLimits()) {
@@ -402,13 +402,13 @@ double ReactorNet::advance(double time, bool applylimit)
         getAdvanceLimits(m_advancelimits);
         auto ycurr = m_integ->solution();
         size_t jmax = npos;
-        double max_ratio = -1.0;
-        double best_limit = 0.0;
+        CanteraDouble max_ratio = -1.0;
+        CanteraDouble best_limit = 0.0;
         for (size_t j = 0; j < m_nv; j++) {
-            double lim = m_advancelimits[j];
+            CanteraDouble lim = m_advancelimits[j];
             if (lim > 0.0) {
-                double delta = std::abs(ycurr[j] - m_ybase[j]);
-                double ratio = delta / lim;
+                CanteraDouble delta = std::abs(ycurr[j] - m_ybase[j]);
+                CanteraDouble ratio = delta / lim;
                 if (ratio > max_ratio) {
                     max_ratio = ratio;
                     jmax = j;
@@ -417,10 +417,10 @@ double ReactorNet::advance(double time, bool applylimit)
             }
         }
         if (jmax != npos) {
-            double dt = m_time - m_ybase_time;
-            double y_start = m_ybase[jmax];
-            double y_end = ycurr[jmax];
-            double delta = y_end - y_start;
+            CanteraDouble dt = m_time - m_ybase_time;
+            CanteraDouble y_start = m_ybase[jmax];
+            CanteraDouble y_end = ycurr[jmax];
+            CanteraDouble delta = y_end - y_start;
             writelog("    Advance limit triggered for component {:d} (dt = {:9.4g}):"
                      " y_start = {:11.6g}, y_end = {:11.6g},"
                      " delta = {:11.6g}, limit = {:9.4g}\n",
@@ -432,7 +432,7 @@ double ReactorNet::advance(double time, bool applylimit)
     return m_time;
 }
 
-double ReactorNet::step()
+CanteraDouble ReactorNet::step()
 {
     initialize();
     m_time = m_integ->step(m_time + 1.0);
@@ -443,7 +443,7 @@ double ReactorNet::step()
 void ReactorNet::solveSteady(int loglevel)
 {
     initialize();
-    vector<double> y(neq());
+    vector<CanteraDouble> y(neq());
     getState(y);
     SteadyReactorSolver solver(this, y);
     solver.setMaxTimeStepCount(maxSteps());
@@ -452,11 +452,11 @@ void ReactorNet::solveSteady(int loglevel)
     updateState(y);
 }
 
-Eigen::SparseMatrix<double> ReactorNet::steadyJacobian(double rdt)
+Eigen::SparseMatrix<CanteraDouble> ReactorNet::steadyJacobian(CanteraDouble rdt)
 {
     initialize();
-    vector<double> y0(neq());
-    vector<double> y1(neq());
+    vector<CanteraDouble> y0(neq());
+    vector<CanteraDouble> y1(neq());
     getState(y0);
     SteadyReactorSolver solver(this, y0);
     solver.evalJacobian(y0);
@@ -466,36 +466,36 @@ Eigen::SparseMatrix<double> ReactorNet::steadyJacobian(double rdt)
     return std::dynamic_pointer_cast<EigenSparseJacobian>(solver.linearSolver())->jacobian();
 }
 
-Eigen::SparseMatrix<double> ReactorNet::jacobian()
+Eigen::SparseMatrix<CanteraDouble> ReactorNet::jacobian()
 {
     initialize();
     SparseTriplets trips;
     for (auto& r : m_reactors) {
         r->getJacobianElements(trips);
     }
-    Eigen::SparseMatrix<double> jac(m_nv, m_nv);
+    Eigen::SparseMatrix<CanteraDouble> jac(m_nv, m_nv);
     jac.setFromTriplets(trips.begin(), trips.end());
     return jac;
 }
 
-Eigen::SparseMatrix<double> ReactorNet::finiteDifferenceJacobian()
+Eigen::SparseMatrix<CanteraDouble> ReactorNet::finiteDifferenceJacobian()
 {
     initialize();
-    vector<double> yCurrent(m_nv);
+    vector<CanteraDouble> yCurrent(m_nv);
     getState(yCurrent);
-    vector<double> yPerturbed(m_nv);
-    vector<double> ydotPlus(m_nv), ydotMinus(m_nv);
+    vector<CanteraDouble> yPerturbed(m_nv);
+    vector<CanteraDouble> ydotPlus(m_nv), ydotMinus(m_nv);
 
     SparseTriplets trips;
     for (size_t j = 0; j < m_nv; j++) {
-        double dy = m_atol[j] + std::abs(yCurrent[j]) * m_rtol;
+        CanteraDouble dy = m_atol[j] + std::abs(yCurrent[j]) * m_rtol;
         std::copy(yCurrent.begin(), yCurrent.end(), yPerturbed.begin());
         yPerturbed[j] += dy;
         eval(m_time, yPerturbed, ydotPlus, m_sens_params);
         yPerturbed[j] = yCurrent[j] - dy;
         eval(m_time, yPerturbed, ydotMinus, m_sens_params);
         for (size_t i = 0; i < m_nv; i++) {
-            double val = (ydotPlus[i] - ydotMinus[i]) / (2.0 * dy);
+            CanteraDouble val = (ydotPlus[i] - ydotMinus[i]) / (2.0 * dy);
             if (val != 0.0) {
                 trips.emplace_back(static_cast<int>(i), static_cast<int>(j), val);
             }
@@ -503,20 +503,20 @@ Eigen::SparseMatrix<double> ReactorNet::finiteDifferenceJacobian()
     }
     updateState(yCurrent);
 
-    Eigen::SparseMatrix<double> jac(m_nv, m_nv);
+    Eigen::SparseMatrix<CanteraDouble> jac(m_nv, m_nv);
     jac.setFromTriplets(trips.begin(), trips.end());
     return jac;
 }
 
-void ReactorNet::getEstimate(double time, int k, span<double> yest)
+void ReactorNet::getEstimate(CanteraDouble time, int k, span<CanteraDouble> yest)
 {
     initialize();
     auto cvode_dky = m_integ->solution();
     std::copy(cvode_dky.begin(), cvode_dky.end(), yest.begin());
 
     // Taylor expansion
-    double factor = 1.;
-    double deltat = time - m_time;
+    CanteraDouble factor = 1.;
+    CanteraDouble deltat = time - m_time;
     for (int n = 1; n <= k; n++) {
         factor *= deltat / n;
         cvode_dky = m_integ->derivative(m_time, n);
@@ -540,10 +540,10 @@ size_t ReactorNet::nRootFunctions() const
     return (m_limit_check_active && hasAdvanceLimits()) ? 1 : 0;
 }
 
-void ReactorNet::evalRootFunctions(double t, span<const double> y, span<double> gout)
+void ReactorNet::evalRootFunctions(CanteraDouble t, span<const CanteraDouble> y, span<CanteraDouble> gout)
 {
     // Default: no root detected
-    double g = 1.0;
+    CanteraDouble g = 1.0;
 
     if (m_limit_check_active) {
         // Ensure limits vector is current
@@ -552,12 +552,12 @@ void ReactorNet::evalRootFunctions(double t, span<const double> y, span<double> 
         }
         getAdvanceLimits(m_advancelimits);
 
-        double max_ratio = 0.0;
+        CanteraDouble max_ratio = 0.0;
         for (size_t i = 0; i < m_nv; i++) {
-            double lim = m_advancelimits[i];
+            CanteraDouble lim = m_advancelimits[i];
             if (lim > 0.0) {
-                double delta = std::abs(y[i] - m_ybase[i]);
-                double ratio = delta / lim;
+                CanteraDouble delta = std::abs(y[i] - m_ybase[i]);
+                CanteraDouble ratio = delta / lim;
                 if (ratio > max_ratio) {
                     max_ratio = ratio;
                 }
@@ -614,8 +614,8 @@ Integrator& ReactorNet::integrator() {
     return *m_integ;
 }
 
-void ReactorNet::eval(double t, span<const double> y, span<double> ydot,
-                      span<const double> p)
+void ReactorNet::eval(CanteraDouble t, span<const CanteraDouble> y, span<CanteraDouble> ydot,
+                      span<const CanteraDouble> p)
 {
     m_time = t;
     updateState(y);
@@ -624,8 +624,8 @@ void ReactorNet::eval(double t, span<const double> y, span<double> ydot,
     for (auto& R : m_reactors) {
         size_t offset = R->offset();
         R->applySensitivity(p);
-        R->eval(t, span<double>(m_LHS.data() + offset, R->neq()),
-                span<double>(m_RHS.data() + offset, R->neq()));
+        R->eval(t, span<CanteraDouble>(m_LHS.data() + offset, R->neq()),
+                span<CanteraDouble>(m_RHS.data() + offset, R->neq()));
         for (size_t i = offset; i < offset + R->neq(); i++) {
             ydot[i] = m_RHS[i] / m_LHS[i];
         }
@@ -634,15 +634,15 @@ void ReactorNet::eval(double t, span<const double> y, span<double> ydot,
     checkFinite("ydot", ydot);
 }
 
-void ReactorNet::evalSteady(span<const double> y, span<double> residual)
+void ReactorNet::evalSteady(span<const CanteraDouble> y, span<CanteraDouble> residual)
 {
     updateState(y);
     m_LHS.assign(m_nv, 1);
     m_RHS.assign(m_nv, 0);
     for (auto& R : m_reactors) {
         size_t offset = R->offset();
-        R->evalSteady(m_time, span<double>(m_LHS.data() + offset, R->neq()),
-                      span<double>(m_RHS.data() + offset, R->neq()));
+        R->evalSteady(m_time, span<CanteraDouble>(m_LHS.data() + offset, R->neq()),
+                      span<CanteraDouble>(m_RHS.data() + offset, R->neq()));
         for (size_t i = offset; i < offset + R->neq(); i++) {
             residual[i] = m_RHS[i] / m_LHS[i];
         }
@@ -650,8 +650,8 @@ void ReactorNet::evalSteady(span<const double> y, span<double> residual)
     checkFinite("residual", residual);
 }
 
-void ReactorNet::evalDae(double t, span<const double> y, span<const double> ydot,
-                         span<const double> p, span<double> residual)
+void ReactorNet::evalDae(CanteraDouble t, span<const CanteraDouble> y, span<const CanteraDouble> ydot,
+                         span<const CanteraDouble> p, span<CanteraDouble> residual)
 {
     m_time = t;
     updateState(y);
@@ -666,36 +666,36 @@ void ReactorNet::evalDae(double t, span<const double> y, span<const double> ydot
     checkFinite("ydot", ydot);
 }
 
-void ReactorNet::getConstraints(span<double> constraints)
+void ReactorNet::getConstraints(span<CanteraDouble> constraints)
 {
     for (auto& R : m_reactors) {
         R->getConstraints(constraints.subspan(R->offset(), R->neq()));
     }
 }
 
-double ReactorNet::sensitivity(size_t k, size_t p)
+CanteraDouble ReactorNet::sensitivity(size_t k, size_t p)
 {
     initialize();
     if (p >= m_sens_params.size()) {
         throw IndexError("ReactorNet::sensitivity",
                          "m_sens_params", p, m_sens_params.size());
     }
-    double denom = m_integ->solution(k);
+    CanteraDouble denom = m_integ->solution(k);
     if (denom == 0.0) {
         denom = SmallNumber;
     }
     return m_integ->sensitivity(k, p) / denom;
 }
 
-void ReactorNet::evalJacobian(double t, span<double> y, span<double> ydot,
-                              span<const double> p, Array2D* j)
+void ReactorNet::evalJacobian(CanteraDouble t, span<CanteraDouble> y, span<CanteraDouble> ydot,
+                              span<const CanteraDouble> p, Array2D* j)
 {
     //evaluate the unperturbed ydot
     eval(t, y, ydot, p);
     for (size_t n = 0; n < m_nv; n++) {
         // perturb x(n)
-        double ysave = y[n];
-        double dy = m_atol[n] + fabs(ysave)*m_rtol;
+        CanteraDouble ysave = y[n];
+        CanteraDouble dy = m_atol[n] + fabs(ysave)*m_rtol;
         y[n] = ysave + dy;
         dy = y[n] - ysave;
 
@@ -710,7 +710,7 @@ void ReactorNet::evalJacobian(double t, span<double> y, span<double> ydot,
     }
 }
 
-void ReactorNet::updateState(span<const double> y)
+void ReactorNet::updateState(span<const CanteraDouble> y)
 {
     checkFinite("y", y);
     for (auto& R : m_reactors) {
@@ -718,14 +718,14 @@ void ReactorNet::updateState(span<const double> y)
     }
 }
 
-void ReactorNet::getDerivative(int k, span<double> dky)
+void ReactorNet::getDerivative(int k, span<CanteraDouble> dky)
 {
     initialize();
     auto cvode_dky = m_integ->derivative(m_time, k);
     std::copy(cvode_dky.begin(), cvode_dky.end(), dky.begin());
 }
 
-void ReactorNet::setAdvanceLimits(span<const double> limits)
+void ReactorNet::setAdvanceLimits(span<const CanteraDouble> limits)
 {
     initialize();
     for (auto& R : m_bulkReactors) {
@@ -742,7 +742,7 @@ bool ReactorNet::hasAdvanceLimits() const
     return has_limit;
 }
 
-bool ReactorNet::getAdvanceLimits(span<double> limits) const
+bool ReactorNet::getAdvanceLimits(span<CanteraDouble> limits) const
 {
     bool has_limit = false;
     for (auto& R : m_bulkReactors) {
@@ -751,14 +751,14 @@ bool ReactorNet::getAdvanceLimits(span<double> limits) const
     return has_limit;
 }
 
-void ReactorNet::getState(span<double> y)
+void ReactorNet::getState(span<CanteraDouble> y)
 {
     for (auto& R : m_reactors) {
         R->getState(y.subspan(R->offset(), R->neq()));
     }
 }
 
-void ReactorNet::getStateDae(span<double> y, span<double> ydot)
+void ReactorNet::getStateDae(span<CanteraDouble> y, span<CanteraDouble> ydot)
 {
     // Iterate in reverse order so that surfaces will be handled first and up-to-date
     // values of the surface production rates of bulk species will be available when
@@ -793,7 +793,7 @@ string ReactorNet::componentName(size_t i) const
     throw IndexError("ReactorNet::componentName", "component", i0, iTot);
 }
 
-double ReactorNet::upperBound(size_t i) const
+CanteraDouble ReactorNet::upperBound(size_t i) const
 {
     size_t iTot = 0;
     size_t i0 = i;
@@ -808,7 +808,7 @@ double ReactorNet::upperBound(size_t i) const
     throw IndexError("ReactorNet::upperBound", "upperBound", i0, iTot);
 }
 
-double ReactorNet::lowerBound(size_t i) const
+CanteraDouble ReactorNet::lowerBound(size_t i) const
 {
     size_t iTot = 0;
     size_t i0 = i;
@@ -823,14 +823,14 @@ double ReactorNet::lowerBound(size_t i) const
     throw IndexError("ReactorNet::lowerBound", "lowerBound", i0, iTot);
 }
 
-void ReactorNet::resetBadValues(span<double> y) {
+void ReactorNet::resetBadValues(span<CanteraDouble> y) {
     for (auto& R : m_reactors) {
         R->resetBadValues(y.subspan(R->offset(), R->neq()));
     }
 }
 
 size_t ReactorNet::registerSensitivityParameter(
-    const string& name, double value, double scale)
+    const string& name, CanteraDouble value, CanteraDouble scale)
 {
     if (m_integratorInitialized) {
         throw CanteraError("ReactorNet::registerSensitivityParameter",
@@ -869,7 +869,7 @@ string ReactorNet::linearSolverType() const
     }
 }
 
-void ReactorNet::preconditionerSolve(span<const double> rhs, span<double> output)
+void ReactorNet::preconditionerSolve(span<const CanteraDouble> rhs, span<CanteraDouble> output)
 {
     if (!m_integ) {
         throw CanteraError("ReactorNet::preconditionerSolve",
@@ -878,7 +878,7 @@ void ReactorNet::preconditionerSolve(span<const double> rhs, span<double> output
     m_integ->preconditionerSolve(rhs, output);
 }
 
-void ReactorNet::preconditionerSetup(double t, span<const double> y, double gamma)
+void ReactorNet::preconditionerSetup(CanteraDouble t, span<const CanteraDouble> y, CanteraDouble gamma)
 {
     // ensure state is up to date.
     updateState(y);
@@ -890,7 +890,7 @@ void ReactorNet::preconditionerSetup(double t, span<const double> y, double gamm
     // Set gamma value for M =I - gamma*J
     precon->setGamma(gamma);
     // Make a copy of state to adjust it for preconditioner
-    vector<double> yCopy(m_nv);
+    vector<CanteraDouble> yCopy(m_nv);
     // Get state of reactor
     getState(yCopy);
     // transform state based on preconditioner rules
@@ -898,7 +898,7 @@ void ReactorNet::preconditionerSetup(double t, span<const double> y, double gamm
     // update network with adjusted state
     updateState(yCopy);
     // Get jacobians and give elements to preconditioners
-    vector<Eigen::Triplet<double>> trips;
+    vector<Eigen::Triplet<CanteraDouble>> trips;
     for (auto& R : m_reactors) {
         R->getJacobianElements(trips);
     }
@@ -907,7 +907,7 @@ void ReactorNet::preconditionerSetup(double t, span<const double> y, double gamm
     precon->updatePreconditioner();
 }
 
-void ReactorNet::updatePreconditioner(double gamma)
+void ReactorNet::updatePreconditioner(CanteraDouble gamma)
 {
     if (!m_integ) {
         throw CanteraError("ReactorNet::updatePreconditioner",
@@ -930,7 +930,7 @@ void ReactorNet::checkPreconditionerSupported() const {
     }
 }
 
-SteadyReactorSolver::SteadyReactorSolver(ReactorNet* net, span<const double> x0)
+SteadyReactorSolver::SteadyReactorSolver(ReactorNet* net, span<const CanteraDouble> x0)
     : m_net(net)
 {
     m_size = m_net->neq();
@@ -953,8 +953,8 @@ SteadyReactorSolver::SteadyReactorSolver(ReactorNet* net, span<const double> x0)
     }
 }
 
-void SteadyReactorSolver::eval(span<const double> x, span<double> r,
-                               double rdt, int count)
+void SteadyReactorSolver::eval(span<const CanteraDouble> x, span<CanteraDouble> r,
+                               CanteraDouble rdt, int count)
 {
     if (rdt < 0.0) {
         rdt = m_rdt;
@@ -965,36 +965,36 @@ void SteadyReactorSolver::eval(span<const double> x, span<double> r,
     }
 }
 
-void SteadyReactorSolver::initTimeInteg(double dt, span<const double> x)
+void SteadyReactorSolver::initTimeInteg(CanteraDouble dt, span<const CanteraDouble> x)
 {
     SteadyStateSystem::initTimeInteg(dt, x);
     m_initialState.assign(x.begin(), x.end());
 }
 
-void SteadyReactorSolver::evalJacobian(span<const double> x0)
+void SteadyReactorSolver::evalJacobian(span<const CanteraDouble> x0)
 {
     m_jac->reset();
     clock_t t0 = clock();
     m_work1.resize(size());
     m_work2.resize(size());
     eval(x0, m_work1, 0.0, 0);
-    vector<double> perturbed(x0.begin(), x0.end());
+    vector<CanteraDouble> perturbed(x0.begin(), x0.end());
     for (size_t j = 0; j < size(); j++) {
         // perturb x(n); preserve sign(x(n))
-        double xsave = x0[j];
-        double dx = fabs(xsave) * m_jacobianRelPerturb + m_jacobianAbsPerturb;
+        CanteraDouble xsave = x0[j];
+        CanteraDouble dx = fabs(xsave) * m_jacobianRelPerturb + m_jacobianAbsPerturb;
         if (xsave < 0) {
             dx = -dx;
         }
         perturbed[j] = xsave + dx;
-        double rdx = 1.0 / (perturbed[j] - xsave);
+        CanteraDouble rdx = 1.0 / (perturbed[j] - xsave);
 
         // calculate perturbed residual
         eval(perturbed, m_work2, 0.0, 0);
 
         // compute nth column of Jacobian
         for (size_t i = 0; i < size(); i++) {
-            double delta = m_work2[i] - m_work1[i];
+            CanteraDouble delta = m_work2[i] - m_work1[i];
             if (std::abs(delta) > m_jacobianThreshold || i == j) {
                 m_jac->setValue(i, j, delta * rdx);
             }
@@ -1004,18 +1004,18 @@ void SteadyReactorSolver::evalJacobian(span<const double> x0)
     // Restore system to unperturbed state
     m_net->updateState(x0);
 
-    m_jac->updateElapsed(double(clock() - t0) / CLOCKS_PER_SEC);
+    m_jac->updateElapsed(CanteraDouble(clock() - t0) / CLOCKS_PER_SEC);
     m_jac->incrementEvals();
     m_jac->setAge(0);
 }
 
-double SteadyReactorSolver::weightedNorm(span<const double> step) const
+CanteraDouble SteadyReactorSolver::weightedNorm(span<const CanteraDouble> step) const
 {
-    double sum = 0.0;
-    const double* x = m_state->data();
+    CanteraDouble sum = 0.0;
+    const CanteraDouble* x = m_state->data();
     for (size_t i = 0; i < size(); i++) {
-        double ewt = m_net->rtol()*fabs(x[i]) + m_net->atol();
-        double f = step[i] / ewt;
+        CanteraDouble ewt = m_net->rtol()*fabs(x[i]) + m_net->atol();
+        CanteraDouble f = step[i] / ewt;
         sum += f*f;
     }
     return sqrt(sum / size());
@@ -1026,17 +1026,17 @@ string SteadyReactorSolver::componentName(size_t i) const
     return m_net->componentName(i);
 }
 
-double SteadyReactorSolver::upperBound(size_t i) const
+CanteraDouble SteadyReactorSolver::upperBound(size_t i) const
 {
     return m_net->upperBound(i);
 }
 
-double SteadyReactorSolver::lowerBound(size_t i) const
+CanteraDouble SteadyReactorSolver::lowerBound(size_t i) const
 {
     return m_net->lowerBound(i);
 }
 
-void SteadyReactorSolver::resetBadValues(span<double> x)
+void SteadyReactorSolver::resetBadValues(span<CanteraDouble> x)
 {
     m_net->resetBadValues(x);
 }

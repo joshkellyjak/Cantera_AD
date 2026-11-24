@@ -21,7 +21,7 @@ void EigenSparseDirectJacobian::factorize()
     }
 }
 
-void EigenSparseDirectJacobian::solve(span<const double> b, span<double> x)
+void EigenSparseDirectJacobian::solve(span<const CanteraDouble> b, span<CanteraDouble> x)
 {
     MappedVector(x.data(), m_dim) = m_solver.solve(ConstMappedVector(b.data(), m_dim));
     // check for errors

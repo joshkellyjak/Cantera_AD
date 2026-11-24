@@ -37,7 +37,7 @@ struct SensitivityParameter
 {
     size_t local; //!< local parameter index
     size_t global; //!< global parameter index
-    double value; //!< nominal value of the parameter
+    CanteraDouble value; //!< nominal value of the parameter
     SensParameterType type; //!< type of sensitivity parameter
 };
 
@@ -113,27 +113,27 @@ public:
     //! @{
 
     //! Set the initial reactor volume.
-    virtual void setInitialVolume(double vol) {
+    virtual void setInitialVolume(CanteraDouble vol) {
         throw NotImplementedError("ReactorBase::setInitialVolume",
             "Volume is undefined for reactors of type '{}'.", type());
     }
 
     //! Returns an area associated with a reactor [m²].
     //! Examples: surface area of ReactorSurface or cross section area of FlowReactor.
-    virtual double area() const {
+    virtual CanteraDouble area() const {
         throw NotImplementedError("ReactorBase::area",
             "Area is undefined for reactors of type '{}'.", type());
     }
 
     //! Evaluate contributions from walls connected to this reactor
-    virtual void evalWalls(double t) {
+    virtual void evalWalls(CanteraDouble t) {
         throw NotImplementedError("ReactorBase::evalWalls",
             "Wall evaluation is undefined for reactors of type '{}'.", type());
     }
 
     //! Set an area associated with a reactor [m²].
     //! Examples: surface area of ReactorSurface or cross section area of FlowReactor.
-    virtual void setArea(double a) {
+    virtual void setArea(CanteraDouble a) {
         throw NotImplementedError("ReactorBase::setArea",
             "Area is undefined for reactors of type '{}'.", type());
     }
@@ -227,14 +227,14 @@ public:
     //! For surfaces, this contains the production rates [kmol/m²/s] of species on the
     //! surface and all adjacent phases, in the order defined by the InterfaceKinetics
     //! object.
-    span<const double> surfaceProductionRates() const {
+    span<const CanteraDouble> surfaceProductionRates() const {
         return m_sdot;
     }
 
     /**
      * Initialize the reactor. Called automatically by ReactorNet::initialize.
      */
-    virtual void initialize(double t0 = 0.0) {
+    virtual void initialize(CanteraDouble t0 = 0.0) {
         throw NotImplementedError("ReactorBase::initialize");
     }
 
@@ -242,7 +242,7 @@ public:
     /*!
      *  @param[out] y state vector representing the initial state of the reactor
      */
-    virtual void getState(span<double> y) {
+    virtual void getState(span<CanteraDouble> y) {
         throw NotImplementedError("ReactorBase::getState",
             "Not implemented for reactor type '{}'.", type());
     }
@@ -256,7 +256,7 @@ public:
     //! instead of the network-level scalar absolute tolerance or reactor-specific
     //! default tolerances.
     //! @since New in %Cantera 4.0.
-    void setAbsoluteTolerances(span<const double> atol);
+    void setAbsoluteTolerances(span<const CanteraDouble> atol);
 
     //! Get the absolute tolerances set for this reactor's state variables.
     //!
@@ -265,7 +265,7 @@ public:
     //! @return  `true` if user-specified absolute tolerances are set for this
     //!     reactor; `false` otherwise.
     //! @since New in %Cantera 4.0.
-    bool getAbsoluteTolerances(span<double> atol) const;
+    bool getAbsoluteTolerances(span<CanteraDouble> atol) const;
 
     //! Clear user-specified absolute tolerances for this reactor.
     //! @since New in %Cantera 4.0.
@@ -287,7 +287,7 @@ public:
     //! ReactorNet calls this hook only when neither this reactor nor the network
     //! has user-specified absolute tolerances.
     //! @since New in %Cantera 4.0.
-    virtual void updateDefaultTolerances(span<double> atol, double baseAtol) {}
+    virtual void updateDefaultTolerances(span<CanteraDouble> atol, CanteraDouble baseAtol) {}
 
     //! Get the current state and derivative vector of the reactor for a DAE solver
     /*!
@@ -295,7 +295,7 @@ public:
      *  @param[out] ydot  state vector representing the initial derivatives of the
      *                    reactor
      */
-    virtual void getStateDae(span<double> y, span<double> ydot) {
+    virtual void getStateDae(span<CanteraDouble> y, span<CanteraDouble> ydot) {
         throw NotImplementedError("ReactorBase::getStateDae(y, ydot)");
     }
 
@@ -305,7 +305,7 @@ public:
     //! coefficients for governing equations, length m_nv, default values 1
     //! @param[out] RHS pointer to start of vector of right-hand side
     //! coefficients for governing equations, length m_nv, default values 0
-    virtual void eval(double t, span<double> LHS, span<double> RHS) {
+    virtual void eval(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS) {
         throw NotImplementedError("ReactorBase::eval");
     }
 
@@ -316,8 +316,8 @@ public:
      * @param[in] ydot rate of change of solution vector, length neq()
      * @param[out] residual residuals vector, length neq()
      */
-    virtual void evalDae(double t, span<const double> y, span<const double> ydot,
-                         span<double> residual) {
+    virtual void evalDae(CanteraDouble t, span<const CanteraDouble> y, span<const CanteraDouble> ydot,
+                         span<CanteraDouble> residual) {
         throw NotImplementedError("ReactorBase::evalDae");
     }
 
@@ -327,14 +327,14 @@ public:
     //! that correspond to algebraic constraints.
     //!
     //! @since New in %Cantera 4.0.
-    virtual void evalSteady(double t, span<double> LHS, span<double> RHS) {
+    virtual void evalSteady(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS) {
         throw NotImplementedError("ReactorBase::evalSteady",
             "Not implemented for reactor type '{}'.", type());
     }
 
     //! Given a vector of length neq(), mark which variables should be
     //! considered algebraic constraints
-    virtual void getConstraints(span<double> constraints) {
+    virtual void getConstraints(span<CanteraDouble> constraints) {
         throw NotImplementedError("ReactorBase::getConstraints");
     }
 
@@ -354,7 +354,7 @@ public:
     }
 
     //! Set the state of the reactor to correspond to the state vector *y*.
-    virtual void updateState(span<const double> y) {
+    virtual void updateState(span<const CanteraDouble> y) {
         throw NotImplementedError("ReactorBase::updateState");
     }
 
@@ -377,19 +377,19 @@ public:
     }
 
     //! Get the upper bound on the k-th component of the local state vector.
-    virtual double upperBound(size_t k) const {
+    virtual CanteraDouble upperBound(size_t k) const {
         throw NotImplementedError("ReactorBase::upperBound");
     }
 
     //! Get the lower bound on the k-th component of the local state vector.
-    virtual double lowerBound(size_t k) const {
+    virtual CanteraDouble lowerBound(size_t k) const {
         throw NotImplementedError("ReactorBase::lowerBound");
     }
 
     //! Reset physically or mathematically problematic values, such as negative species
     //! concentrations.
     //! @param[inout] y  current state vector, to be updated; length neq()
-    virtual void resetBadValues(span<double> y) {
+    virtual void resetBadValues(span<CanteraDouble> y) {
         throw NotImplementedError("ReactorBase::resetBadValues");
     }
 
@@ -422,7 +422,7 @@ public:
     //!     state variables. These terms may be dense for mole reactors and are
     //!     controlled by preconditioner sparsity settings.
     //! @since New in %Cantera 4.0.
-    virtual void addPressureJacobian(SparseTriplets& trips, size_t row, double coeff,
+    virtual void addPressureJacobian(SparseTriplets& trips, size_t row, CanteraDouble coeff,
                                      bool includeSpecies=true) const {};
 
     //! Add terms proportional to derivatives with respect to this reactor's
@@ -439,7 +439,7 @@ public:
     //! @param coeff  Multiplicative factor applied to `dT/dy_j`.
     //! @since New in %Cantera 4.0.
     virtual void addTemperatureJacobian(SparseTriplets& trips, size_t row,
-                                        double coeff) const {};
+                                        CanteraDouble coeff) const {};
 
     //! Add terms proportional to derivatives with respect to a species mass fraction.
     //!
@@ -457,7 +457,7 @@ public:
     //! @param coeff  Multiplicative factor applied to `dY_k/dy_j`.
     //! @since New in %Cantera 4.0.
     virtual void addSpeciesMassFractionJacobian(SparseTriplets& trips, size_t row,
-                                                size_t k, double coeff) const {};
+                                                size_t k, CanteraDouble coeff) const {};
 
     //! Add terms proportional to derivatives of this reactor's specific enthalpy.
     //!
@@ -475,7 +475,7 @@ public:
     //!     to species state variables. These terms may be dense and are controlled by
     //!     preconditioner sparsity settings.
     //! @since New in %Cantera 4.0.
-    virtual void addEnthalpyJacobian(SparseTriplets& trips, size_t row, double coeff,
+    virtual void addEnthalpyJacobian(SparseTriplets& trips, size_t row, CanteraDouble coeff,
                                      bool includeComposition=true) const {};
 
     //! Calculate the Jacobian of a specific reactor specialization.
@@ -486,7 +486,7 @@ public:
     //!
     //! @warning  This method is an experimental part of the %Cantera
     //! API and may be changed or removed without notice.
-    virtual Eigen::SparseMatrix<double> jacobian();
+    virtual Eigen::SparseMatrix<CanteraDouble> jacobian();
 
     //! Use this to set the kinetics objects derivative settings
     virtual void setDerivativeSettings(AnyMap& settings) {
@@ -495,12 +495,12 @@ public:
 
     //! Set reaction rate multipliers based on the sensitivity variables in
     //! *params*.
-    virtual void applySensitivity(span<const double> params) {
+    virtual void applySensitivity(span<const CanteraDouble> params) {
         throw NotImplementedError("ReactorBase::applySensitivity");
     }
 
     //! Reset the reaction rate multipliers
-    virtual void resetSensitivity(span<const double> params) {
+    virtual void resetSensitivity(span<const CanteraDouble> params) {
         throw NotImplementedError("ReactorBase::resetSensitivity");
     }
 
@@ -534,7 +534,7 @@ public:
 
     //! Return the residence time (s) of the contents of this reactor, based
     //! on the outlet mass flow rates and the mass of the reactor contents.
-    double residenceTime();
+    CanteraDouble residenceTime();
 
     //! @name Solution components
     //!
@@ -543,36 +543,36 @@ public:
     //! @{
 
     //! Returns the current volume (m^3) of the reactor.
-    double volume() const {
+    CanteraDouble volume() const {
         return m_vol;
     }
 
     //! Returns the current density (kg/m^3) of the reactor's contents.
-    double density() const;
+    CanteraDouble density() const;
 
     //! Returns the current temperature (K) of the reactor's contents.
-    double temperature() const;
+    CanteraDouble temperature() const;
 
     //! Returns the current enthalpy (J/kg) of the reactor's contents.
-    double enthalpy_mass() const {
+    CanteraDouble enthalpy_mass() const {
         return m_enthalpy;
     }
 
     //! Returns the current pressure (Pa) of the reactor.
-    double pressure() const {
+    CanteraDouble pressure() const {
         return m_pressure;
     }
 
     //! Returns the mass (kg) of the reactor's contents.
-    double mass() const {
+    CanteraDouble mass() const {
         return m_mass;
     }
 
     //! Return the vector of species mass fractions.
-    span<const double> massFractions() const;
+    span<const CanteraDouble> massFractions() const;
 
     //! Return the mass fraction of the *k*-th species.
-    double massFraction(size_t k) const;
+    CanteraDouble massFraction(size_t k) const;
 
     //! @}
 
@@ -604,7 +604,7 @@ public:
     //!     equations. Equal to $1/V$.
     //! @param f_energy  Scaling factor for each species term appearing in the energy
     //!     equation.
-    virtual void getJacobianScalingFactors(double& f_species, span<double> f_energy) {
+    virtual void getJacobianScalingFactors(CanteraDouble& f_species, span<CanteraDouble> f_energy) {
         throw NotImplementedError("ReactorBase::getJacobianScalingFactors");
     }
 
@@ -634,16 +634,16 @@ protected:
     size_t m_nsp = 0;
 
     ThermoPhase* m_thermo = nullptr;
-    double m_vol = 0.0; //!< Current volume of the reactor [m^3]
-    double m_mass = 0.0; //!< Current mass of the reactor [kg]
-    double m_enthalpy = 0.0; //!< Current specific enthalpy of the reactor [J/kg]
-    double m_pressure = 0.0; //!< Current pressure in the reactor [Pa]
-    vector<double> m_state;
+    CanteraDouble m_vol = 0.0; //!< Current volume of the reactor [m^3]
+    CanteraDouble m_mass = 0.0; //!< Current mass of the reactor [kg]
+    CanteraDouble m_enthalpy = 0.0; //!< Current specific enthalpy of the reactor [J/kg]
+    CanteraDouble m_pressure = 0.0; //!< Current pressure in the reactor [Pa]
+    vector<CanteraDouble> m_state;
     vector<FlowDevice*> m_inlet, m_outlet;
 
     vector<WallBase*> m_wall;
     vector<ReactorSurface*> m_surfaces;
-    vector<double> m_sdot; //!< species production rates on surfaces
+    vector<CanteraDouble> m_sdot; //!< species production rates on surfaces
 
     //! Vector of length nWalls(), indicating whether this reactor is on the left (0)
     //! or right (1) of each wall.
@@ -656,7 +656,7 @@ protected:
     size_t m_offset = 0; //!< Offset into global ReactorNet state vector
 
     //! User-specified absolute tolerances for this reactor's state variables.
-    vector<double> m_userAtol;
+    vector<CanteraDouble> m_userAtol;
 
     //! Composite thermo/kinetics/transport handler
     shared_ptr<Solution> m_solution;

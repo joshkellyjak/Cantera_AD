@@ -20,17 +20,17 @@ void MixTransport::init(shared_ptr<ThermoPhase> thermo, int mode)
     m_cond.resize(m_nsp);
 }
 
-void MixTransport::getMobilities(span<double> mobil)
+void MixTransport::getMobilities(span<CanteraDouble> mobil)
 {
     checkArraySize("MixTransport::getMobilities", mobil.size(), m_nsp);
     getMixDiffCoeffs(m_spwork);
-    double c1 = ElectronCharge / (Boltzmann * m_temp);
+    CanteraDouble c1 = ElectronCharge / (Boltzmann * m_temp);
     for (size_t k = 0; k < m_nsp; k++) {
         mobil[k] = c1 * m_spwork[k];
     }
 }
 
-double MixTransport::thermalConductivity()
+CanteraDouble MixTransport::thermalConductivity()
 {
     update_T();
     update_C();
@@ -38,7 +38,7 @@ double MixTransport::thermalConductivity()
         updateCond_T();
     }
     if (!m_condmix_ok) {
-        double sum1 = 0.0, sum2 = 0.0;
+        CanteraDouble sum1 = 0.0, sum2 = 0.0;
         for (size_t k = 0; k < m_nsp; k++) {
             sum1 += m_molefracs[k] * m_cond[k];
             sum2 += m_molefracs[k] / m_cond[k];
@@ -49,7 +49,7 @@ double MixTransport::thermalConductivity()
     return m_lambda;
 }
 
-void MixTransport::getThermalDiffCoeffs(span<double> dt)
+void MixTransport::getThermalDiffCoeffs(span<CanteraDouble> dt)
 {
     checkArraySize("MixTransport::getThermalDiffCoeffs", dt.size(), m_nsp);
     update_T();
@@ -63,7 +63,7 @@ void MixTransport::getThermalDiffCoeffs(span<double> dt)
 
     auto y = m_thermo->massFractions();
 
-    vector<double>& a = m_spwork;
+    vector<CanteraDouble>& a = m_spwork;
 
     for (size_t k=0; k<m_nsp; ++k) {
         dt[k] = 0.;
@@ -73,9 +73,9 @@ void MixTransport::getThermalDiffCoeffs(span<double> dt)
             continue;
         }
 
-        double lambda_mono_k = (15./4.) * m_visc[k] / m_mw[k];
+        CanteraDouble lambda_mono_k = (15./4.) * m_visc[k] / m_mw[k];
 
-        double sum = 0.;
+        CanteraDouble sum = 0.;
         for (size_t j=0; j<m_nsp; ++j) {
             if (j != k) {
                 sum += m_molefracs[j]*m_phi(k,j);
@@ -85,23 +85,23 @@ void MixTransport::getThermalDiffCoeffs(span<double> dt)
         a[k] = lambda_mono_k / (1. + 1.065 * sum / m_molefracs[k]);
     }
 
-    double rp = 1./m_thermo->pressure();
+    CanteraDouble rp = 1./m_thermo->pressure();
 
     for (size_t k=0; k<m_nsp-1; ++k) {
         for (size_t j=k+1; j<m_nsp; ++j) {
 
-            double log_tstar = std::log(m_kbt/m_epsilon(k,j));
+            CanteraDouble log_tstar = std::log(m_kbt/m_epsilon(k,j));
 
             int ipoly = m_poly[k][j];
 
-            double Cstar = 0.;
+            CanteraDouble Cstar = 0.;
             if (m_mode == CK_Mode) {
                 Cstar = poly6(log_tstar, m_cstar_poly[ipoly]);
             } else {
                 Cstar = poly8(log_tstar, m_cstar_poly[ipoly]);
             }
 
-            double dt_T = ((1.2*Cstar - 1.0)/(m_bdiff(k,j)*rp))
+            CanteraDouble dt_T = ((1.2*Cstar - 1.0)/(m_bdiff(k,j)*rp))
                           / (m_mw[k] + m_mw[j]);
 
             dt[k] += dt_T * (y[k]*a[j] - y[j]*a[k]);
@@ -109,11 +109,11 @@ void MixTransport::getThermalDiffCoeffs(span<double> dt)
         }
     }
 
-    vector<double>& Dm = m_spwork;
+    vector<CanteraDouble>& Dm = m_spwork;
     getMixDiffCoeffs(Dm);
 
-    double mmw = m_thermo->meanMolecularWeight();
-    double norm = 0.;
+    CanteraDouble mmw = m_thermo->meanMolecularWeight();
+    CanteraDouble norm = 0.;
     for (size_t k=0; k<m_nsp; ++k) {
         dt[k] *= Dm[k] * m_mw[k] * mmw;
         norm += dt[k];
@@ -125,9 +125,9 @@ void MixTransport::getThermalDiffCoeffs(span<double> dt)
     }
 }
 
-void MixTransport::getSpeciesFluxes(size_t ndim, span<const double> grad_T,
-                                    size_t ldx, span<const double> grad_X,
-                                    size_t ldf, span<double> fluxes)
+void MixTransport::getSpeciesFluxes(size_t ndim, span<const CanteraDouble> grad_T,
+                                    size_t ldx, span<const CanteraDouble> grad_X,
+                                    size_t ldf, span<CanteraDouble> fluxes)
 {
     checkArraySize("MixTransport::getSpeciesFluxes: grad_T", grad_T.size(), ndim);
     if (ldx < m_nsp) {
@@ -143,8 +143,8 @@ void MixTransport::getSpeciesFluxes(size_t ndim, span<const double> grad_T,
     getMixDiffCoeffs(m_spwork);
     auto mw = m_thermo->molecularWeights();
     auto y = m_thermo->massFractions();
-    double rhon = m_thermo->molarDensity();
-    vector<double> sum(ndim,0.0);
+    CanteraDouble rhon = m_thermo->molarDensity();
+    vector<CanteraDouble> sum(ndim,0.0);
     for (size_t n = 0; n < ndim; n++) {
         for (size_t k = 0; k < m_nsp; k++) {
             fluxes[n*ldf + k] = -rhon * mw[k] * m_spwork[k] * grad_X[n*ldx + k];
@@ -161,7 +161,7 @@ void MixTransport::getSpeciesFluxes(size_t ndim, span<const double> grad_T,
 
 void MixTransport::update_T()
 {
-    double t = m_thermo->temperature();
+    CanteraDouble t = m_thermo->temperature();
     if (t == m_temp && m_nsp == m_thermo->nSpecies()) {
         return;
     }

@@ -12,7 +12,7 @@
 
 namespace Cantera {
 
-void checkFinite(const double tmp)
+void checkFinite(const CanteraDouble tmp)
 {
     if (!std::isfinite(tmp)) {
         if (std::isnan(tmp)) {
@@ -25,7 +25,7 @@ void checkFinite(const double tmp)
     }
 }
 
-void checkFinite(const string& name, span<const double> values)
+void checkFinite(const string& name, span<const CanteraDouble> values)
 {
     for (size_t i = 0; i < values.size(); i++) {
         if (!std::isfinite(values[i])) {

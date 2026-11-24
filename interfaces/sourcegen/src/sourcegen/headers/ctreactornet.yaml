@@ -16,7 +16,7 @@ recipes:
 - name: setTolerances  # deprecated in Cantera 4.0
 - name: setSensitivityTolerances
 - name: advance
-  wraps: advance(double)
+  wraps: advance(CanteraDouble)
 - name: step
 - name: time
 - name: rtol

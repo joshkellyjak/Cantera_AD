@@ -24,18 +24,18 @@ IdealSolidSolnPhase::IdealSolidSolnPhase(const string& inputFile, const string& 
 
 // Molar Thermodynamic Properties of the Solution
 
-double IdealSolidSolnPhase::entropy_mole() const
+CanteraDouble IdealSolidSolnPhase::entropy_mole() const
 {
     return GasConstant * (mean_X(entropy_R_ref()) - sum_xlogx());
 }
 
-double IdealSolidSolnPhase::gibbs_mole() const
+CanteraDouble IdealSolidSolnPhase::gibbs_mole() const
 {
-    double Pv = (pressure() - m_Pref)/molarDensity();
+    CanteraDouble Pv = (pressure() - m_Pref)/molarDensity();
     return RT() * (mean_X(gibbs_RT_ref()) + sum_xlogx()) + Pv;
 }
 
-double IdealSolidSolnPhase::cp_mole() const
+CanteraDouble IdealSolidSolnPhase::cp_mole() const
 {
     return GasConstant * mean_X(cp_R_ref());
 }
@@ -45,14 +45,14 @@ double IdealSolidSolnPhase::cp_mole() const
 void IdealSolidSolnPhase::calcDensity()
 {
     // Calculate the molarVolume of the solution (m**3 kmol-1)
-    double v_mol = mean_X(m_speciesMolarVolume);
+    CanteraDouble v_mol = mean_X(m_speciesMolarVolume);
 
     // Set the density in the parent object directly, by calling the
     // Phase::assignDensity() function.
     Phase::assignDensity(meanMolecularWeight()/v_mol);
 }
 
-void IdealSolidSolnPhase::setPressure(double p)
+void IdealSolidSolnPhase::setPressure(CanteraDouble p)
 {
     m_Pcurrent = p;
     calcDensity();
@@ -72,11 +72,11 @@ Units IdealSolidSolnPhase::standardConcentrationUnits() const
         return Units(1.0); // dimensionless
     } else {
         // kmol/m^3 for bulk phases
-        return Units(1.0, 0, -static_cast<double>(nDim()), 0, 0, 0, 1);
+        return Units(1.0, 0, -static_cast<CanteraDouble>(nDim()), 0, 0, 0, 1);
     }
 }
 
-void IdealSolidSolnPhase::getActivityConcentrations(span<double> c) const
+void IdealSolidSolnPhase::getActivityConcentrations(span<CanteraDouble> c) const
 {
     getMoleFractions(c);
     switch (m_formGC) {
@@ -95,7 +95,7 @@ void IdealSolidSolnPhase::getActivityConcentrations(span<double> c) const
     }
 }
 
-double IdealSolidSolnPhase::standardConcentration(size_t k) const
+CanteraDouble IdealSolidSolnPhase::standardConcentration(size_t k) const
 {
     switch (m_formGC) {
     case 0:
@@ -108,7 +108,7 @@ double IdealSolidSolnPhase::standardConcentration(size_t k) const
     return 0.0;
 }
 
-void IdealSolidSolnPhase::getActivityCoefficients(span<double> ac) const
+void IdealSolidSolnPhase::getActivityCoefficients(span<CanteraDouble> ac) const
 {
     checkArraySize("IdealSolidSolnPhase::getActivityCoefficients", ac.size(), m_kk);
     for (size_t k = 0; k < m_kk; k++) {
@@ -116,13 +116,13 @@ void IdealSolidSolnPhase::getActivityCoefficients(span<double> ac) const
     }
 }
 
-void IdealSolidSolnPhase::getChemPotentials(span<double> mu) const
+void IdealSolidSolnPhase::getChemPotentials(span<CanteraDouble> mu) const
 {
     checkArraySize("IdealSolidSolnPhase::getChemPotentials", mu.size(), m_kk);
-    double delta_p = m_Pcurrent - m_Pref;
+    CanteraDouble delta_p = m_Pcurrent - m_Pref;
     auto g_RT = gibbs_RT_ref();
     for (size_t k = 0; k < m_kk; k++) {
-        double xx = std::max(SmallNumber, moleFraction(k));
+        CanteraDouble xx = std::max(SmallNumber, moleFraction(k));
         mu[k] = RT() * (g_RT[k] + log(xx))
                 + delta_p * m_speciesMolarVolume[k];
     }
@@ -130,28 +130,28 @@ void IdealSolidSolnPhase::getChemPotentials(span<double> mu) const
 
 // Partial Molar Properties
 
-void IdealSolidSolnPhase::getPartialMolarEnthalpies(span<double> hbar) const
+void IdealSolidSolnPhase::getPartialMolarEnthalpies(span<CanteraDouble> hbar) const
 {
     checkArraySize("IdealSolidSolnPhase::getPartialMolarEnthalpies", hbar.size(), m_kk);
     auto _h = enthalpy_RT_ref();
-    double delta_p = m_Pcurrent - m_Pref;
+    CanteraDouble delta_p = m_Pcurrent - m_Pref;
     for (size_t k = 0; k < m_kk; k++) {
         hbar[k] = _h[k]*RT() + delta_p * m_speciesMolarVolume[k];
     }
     // scale(_h.begin(), _h.end(), hbar, RT());
 }
 
-void IdealSolidSolnPhase::getPartialMolarEntropies(span<double> sbar) const
+void IdealSolidSolnPhase::getPartialMolarEntropies(span<CanteraDouble> sbar) const
 {
     checkArraySize("IdealSolidSolnPhase::getPartialMolarEntropies", sbar.size(), m_kk);
     auto _s = entropy_R_ref();
     for (size_t k = 0; k < m_kk; k++) {
-        double xx = std::max(SmallNumber, moleFraction(k));
+        CanteraDouble xx = std::max(SmallNumber, moleFraction(k));
         sbar[k] = GasConstant * (_s[k] - log(xx));
     }
 }
 
-void IdealSolidSolnPhase::getPartialMolarCp(span<double> cpbar) const
+void IdealSolidSolnPhase::getPartialMolarCp(span<CanteraDouble> cpbar) const
 {
     getCp_R(cpbar);
     for (size_t k = 0; k < m_kk; k++) {
@@ -159,68 +159,68 @@ void IdealSolidSolnPhase::getPartialMolarCp(span<double> cpbar) const
     }
 }
 
-void IdealSolidSolnPhase::getPartialMolarVolumes(span<double> vbar) const
+void IdealSolidSolnPhase::getPartialMolarVolumes(span<CanteraDouble> vbar) const
 {
     getStandardVolumes(vbar);
 }
 
 // Properties of the Standard State of the Species in the Solution
 
-void IdealSolidSolnPhase::getStandardChemPotentials(span<double> g0) const
+void IdealSolidSolnPhase::getStandardChemPotentials(span<CanteraDouble> g0) const
 {
     checkArraySize("IdealSolidSolnPhase::getStandardChemPotentials", g0.size(), m_kk);
     auto gibbsrt = gibbs_RT_ref();
-    double delta_p = (m_Pcurrent - m_Pref);
+    CanteraDouble delta_p = (m_Pcurrent - m_Pref);
     for (size_t k = 0; k < m_kk; k++) {
         g0[k] = RT() * gibbsrt[k] + delta_p * m_speciesMolarVolume[k];
     }
 }
 
-void IdealSolidSolnPhase::getGibbs_RT(span<double> grt) const
+void IdealSolidSolnPhase::getGibbs_RT(span<CanteraDouble> grt) const
 {
     checkArraySize("IdealSolidSolnPhase::getGibbs_RT", grt.size(), m_kk);
     auto gibbsrt = gibbs_RT_ref();
-    double delta_prt = (m_Pcurrent - m_Pref)/ RT();
+    CanteraDouble delta_prt = (m_Pcurrent - m_Pref)/ RT();
     for (size_t k = 0; k < m_kk; k++) {
         grt[k] = gibbsrt[k] + delta_prt * m_speciesMolarVolume[k];
     }
 }
 
-void IdealSolidSolnPhase::getEnthalpy_RT(span<double> hrt) const
+void IdealSolidSolnPhase::getEnthalpy_RT(span<CanteraDouble> hrt) const
 {
     checkArraySize("IdealSolidSolnPhase::getEnthalpy_RT", hrt.size(), m_kk);
     auto _h = enthalpy_RT_ref();
-    double delta_prt = (m_Pcurrent - m_Pref) / RT();
+    CanteraDouble delta_prt = (m_Pcurrent - m_Pref) / RT();
     for (size_t k = 0; k < m_kk; k++) {
         hrt[k] = _h[k] + delta_prt * m_speciesMolarVolume[k];
     }
 }
 
-void IdealSolidSolnPhase::getEntropy_R(span<double> sr) const
+void IdealSolidSolnPhase::getEntropy_R(span<CanteraDouble> sr) const
 {
     checkArraySize("IdealSolidSolnPhase::getEntropy_R", sr.size(), m_kk);
     auto _s = entropy_R_ref();
     copy(_s.begin(), _s.end(), sr.begin());
 }
 
-void IdealSolidSolnPhase::getIntEnergy_RT(span<double> urt) const
+void IdealSolidSolnPhase::getIntEnergy_RT(span<CanteraDouble> urt) const
 {
     checkArraySize("IdealSolidSolnPhase::getIntEnergy_RT", urt.size(), m_kk);
     auto _h = enthalpy_RT_ref();
-    double prefrt = m_Pref / RT();
+    CanteraDouble prefrt = m_Pref / RT();
     for (size_t k = 0; k < m_kk; k++) {
         urt[k] = _h[k] - prefrt * m_speciesMolarVolume[k];
     }
 }
 
-void IdealSolidSolnPhase::getCp_R(span<double> cpr) const
+void IdealSolidSolnPhase::getCp_R(span<CanteraDouble> cpr) const
 {
     checkArraySize("IdealSolidSolnPhase::getCp_R", cpr.size(), m_kk);
     auto _cpr = cp_R_ref();
     copy(_cpr.begin(), _cpr.end(), cpr.begin());
 }
 
-void IdealSolidSolnPhase::getStandardVolumes(span<double> vol) const
+void IdealSolidSolnPhase::getStandardVolumes(span<CanteraDouble> vol) const
 {
     checkArraySize("IdealSolidSolnPhase::getStandardVolumes", vol.size(), m_kk);
     copy(m_speciesMolarVolume.begin(), m_speciesMolarVolume.end(), vol.begin());
@@ -228,7 +228,7 @@ void IdealSolidSolnPhase::getStandardVolumes(span<double> vol) const
 
 // Thermodynamic Values for the Species Reference States
 
-void IdealSolidSolnPhase::getEnthalpy_RT_ref(span<double> hrt) const
+void IdealSolidSolnPhase::getEnthalpy_RT_ref(span<CanteraDouble> hrt) const
 {
     checkArraySize("IdealSolidSolnPhase::getEnthalpy_RT_ref", hrt.size(), m_kk);
     _updateThermo();
@@ -237,7 +237,7 @@ void IdealSolidSolnPhase::getEnthalpy_RT_ref(span<double> hrt) const
     }
 }
 
-void IdealSolidSolnPhase::getGibbs_RT_ref(span<double> grt) const
+void IdealSolidSolnPhase::getGibbs_RT_ref(span<CanteraDouble> grt) const
 {
     checkArraySize("IdealSolidSolnPhase::getGibbs_RT_ref", grt.size(), m_kk);
     _updateThermo();
@@ -246,27 +246,27 @@ void IdealSolidSolnPhase::getGibbs_RT_ref(span<double> grt) const
     }
 }
 
-void IdealSolidSolnPhase::getGibbs_ref(span<double> g) const
+void IdealSolidSolnPhase::getGibbs_ref(span<CanteraDouble> g) const
 {
     checkArraySize("IdealSolidSolnPhase::getGibbs_ref", g.size(), m_kk);
     _updateThermo();
-    double tmp = RT();
+    CanteraDouble tmp = RT();
     for (size_t k = 0; k != m_kk; k++) {
         g[k] = tmp * m_g0_RT[k];
     }
 }
 
-void IdealSolidSolnPhase::getIntEnergy_RT_ref(span<double> urt) const
+void IdealSolidSolnPhase::getIntEnergy_RT_ref(span<CanteraDouble> urt) const
 {
     checkArraySize("IdealSolidSolnPhase::getIntEnergy_RT_ref", urt.size(), m_kk);
     auto _h = enthalpy_RT_ref();
-    double prefrt = m_Pref / RT();
+    CanteraDouble prefrt = m_Pref / RT();
     for (size_t k = 0; k < m_kk; k++) {
         urt[k] = _h[k] - prefrt * m_speciesMolarVolume[k];
     }
 }
 
-void IdealSolidSolnPhase::getEntropy_R_ref(span<double> er) const
+void IdealSolidSolnPhase::getEntropy_R_ref(span<CanteraDouble> er) const
 {
     checkArraySize("IdealSolidSolnPhase::getEntropy_R_ref", er.size(), m_kk);
     _updateThermo();
@@ -275,7 +275,7 @@ void IdealSolidSolnPhase::getEntropy_R_ref(span<double> er) const
     }
 }
 
-void IdealSolidSolnPhase::getCp_R_ref(span<double> cpr) const
+void IdealSolidSolnPhase::getCp_R_ref(span<CanteraDouble> cpr) const
 {
     checkArraySize("IdealSolidSolnPhase::getCp_R_ref", cpr.size(), m_kk);
     _updateThermo();
@@ -284,13 +284,13 @@ void IdealSolidSolnPhase::getCp_R_ref(span<double> cpr) const
     }
 }
 
-span<const double> IdealSolidSolnPhase::enthalpy_RT_ref() const
+span<const CanteraDouble> IdealSolidSolnPhase::enthalpy_RT_ref() const
 {
     _updateThermo();
     return m_h0_RT;
 }
 
-span<const double> IdealSolidSolnPhase::entropy_R_ref() const
+span<const CanteraDouble> IdealSolidSolnPhase::entropy_R_ref() const
 {
     _updateThermo();
     return m_s0_R;
@@ -317,7 +317,7 @@ bool IdealSolidSolnPhase::addSpecies(shared_ptr<Species> spec)
         m_pp.push_back(0.0);
         if (spec->input.hasKey("equation-of-state")) {
             auto& eos = spec->input["equation-of-state"].getMapWhere("model", "constant-volume");
-            double mv;
+            CanteraDouble mv;
             if (eos.hasKey("density")) {
                 mv = molecularWeight(m_kk-1) / eos.convert("density", "kg/m^3");
             } else if (eos.hasKey("molar-density")) {
@@ -387,7 +387,7 @@ void IdealSolidSolnPhase::getSpeciesParameters(const string &name,
     }
 }
 
-void IdealSolidSolnPhase::setToEquilState(span<const double> mu_RT)
+void IdealSolidSolnPhase::setToEquilState(span<const CanteraDouble> mu_RT)
 {
     checkArraySize("IdealSolidSolnPhase::setToEquilState", mu_RT.size(), m_kk);
     auto grt = gibbs_RT_ref();
@@ -397,15 +397,15 @@ void IdealSolidSolnPhase::setToEquilState(span<const double> mu_RT)
     //
     // If it is too low, we set the partial pressure to zero. This capability is
     // needed by the elemental potential method.
-    double pres = 0.0;
-    double m_p0 = refPressure();
+    CanteraDouble pres = 0.0;
+    CanteraDouble m_p0 = refPressure();
     for (size_t k = 0; k < m_kk; k++) {
-        double tmp = -grt[k] + mu_RT[k];
+        CanteraDouble tmp = -grt[k] + mu_RT[k];
         if (tmp < -600.) {
             m_pp[k] = 0.0;
         } else if (tmp > 500.0) {
             // Protect against inf results if the exponent is too high
-            double tmp2 = tmp / 500.;
+            CanteraDouble tmp2 = tmp / 500.;
             tmp2 *= tmp2;
             m_pp[k] = m_p0 * exp(500.) * tmp2;
         } else {
@@ -434,12 +434,12 @@ void IdealSolidSolnPhase::setStandardConcentrationModel(const string& model)
     }
 }
 
-double IdealSolidSolnPhase::speciesMolarVolume(int k) const
+CanteraDouble IdealSolidSolnPhase::speciesMolarVolume(int k) const
 {
     return m_speciesMolarVolume[k];
 }
 
-void IdealSolidSolnPhase::getSpeciesMolarVolumes(span<double> smv) const
+void IdealSolidSolnPhase::getSpeciesMolarVolumes(span<CanteraDouble> smv) const
 {
     checkArraySize("IdealSolidSolnPhase::getSpeciesMolarVolumes", smv.size(), m_kk);
     copy(m_speciesMolarVolume.begin(), m_speciesMolarVolume.end(), smv.begin());
@@ -447,7 +447,7 @@ void IdealSolidSolnPhase::getSpeciesMolarVolumes(span<double> smv) const
 
 void IdealSolidSolnPhase::_updateThermo() const
 {
-    double tnow = temperature();
+    CanteraDouble tnow = temperature();
     if (m_tlast != tnow) {
 
         // Update the thermodynamic functions of the reference state.

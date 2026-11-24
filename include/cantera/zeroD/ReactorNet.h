@@ -54,23 +54,23 @@ public:
     //! Set the initial value of the independent variable (typically time).
     //! Default = 0.0 s. Restarts integration from this value using the current mixture
     //! state as the initial condition.
-    void setInitialTime(double time);
+    void setInitialTime(CanteraDouble time);
 
     //! Get the initial value of the independent variable (typically time).
     /*!
      * @since New in %Cantera 3.0.
      */
-    double getInitialTime() const {
+    CanteraDouble getInitialTime() const {
         return m_initial_time;
     }
 
     //! Get the maximum integrator step.
-    double maxTimeStep() const {
+    CanteraDouble maxTimeStep() const {
         return m_maxstep;
     }
 
     //! Set the maximum integrator step.
-    void setMaxTimeStep(double maxstep);
+    void setMaxTimeStep(CanteraDouble maxstep);
 
     //! Set the maximum number of error test failures permitted by the CVODES
     //! integrator in a single step.
@@ -80,7 +80,7 @@ public:
     //!
     //! @param rtol  Relative tolerance for all state variables; must be positive.
     //! @since New in %Cantera 4.0.
-    void setRelativeTolerance(double rtol);
+    void setRelativeTolerance(CanteraDouble rtol);
 
     //! Set the scalar absolute tolerance for the integrator.
     //!
@@ -89,7 +89,7 @@ public:
     //!     absolute tolerances set for individual reactors.
     //! @see ReactorBase::setAbsoluteTolerances
     //! @since New in %Cantera 4.0.
-    void setAbsoluteTolerance(double atol);
+    void setAbsoluteTolerance(CanteraDouble atol);
 
     //! Clear the user-specified scalar absolute tolerance.
     //!
@@ -108,37 +108,37 @@ public:
     //!     for individual reactors.
     //! @deprecated To be removed after %Cantera 4.0. Use setRelativeTolerance()
     //!     and setAbsoluteTolerance() instead.
-    void setTolerances(double rtol, double atol);
+    void setTolerances(CanteraDouble rtol, CanteraDouble atol);
 
     //! Set the relative and absolute tolerances for integrating the
     //! sensitivity equations.
-    void setSensitivityTolerances(double rtol, double atol);
+    void setSensitivityTolerances(CanteraDouble rtol, CanteraDouble atol);
 
     //! Current value of the simulation time [s], for reactor networks that are solved
     //! in the time domain.
-    double time();
+    CanteraDouble time();
 
     //! Current position [m] along the length of the reactor network, for reactors that
     //! are solved as a function of space.
-    double distance();
+    CanteraDouble distance();
 
     //! Relative tolerance.
-    double rtol() {
+    CanteraDouble rtol() {
         return m_rtol;
     }
 
     //! Scalar absolute integration tolerance
-    double atol() {
+    CanteraDouble atol() {
         return m_atols;
     }
 
     //! Relative sensitivity tolerance
-    double rtolSensitivity() const {
+    CanteraDouble rtolSensitivity() const {
         return m_rtolsens;
     }
 
     //! Absolute sensitivity tolerance
-    double atolSensitivity() const {
+    CanteraDouble atolSensitivity() const {
         return m_atolsens;
     }
 
@@ -156,7 +156,7 @@ public:
      * Take as many internal steps as necessary to reach *t*.
      * @param t Time/distance to advance to (s or m).
      */
-    void advance(double t);
+    void advance(CanteraDouble t);
 
     /**
      * Advance the state of all reactors in the independent variable (time or space).
@@ -167,11 +167,11 @@ public:
      * @param t Time/distance to advance to (s or m).
      * @param applylimit Limit advance step (boolean).
      */
-    double advance(double t, bool applylimit);
+    CanteraDouble advance(CanteraDouble t, bool applylimit);
 
     //! Advance the state of all reactors with respect to the independent variable
     //! (time or space). Returns the new value of the independent variable [s or m].
-    double step();
+    CanteraDouble step();
 
     //! Solve directly for the steady-state solution.
     //!
@@ -208,7 +208,7 @@ public:
     //! @param rdt  Reciprocal of the pseudo-timestep [1/s]. Default of 0.0 returns the
     //!     steady-state Jacobian.
     //! @since New in %Cantera 3.2.
-    Eigen::SparseMatrix<double> steadyJacobian(double rdt=0.0);
+    Eigen::SparseMatrix<CanteraDouble> steadyJacobian(CanteraDouble rdt=0.0);
 
     //! Calculate the semi-analytical preconditioner Jacobian for the entire network.
     //!
@@ -225,7 +225,7 @@ public:
     //! @warning This method is an experimental part of the %Cantera API and may be
     //!     changed or removed without notice.
     //! @since New in %Cantera 4.0.
-    Eigen::SparseMatrix<double> jacobian();
+    Eigen::SparseMatrix<CanteraDouble> jacobian();
 
     //! Calculate the system Jacobian for the reactor network using finite differences.
     //!
@@ -237,7 +237,7 @@ public:
     //! @warning This method is an experimental part of the %Cantera API and may be
     //!     changed or removed without notice.
     //! @since New in %Cantera 4.0.
-    Eigen::SparseMatrix<double> finiteDifferenceJacobian();
+    Eigen::SparseMatrix<CanteraDouble> finiteDifferenceJacobian();
 
     //! Return a reference to the *n*-th reactor in this network. The reactor
     //! indices are determined by the order in which the reactors were added
@@ -264,7 +264,7 @@ public:
 
     //! Update the state of all the reactors in the network to correspond to
     //! the values in the solution vector *y*.
-    void updateState(span<const double> y);
+    void updateState(span<const CanteraDouble> y);
 
     //! Return the sensitivity of the *k*-th solution component with respect to
     //! the *p*-th sensitivity parameter.
@@ -283,12 +283,12 @@ public:
      *  the molar enthalpy of formation, such that the dimensions of the
      *  sensitivity are kmol/J.
      */
-    double sensitivity(size_t k, size_t p);
+    CanteraDouble sensitivity(size_t k, size_t p);
 
     //! Return the sensitivity of the component named *component* with respect to
     //! the *p*-th sensitivity parameter.
     //! @copydetails ReactorNet::sensitivity(size_t, size_t)
-    double sensitivity(const string& component, size_t p, int reactor=0) {
+    CanteraDouble sensitivity(const string& component, size_t p, int reactor=0) {
         size_t k = globalComponentIndex(component, reactor);
         return sensitivity(k, p);
     }
@@ -302,8 +302,8 @@ public:
      *  @param[in] p sensitivity parameter vector (unused?)
      *  @param[out] j Jacobian matrix, size neq() by neq().
      */
-    void evalJacobian(double t, span<double> y,
-                      span<double> ydot, span<const double> p, Array2D* j);
+    void evalJacobian(CanteraDouble t, span<CanteraDouble> y,
+                      span<CanteraDouble> ydot, span<const CanteraDouble> p, Array2D* j);
 
     // overloaded methods of class FuncEval
     size_t neq() const override {
@@ -314,8 +314,8 @@ public:
         return m_reactors.size();
     }
 
-    void eval(double t, span<const double> y, span<double> ydot,
-              span<const double> p) override;
+    void eval(CanteraDouble t, span<const CanteraDouble> y, span<CanteraDouble> ydot,
+              span<const CanteraDouble> p) override;
 
     //! Evaluate the governing equations adapted for the steady-state solver.
     //!
@@ -324,19 +324,19 @@ public:
     //!     for algebraic variables, this is the residual of the governing equation.
     //!
     //! @since New in %Cantera 4.0.
-    void evalSteady(span<const double> y, span<double> residual);
+    void evalSteady(span<const CanteraDouble> y, span<CanteraDouble> residual);
 
     //! eval coupling for IDA / DAEs
-    void evalDae(double t, span<const double> y, span<const double> ydot,
-                 span<const double> p, span<double> residual) override;
+    void evalDae(CanteraDouble t, span<const CanteraDouble> y, span<const CanteraDouble> ydot,
+                 span<const CanteraDouble> p, span<CanteraDouble> residual) override;
 
-    void getState(span<double> y) override;
-    void getStateDae(span<double> y, span<double> ydot) override;
+    void getState(span<CanteraDouble> y) override;
+    void getStateDae(span<CanteraDouble> y, span<CanteraDouble> ydot) override;
 
     //! Return k-th derivative at the current state of the system
-    virtual void getDerivative(int k, span<double> dky);
+    virtual void getDerivative(int k, span<CanteraDouble> dky);
 
-    void getConstraints(span<double> constraints) override;
+    void getConstraints(span<CanteraDouble> constraints) override;
 
     size_t nparams() const override {
         return m_sens_params.size();
@@ -353,10 +353,10 @@ public:
     string componentName(size_t i) const;
 
     //! Get the upper bound on the i-th component of the global state vector.
-    double upperBound(size_t i) const;
+    CanteraDouble upperBound(size_t i) const;
 
     //! Get the lower bound on the i-th component of the global state vector.
-    double lowerBound(size_t i) const;
+    CanteraDouble lowerBound(size_t i) const;
 
     //! Reset physically or mathematically problematic values, such as negative species
     //! concentrations.
@@ -364,7 +364,7 @@ public:
     //! This method is used within solveSteady() if certain errors are encountered.
     //!
     //! @param[inout] y  current state vector, to be updated; length neq()
-    void resetBadValues(span<double> y);
+    void resetBadValues(span<CanteraDouble> y);
 
     //! Used by Reactor and Wall objects to register the addition of
     //! sensitivity parameters so that the ReactorNet can keep track of the
@@ -375,7 +375,7 @@ public:
     //!     coefficient
     //! @returns the index of this parameter in the vector of sensitivity
     //!     parameters (global across all reactors)
-    size_t registerSensitivityParameter(const string& name, double value, double scale);
+    size_t registerSensitivityParameter(const string& name, CanteraDouble value, CanteraDouble scale);
 
     //! The name of the p-th sensitivity parameter added to this ReactorNet.
     const string& sensitivityParameterName(size_t p) const {
@@ -405,17 +405,17 @@ public:
     virtual void setMaxSteps(int nmax);
 
     //! Set absolute step size limits during advance
-    void setAdvanceLimits(span<const double> limits);
+    void setAdvanceLimits(span<const CanteraDouble> limits);
 
     //! Check whether ReactorNet object uses advance limits
     bool hasAdvanceLimits() const;
 
     //! Retrieve absolute step size limits during advance
-    bool getAdvanceLimits(span<double> limits) const;
+    bool getAdvanceLimits(span<CanteraDouble> limits) const;
 
-    void preconditionerSetup(double t, span<const double> y, double gamma) override;
+    void preconditionerSetup(CanteraDouble t, span<const CanteraDouble> y, CanteraDouble gamma) override;
 
-    void preconditionerSolve(span<const double> rhs, span<double> output) override;
+    void preconditionerSolve(span<const CanteraDouble> rhs, span<CanteraDouble> output) override;
 
     //! Get solver stats from integrator
     AnyMap solverStats() const;
@@ -433,8 +433,8 @@ public:
     //! When limits are active, this sets `gout[0]` to
     //! `1 - max_i(|y[i]-y_base[i]| / limit[i])` so a zero indicates a component has
     //! reached its limit; otherwise `gout[0]` is positive.
-    void evalRootFunctions(double t, span<const double> y,
-                           span<double> gout) override;
+    void evalRootFunctions(CanteraDouble t, span<const CanteraDouble> y,
+                           span<CanteraDouble> gout) override;
 
 protected:
     //! Check that preconditioning is supported by all reactors in the network
@@ -444,7 +444,7 @@ protected:
     //! reactor-specific user tolerances, and reactor-specific default scaling rules.
     void updateTolerances();
 
-    void updatePreconditioner(double gamma) override;
+    void updatePreconditioner(CanteraDouble gamma) override;
 
     //! Create reproducible names for reactors and walls/connectors.
     void updateNames(ReactorBase& r);
@@ -452,7 +452,7 @@ protected:
     //! Estimate a future state based on current derivatives.
     //! The function is intended for internal use by ReactorNet::advance
     //! and deliberately not exposed in external interfaces.
-    virtual void getEstimate(double time, int k, span<double> yest);
+    virtual void getEstimate(CanteraDouble time, int k, span<CanteraDouble> yest);
 
     //! Returns the order used for last solution step of the ODE integrator
     //! The function is intended for internal use by ReactorNet::advance
@@ -470,27 +470,27 @@ protected:
 
     //! The independent variable in the system. May be either time or space depending
     //! on the type of reactors in the network.
-    double m_time = 0.0;
+    CanteraDouble m_time = 0.0;
 
     //! The initial value of the independent variable in the system.
-    double m_initial_time = 0.0;
+    CanteraDouble m_initial_time = 0.0;
 
     bool m_integratorInitialized = false; //!< True if the integrator has been initialized at least once
     bool m_needIntegratorInit = true; //!< True if integrator needs to be (re)initialized
     size_t m_nv = 0;
 
-    vector<double> m_atol;
-    double m_rtol = 1.0e-9;
-    double m_rtolsens = 1.0e-4;
-    double m_atols = 1.0e-15;
-    double m_atolsens = 1.0e-6;
+    vector<CanteraDouble> m_atol;
+    CanteraDouble m_rtol = 1.0e-9;
+    CanteraDouble m_rtolsens = 1.0e-4;
+    CanteraDouble m_atols = 1.0e-15;
+    CanteraDouble m_atolsens = 1.0e-6;
     //! True if scalar absolute tolerance was user-specified
     bool m_atolUserSpecified = false;
     shared_ptr<SystemJacobian> m_precon;
     string m_linearSolverType;
 
     //! Maximum integrator internal timestep. Default of 0.0 means infinity.
-    double m_maxstep = 0.0;
+    CanteraDouble m_maxstep = 0.0;
 
     bool m_verbose = false;
 
@@ -500,21 +500,21 @@ protected:
     //! Names corresponding to each sensitivity parameter
     vector<string> m_paramNames;
 
-    vector<double> m_ydot;
-    vector<double> m_yest;
-    vector<double> m_advancelimits;
+    vector<CanteraDouble> m_ydot;
+    vector<CanteraDouble> m_yest;
+    vector<CanteraDouble> m_advancelimits;
     //! Base state used for evaluating advance limits during a single advance()
     //! call when root-finding is enabled
-    vector<double> m_ybase;
+    vector<CanteraDouble> m_ybase;
     //! Base time corresponding to #m_ybase
-    double m_ybase_time = 0.0;
+    CanteraDouble m_ybase_time = 0.0;
     //! Indicates whether the advance-limit root check is active for the
     //! current call to `advance(t, applylimit=true)`
     bool m_limit_check_active = false;
     //! m_LHS is a vector representing the coefficients on the
     //! "left hand side" of each governing equation
-    vector<double> m_LHS;
-    vector<double> m_RHS;
+    vector<CanteraDouble> m_LHS;
+    vector<CanteraDouble> m_RHS;
 };
 
 
@@ -525,16 +525,16 @@ protected:
 class SteadyReactorSolver : public SteadyStateSystem
 {
 public:
-    SteadyReactorSolver(ReactorNet* net, span<const double> x0);
-    void eval(span<const double> x, span<double> r,
-              double rdt=-1.0, int count=1) override;
-    void initTimeInteg(double dt, span<const double> x) override;
-    void evalJacobian(span<const double> x0) override;
-    double weightedNorm(span<const double> step) const override;
+    SteadyReactorSolver(ReactorNet* net, span<const CanteraDouble> x0);
+    void eval(span<const CanteraDouble> x, span<CanteraDouble> r,
+              CanteraDouble rdt=-1.0, int count=1) override;
+    void initTimeInteg(CanteraDouble dt, span<const CanteraDouble> x) override;
+    void evalJacobian(span<const CanteraDouble> x0) override;
+    CanteraDouble weightedNorm(span<const CanteraDouble> step) const override;
     string componentName(size_t i) const override;
-    double upperBound(size_t i) const override;
-    double lowerBound(size_t i) const override;
-    void resetBadValues(span<double> x) override;
+    CanteraDouble upperBound(size_t i) const override;
+    CanteraDouble lowerBound(size_t i) const override;
+    void resetBadValues(span<CanteraDouble> x) override;
     void writeDebugInfo(const string& header_suffix, const string& message,
                         int loglevel, int attempt_counter) override;
 
@@ -542,7 +542,7 @@ private:
     ReactorNet* m_net = nullptr;
 
     //! Initial value of each state variable
-    vector<double> m_initialState;
+    vector<CanteraDouble> m_initialState;
 };
 
 

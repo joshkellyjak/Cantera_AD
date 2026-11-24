@@ -19,7 +19,7 @@
 namespace Cantera
 {
 
-void IdealGasConstPressureMoleReactor::getState(span<double> y)
+void IdealGasConstPressureMoleReactor::getState(span<CanteraDouble> y)
 {
     // get mass for calculations
     m_mass = m_thermo->density() * m_vol;
@@ -29,13 +29,13 @@ void IdealGasConstPressureMoleReactor::getState(span<double> y)
     getMoles(y.subspan(m_sidx));
 }
 
-void IdealGasConstPressureMoleReactor::initialize(double t0)
+void IdealGasConstPressureMoleReactor::initialize(CanteraDouble t0)
 {
     ConstPressureMoleReactor::initialize(t0);
     m_hk.resize(m_nsp, 0.0);
 }
 
-void IdealGasConstPressureMoleReactor::updateState(span<const double> y)
+void IdealGasConstPressureMoleReactor::updateState(span<const CanteraDouble> y)
 {
     // the components of y are: [0] the temperature, [1...K+1) are the
     // moles of each species, and [K+1...] are the moles of surface
@@ -49,10 +49,10 @@ void IdealGasConstPressureMoleReactor::updateState(span<const double> y)
     updateConnected(false);
 }
 
-void IdealGasConstPressureMoleReactor::eval(double time, span<double> LHS,
-                                            span<double> RHS)
+void IdealGasConstPressureMoleReactor::eval(CanteraDouble time, span<CanteraDouble> LHS,
+                                            span<CanteraDouble> RHS)
 {
-    double& mcpdTdt = RHS[0]; // m * c_p * dT/dt
+    CanteraDouble& mcpdTdt = RHS[0]; // m * c_p * dT/dt
     auto dndt = RHS.subspan(m_sidx); // kmol per s
 
     evalWalls(time);
@@ -88,10 +88,10 @@ void IdealGasConstPressureMoleReactor::eval(double time, span<double> LHS,
 
     // add terms for inlets
     for (auto inlet : m_inlet) {
-        double mdot = inlet->massFlowRate();
+        CanteraDouble mdot = inlet->massFlowRate();
         mcpdTdt += inlet->enthalpy_mass() * mdot;
         for (size_t n = 0; n < m_nsp; n++) {
-            double mdot_spec = inlet->outletSpeciesMassFlowRate(n);
+            CanteraDouble mdot_spec = inlet->outletSpeciesMassFlowRate(n);
             // flow of species into system and dilution by other species
             dndt[n] += inlet->outletSpeciesMassFlowRate(n) * imw[n];
             mcpdTdt -= m_hk[n] * imw[n] * mdot_spec;
@@ -109,7 +109,7 @@ void IdealGasConstPressureMoleReactor::getJacobianElements(SparseTriplets& trips
 {
     // dnk_dnj represents d(dot(n_k)) / d (n_j) but is first assigned as
     // d (dot(omega)) / d c_j, it is later transformed appropriately.
-    Eigen::SparseMatrix<double> dnk_dnj = m_kin->netProductionRates_ddCi();
+    Eigen::SparseMatrix<CanteraDouble> dnk_dnj = m_kin->netProductionRates_ddCi();
 
     // add species to species derivatives  elements to the jacobian
     // calculate ROP derivatives, excluding the terms -n_i / (V * N) dc_i/dn_j
@@ -117,7 +117,7 @@ void IdealGasConstPressureMoleReactor::getJacobianElements(SparseTriplets& trips
     size_t offset = static_cast<int>(m_offset + m_sidx);
     // double molarVol = m_thermo->molarVolume();
     for (int k = 0; k < dnk_dnj.outerSize(); k++) {
-        for (Eigen::SparseMatrix<double>::InnerIterator it(dnk_dnj, k); it; ++it) {
+        for (Eigen::SparseMatrix<CanteraDouble>::InnerIterator it(dnk_dnj, k); it; ++it) {
             trips.emplace_back(it.row() + offset, it.col() + offset, it.value());
         }
     }
@@ -125,28 +125,28 @@ void IdealGasConstPressureMoleReactor::getJacobianElements(SparseTriplets& trips
     // Temperature Derivatives
     if (m_energy) {
         // getting perturbed state for finite difference
-        double deltaTemp = m_thermo->temperature()
+        CanteraDouble deltaTemp = m_thermo->temperature()
             * std::sqrt(std::numeric_limits<double>::epsilon());
         // get current state
-        vector<double> yCurrent(m_nv);
+        vector<CanteraDouble> yCurrent(m_nv);
         getState(yCurrent);
         // finite difference temperature derivatives
-        vector<double> lhsPerturbed(m_nv, 1.0), lhsCurrent(m_nv, 1.0);
-        vector<double> rhsPerturbed(m_nv, 0.0), rhsCurrent(m_nv, 0.0);
-        vector<double> yPerturbed = yCurrent;
+        vector<CanteraDouble> lhsPerturbed(m_nv, 1.0), lhsCurrent(m_nv, 1.0);
+        vector<CanteraDouble> rhsPerturbed(m_nv, 0.0), rhsCurrent(m_nv, 0.0);
+        vector<CanteraDouble> yPerturbed = yCurrent;
         // perturb temperature
         yPerturbed[0] += deltaTemp;
         // getting perturbed state
         updateState(yPerturbed);
-        double time = (m_net != nullptr) ? m_net->time() : 0.0;
+        CanteraDouble time = (m_net != nullptr) ? m_net->time() : 0.0;
         eval(time, lhsPerturbed, rhsPerturbed);
         // reset and get original state
         updateState(yCurrent);
         eval(time, lhsCurrent, rhsCurrent);
         // d ydot_j/dT
         for (size_t j = 0; j < m_nv; j++) {
-            double ydotPerturbed = rhsPerturbed[j] / lhsPerturbed[j];
-            double ydotCurrent = rhsCurrent[j] / lhsCurrent[j];
+            CanteraDouble ydotPerturbed = rhsPerturbed[j] / lhsPerturbed[j];
+            CanteraDouble ydotCurrent = rhsCurrent[j] / lhsCurrent[j];
             trips.emplace_back(static_cast<int>(j + m_offset), static_cast<int>(m_offset),
                                      (ydotPerturbed - ydotCurrent) / deltaTemp);
         }
@@ -163,8 +163,8 @@ void IdealGasConstPressureMoleReactor::getJacobianElements(SparseTriplets& trips
         for (size_t i = 0; i < m_nsp; i++) {
             netProductionRates[i] *= m_vol;
         }
-        double qdot = enthalpy.dot(netProductionRates);
-        double denom = 1 / (m_TotalCp * m_TotalCp);
+        CanteraDouble qdot = enthalpy.dot(netProductionRates);
+        CanteraDouble denom = 1 / (m_TotalCp * m_TotalCp);
         Eigen::VectorXd hk_dnkdnj_sums = dnk_dnj.transpose() * enthalpy;
         // Add derivatives to jac by spanning columns
         for (size_t j = 0; j < m_nsp; j++) {
@@ -221,7 +221,7 @@ void IdealGasConstPressureMoleReactor::getJacobianElements(SparseTriplets& trips
 }
 
 void IdealGasConstPressureMoleReactor::getJacobianScalingFactors(
-    double& f_species, span<double> f_energy)
+    CanteraDouble& f_species, span<CanteraDouble> f_energy)
 {
     f_species = 1.0 / m_vol;
     for (size_t k = 0; k < m_nsp; k++) {
@@ -230,7 +230,7 @@ void IdealGasConstPressureMoleReactor::getJacobianScalingFactors(
 }
 
 void IdealGasConstPressureMoleReactor::addTemperatureJacobian(
-    SparseTriplets& trips, size_t row, double coeff) const
+    SparseTriplets& trips, size_t row, CanteraDouble coeff) const
 {
     if (!isJacobianLocalRow(row)) {
         // Local temperature-column entries are already captured by the finite
@@ -241,13 +241,13 @@ void IdealGasConstPressureMoleReactor::addTemperatureJacobian(
 }
 
 void IdealGasConstPressureMoleReactor::addSpeciesMassFractionJacobian(
-    SparseTriplets& trips, size_t row, size_t k, double coeff) const
+    SparseTriplets& trips, size_t row, size_t k, CanteraDouble coeff) const
 {
     auto mw = m_thermo->molecularWeights();
-    double Yk = m_thermo->massFraction(k);
+    CanteraDouble Yk = m_thermo->massFraction(k);
     // Convert flow-carried composition derivatives from dY_k/dy to dY_k/dn_j.
     for (size_t j = 0; j < m_nsp; j++) {
-        double dYdn = -Yk * mw[j] / m_mass;
+        CanteraDouble dYdn = -Yk * mw[j] / m_mass;
         if (j == k) {
             dYdn += mw[k] / m_mass;
         }
@@ -256,13 +256,13 @@ void IdealGasConstPressureMoleReactor::addSpeciesMassFractionJacobian(
 }
 
 void IdealGasConstPressureMoleReactor::addEnthalpyJacobian(SparseTriplets& trips,
-    size_t row, double coeff, bool includeComposition) const
+    size_t row, CanteraDouble coeff, bool includeComposition) const
 {
     // d(h_mass)/dT = cp_mass
     addTemperatureJacobian(trips, row, coeff * m_thermo->cp_mass());
     if (includeComposition) {
         // d(h_mass)/d(n_k) = (h_k_molar - h_mass * W_k) / m_mass
-        double h_mass = m_thermo->enthalpy_mass();
+        CanteraDouble h_mass = m_thermo->enthalpy_mass();
         auto mw = m_thermo->molecularWeights();
         for (size_t k = 0; k < m_nsp; k++) {
             trips.emplace_back(row, m_offset + m_sidx + k,
@@ -294,7 +294,7 @@ string IdealGasConstPressureMoleReactor::componentName(size_t k) {
         "components", k, m_nv);
 }
 
-double IdealGasConstPressureMoleReactor::upperBound(size_t k) const {
+CanteraDouble IdealGasConstPressureMoleReactor::upperBound(size_t k) const {
     if (k == 0) {
         //@todo: Revise pending resolution of https://github.com/Cantera/enhancements/issues/229
         return 1.5 * m_thermo->maxTemp();
@@ -303,7 +303,7 @@ double IdealGasConstPressureMoleReactor::upperBound(size_t k) const {
     }
 }
 
-double IdealGasConstPressureMoleReactor::lowerBound(size_t k) const {
+CanteraDouble IdealGasConstPressureMoleReactor::lowerBound(size_t k) const {
     if (k == 0) {
         //@todo: Revise pending resolution of https://github.com/Cantera/enhancements/issues/229
         return 0.5 * m_thermo->minTemp();

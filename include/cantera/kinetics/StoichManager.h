@@ -136,23 +136,23 @@ public:
         m_ic0(ic0) {
     }
 
-    void incrementSpecies(span<const double> R, span<double> S) const {
+    void incrementSpecies(span<const CanteraDouble> R, span<CanteraDouble> S) const {
         S[m_ic0] += R[m_rxn];
     }
 
-    void decrementSpecies(span<const double> R, span<double> S) const {
+    void decrementSpecies(span<const CanteraDouble> R, span<CanteraDouble> S) const {
         S[m_ic0] -= R[m_rxn];
     }
 
-    void multiply(span<const double> S, span<double> R) const {
+    void multiply(span<const CanteraDouble> S, span<CanteraDouble> R) const {
         R[m_rxn] *= S[m_ic0];
     }
 
-    void incrementReaction(span<const double> S, span<double> R) const {
+    void incrementReaction(span<const CanteraDouble> S, span<CanteraDouble> R) const {
         R[m_rxn] += S[m_ic0];
     }
 
-    void decrementReaction(span<const double> S, span<double> R) const {
+    void decrementReaction(span<const CanteraDouble> S, span<CanteraDouble> R) const {
         R[m_rxn] -= S[m_ic0];
     }
 
@@ -161,14 +161,14 @@ public:
         m_jc0 = indices.at({m_rxn, m_ic0});
     }
 
-    void derivatives(span<const double> S, span<const double> R,
-                     span<double> jac) const
+    void derivatives(span<const CanteraDouble> S, span<const CanteraDouble> R,
+                     span<CanteraDouble> jac) const
     {
         jac[m_jc0] += R[m_rxn]; // index (m_ic0, m_rxn)
     }
 
 
-    void scale(span<const double> R, span<double> out, double factor) const {
+    void scale(span<const CanteraDouble> R, span<CanteraDouble> out, CanteraDouble factor) const {
         out[m_rxn] = R[m_rxn] * factor;
     }
 
@@ -192,17 +192,17 @@ public:
     C2(size_t rxn = 0, size_t ic0 = 0, size_t ic1 = 0)
         : m_rxn(rxn), m_ic0(ic0), m_ic1(ic1) {}
 
-    void incrementSpecies(span<const double> R, span<double> S) const {
+    void incrementSpecies(span<const CanteraDouble> R, span<CanteraDouble> S) const {
         S[m_ic0] += R[m_rxn];
         S[m_ic1] += R[m_rxn];
     }
 
-    void decrementSpecies(span<const double> R, span<double> S) const {
+    void decrementSpecies(span<const CanteraDouble> R, span<CanteraDouble> S) const {
         S[m_ic0] -= R[m_rxn];
         S[m_ic1] -= R[m_rxn];
     }
 
-    void multiply(span<const double> S, span<double> R) const {
+    void multiply(span<const CanteraDouble> S, span<CanteraDouble> R) const {
         if (S[m_ic0] < 0 && S[m_ic1] < 0) {
             R[m_rxn] = 0;
         } else {
@@ -210,11 +210,11 @@ public:
         }
     }
 
-    void incrementReaction(span<const double> S, span<double> R) const {
+    void incrementReaction(span<const CanteraDouble> S, span<CanteraDouble> R) const {
         R[m_rxn] += S[m_ic0] + S[m_ic1];
     }
 
-    void decrementReaction(span<const double> S, span<double> R) const {
+    void decrementReaction(span<const CanteraDouble> S, span<CanteraDouble> R) const {
         R[m_rxn] -= (S[m_ic0] + S[m_ic1]);
     }
 
@@ -224,8 +224,8 @@ public:
         m_jc1 = indices.at({m_rxn, m_ic1});
     }
 
-    void derivatives(span<const double> S, span<const double> R,
-                     span<double> jac) const
+    void derivatives(span<const CanteraDouble> S, span<const CanteraDouble> R,
+                     span<CanteraDouble> jac) const
     {
         if (S[m_ic1] > 0) {
             jac[m_jc0] += R[m_rxn] * S[m_ic1]; // index (m_ic0, m_rxn)
@@ -235,7 +235,7 @@ public:
         }
     }
 
-    void scale(span<const double> R, span<double> out, double factor) const
+    void scale(span<const CanteraDouble> R, span<CanteraDouble> out, CanteraDouble factor) const
     {
         out[m_rxn] = 2 * R[m_rxn] * factor;
     }
@@ -261,19 +261,19 @@ public:
     C3(size_t rxn = 0, size_t ic0 = 0, size_t ic1 = 0, size_t ic2 = 0)
         : m_rxn(rxn), m_ic0(ic0), m_ic1(ic1), m_ic2(ic2) {}
 
-    void incrementSpecies(span<const double> R, span<double> S) const {
+    void incrementSpecies(span<const CanteraDouble> R, span<CanteraDouble> S) const {
         S[m_ic0] += R[m_rxn];
         S[m_ic1] += R[m_rxn];
         S[m_ic2] += R[m_rxn];
     }
 
-    void decrementSpecies(span<const double> R, span<double> S) const {
+    void decrementSpecies(span<const CanteraDouble> R, span<CanteraDouble> S) const {
         S[m_ic0] -= R[m_rxn];
         S[m_ic1] -= R[m_rxn];
         S[m_ic2] -= R[m_rxn];
     }
 
-    void multiply(span<const double> S, span<double> R) const {
+    void multiply(span<const CanteraDouble> S, span<CanteraDouble> R) const {
         if ((S[m_ic0] < 0 && (S[m_ic1] < 0 || S[m_ic2] < 0)) ||
             (S[m_ic1] < 0 && S[m_ic2] < 0)) {
             R[m_rxn] = 0;
@@ -282,11 +282,11 @@ public:
         }
     }
 
-    void incrementReaction(span<const double> S, span<double> R) const {
+    void incrementReaction(span<const CanteraDouble> S, span<CanteraDouble> R) const {
         R[m_rxn] += S[m_ic0] + S[m_ic1] + S[m_ic2];
     }
 
-    void decrementReaction(span<const double> S, span<double> R) const {
+    void decrementReaction(span<const CanteraDouble> S, span<CanteraDouble> R) const {
         R[m_rxn] -= (S[m_ic0] + S[m_ic1] + S[m_ic2]);
     }
 
@@ -297,8 +297,8 @@ public:
         m_jc2 = indices.at({m_rxn, m_ic2});
     }
 
-    void derivatives(span<const double> S, span<const double> R,
-                     span<double> jac) const
+    void derivatives(span<const CanteraDouble> S, span<const CanteraDouble> R,
+                     span<CanteraDouble> jac) const
     {
         if (S[m_ic1] > 0 && S[m_ic2] > 0) {
             jac[m_jc0] += R[m_rxn] * S[m_ic1] * S[m_ic2];; // index (m_ic0, m_rxn)
@@ -311,7 +311,7 @@ public:
         }
     }
 
-    void scale(span<const double> R, span<double> out, double factor) const
+    void scale(span<const CanteraDouble> R, span<CanteraDouble> out, CanteraDouble factor) const
     {
         out[m_rxn] = 3 * R[m_rxn] * factor;
     }
@@ -337,7 +337,7 @@ public:
     C_AnyN() = default;
 
     C_AnyN(size_t rxn, span<const size_t> ic,
-           span<const double> order_, span<const double> stoich_) :
+           span<const CanteraDouble> order_, span<const CanteraDouble> stoich_) :
         m_n(ic.size()),
         m_rxn(rxn) {
         m_ic.resize(m_n);
@@ -351,11 +351,11 @@ public:
         }
     }
 
-    void multiply(span<const double> input, span<double> output) const {
+    void multiply(span<const CanteraDouble> input, span<CanteraDouble> output) const {
         for (size_t n = 0; n < m_n; n++) {
-            double order = m_order[n];
+            CanteraDouble order = m_order[n];
             if (order != 0.0) {
-                double c = input[m_ic[n]];
+                CanteraDouble c = input[m_ic[n]];
                 if (c > 0.0) {
                     output[m_rxn] *= std::pow(c, order);
                 } else {
@@ -365,27 +365,27 @@ public:
         }
     }
 
-    void incrementSpecies(span<const double> input, span<double> output) const {
-        double x = input[m_rxn];
+    void incrementSpecies(span<const CanteraDouble> input, span<CanteraDouble> output) const {
+        CanteraDouble x = input[m_rxn];
         for (size_t n = 0; n < m_n; n++) {
             output[m_ic[n]] += m_stoich[n]*x;
         }
     }
 
-    void decrementSpecies(span<const double> input, span<double> output) const {
-        double x = input[m_rxn];
+    void decrementSpecies(span<const CanteraDouble> input, span<CanteraDouble> output) const {
+        CanteraDouble x = input[m_rxn];
         for (size_t n = 0; n < m_n; n++) {
             output[m_ic[n]] -= m_stoich[n]*x;
         }
     }
 
-    void incrementReaction(span<const double> input, span<double> output) const {
+    void incrementReaction(span<const CanteraDouble> input, span<CanteraDouble> output) const {
         for (size_t n = 0; n < m_n; n++) {
             output[m_rxn] += m_stoich[n]*input[m_ic[n]];
         }
     }
 
-    void decrementReaction(span<const double> input, span<double> output) const {
+    void decrementReaction(span<const CanteraDouble> input, span<CanteraDouble> output) const {
         for (size_t n = 0; n < m_n; n++) {
             output[m_rxn] -= m_stoich[n]*input[m_ic[n]];
         }
@@ -403,13 +403,13 @@ public:
         }
     }
 
-    void derivatives(span<const double> S, span<const double> R,
-                     span<double> jac) const
+    void derivatives(span<const CanteraDouble> S, span<const CanteraDouble> R,
+                     span<CanteraDouble> jac) const
     {
         for (size_t i = 0; i < m_n; i++) {
             // calculate derivative
-            double prod = R[m_rxn];
-            double order_i = m_order[i];
+            CanteraDouble prod = R[m_rxn];
+            CanteraDouble order_i = m_order[i];
             if (S[m_ic[i]] > 0. && order_i != 0.) {
                 prod *= order_i * std::pow(S[m_ic[i]], order_i - 1);
                 for (size_t j = 0; j < m_n; j++) {
@@ -429,7 +429,7 @@ public:
         }
     }
 
-    void scale(span<const double> R, span<double> out, double factor) const
+    void scale(span<const CanteraDouble> R, span<CanteraDouble> out, CanteraDouble factor) const
     {
         out[m_rxn] = m_sum_order * R[m_rxn] * factor;
     }
@@ -465,18 +465,18 @@ private:
      * This is either for the reactants or products. Length = m_n. Species
      * number, m_ic[n], has a reaction order of m_order[n].
      */
-    vector<double> m_order;
+    vector<CanteraDouble> m_order;
 
     //! Stoichiometric coefficients for the reaction, reactant or product side.
     /*!
      *  This is either for the reactants or products. Length = m_n. Species
      *  number m_ic[m], has a stoichiometric coefficient of m_stoich[n].
      */
-    vector<double> m_stoich;
+    vector<CanteraDouble> m_stoich;
 
     vector<size_t> m_jc; //!< Indices in derivative triplet vector
 
-    double m_sum_order; //!< Sum of reaction order vector
+    CanteraDouble m_sum_order; //!< Sum of reaction order vector
 };
 
 template<class InputIter, class Vec1, class Vec2>
@@ -543,7 +543,7 @@ inline static void _derivatives(InputIter begin, InputIter end,
 
 template<class InputIter, class Vec1, class Vec2>
 inline static void _scale(InputIter begin, InputIter end,
-                          const Vec1& in, Vec2& out, double factor)
+                          const Vec1& in, Vec2& out, CanteraDouble factor)
 {
     for (; begin != end; ++begin) {
         begin->scale(in, out, factor);
@@ -610,7 +610,7 @@ public:
         m_stoichCoeffs.setFromTriplets(m_coeffList.begin(), m_coeffList.end());
 
         // Set up outer/inner indices for mapped derivative output
-        Eigen::SparseMatrix<double> tmp = m_stoichCoeffs.transpose();
+        Eigen::SparseMatrix<CanteraDouble> tmp = m_stoichCoeffs.transpose();
         m_outerIndices.resize(nSpc + 1); // number of columns + 1
         for (int i = 0; i < tmp.outerSize() + 1; i++) {
             m_outerIndices[i] = tmp.outerIndexPtr()[i];
@@ -625,7 +625,7 @@ public:
         map<pair<size_t, size_t>, size_t> indices;
         size_t n = 0;
         for (int i = 0; i < tmp.outerSize(); i++) {
-            for (Eigen::SparseMatrix<double>::InnerIterator it(tmp, i); it; ++it) {
+            for (Eigen::SparseMatrix<CanteraDouble>::InnerIterator it(tmp, i); it; ++it) {
                 indices[{static_cast<size_t>(it.row()),
                     static_cast<size_t>(it.col())}] = n++;
             }
@@ -647,13 +647,13 @@ public:
      * of each species in the power list expression is set to one automatically.
      */
     void add(size_t rxn, span<const size_t> k) {
-        vector<double> order(k.size(), 1.0);
-        vector<double> stoich(k.size(), 1.0);
+        vector<CanteraDouble> order(k.size(), 1.0);
+        vector<CanteraDouble> stoich(k.size(), 1.0);
         add(rxn, k, order, stoich);
     }
 
-    void add(size_t rxn, span<const size_t> k, span<const double> order) {
-        vector<double> stoich(k.size(), 1.0);
+    void add(size_t rxn, span<const size_t> k, span<const CanteraDouble> order) {
+        vector<CanteraDouble> stoich(k.size(), 1.0);
         add(rxn, k, order, stoich);
     }
 
@@ -673,8 +673,8 @@ public:
      *  @param stoich  This is used to handle fractional stoichiometric
      *     coefficients on the product side of irreversible reactions.
      */
-    void add(size_t rxn, span<const size_t> k, span<const double> order,
-             span<const double> stoich) {
+    void add(size_t rxn, span<const size_t> k, span<const CanteraDouble> order,
+             span<const CanteraDouble> stoich) {
         if (order.size() != k.size()) {
             throw CanteraError(
                 "StoichManagerN::add()", "size of order and species arrays differ");
@@ -722,35 +722,35 @@ public:
         m_ready = false;
     }
 
-    void multiply(span<const double> input, span<double> output) const {
+    void multiply(span<const CanteraDouble> input, span<CanteraDouble> output) const {
         _multiply(m_c1_list.begin(), m_c1_list.end(), input, output);
         _multiply(m_c2_list.begin(), m_c2_list.end(), input, output);
         _multiply(m_c3_list.begin(), m_c3_list.end(), input, output);
         _multiply(m_cn_list.begin(), m_cn_list.end(), input, output);
     }
 
-    void incrementSpecies(span<const double> input, span<double> output) const {
+    void incrementSpecies(span<const CanteraDouble> input, span<CanteraDouble> output) const {
         _incrementSpecies(m_c1_list.begin(), m_c1_list.end(), input, output);
         _incrementSpecies(m_c2_list.begin(), m_c2_list.end(), input, output);
         _incrementSpecies(m_c3_list.begin(), m_c3_list.end(), input, output);
         _incrementSpecies(m_cn_list.begin(), m_cn_list.end(), input, output);
     }
 
-    void decrementSpecies(span<const double> input, span<double> output) const {
+    void decrementSpecies(span<const CanteraDouble> input, span<CanteraDouble> output) const {
         _decrementSpecies(m_c1_list.begin(), m_c1_list.end(), input, output);
         _decrementSpecies(m_c2_list.begin(), m_c2_list.end(), input, output);
         _decrementSpecies(m_c3_list.begin(), m_c3_list.end(), input, output);
         _decrementSpecies(m_cn_list.begin(), m_cn_list.end(), input, output);
     }
 
-    void incrementReactions(span<const double> input, span<double> output) const {
+    void incrementReactions(span<const CanteraDouble> input, span<CanteraDouble> output) const {
         _incrementReactions(m_c1_list.begin(), m_c1_list.end(), input, output);
         _incrementReactions(m_c2_list.begin(), m_c2_list.end(), input, output);
         _incrementReactions(m_c3_list.begin(), m_c3_list.end(), input, output);
         _incrementReactions(m_cn_list.begin(), m_cn_list.end(), input, output);
     }
 
-    void decrementReactions(span<const double> input, span<double> output) const {
+    void decrementReactions(span<const CanteraDouble> input, span<CanteraDouble> output) const {
         _decrementReactions(m_c1_list.begin(), m_c1_list.end(), input, output);
         _decrementReactions(m_c2_list.begin(), m_c2_list.end(), input, output);
         _decrementReactions(m_c3_list.begin(), m_c3_list.end(), input, output);
@@ -758,7 +758,7 @@ public:
     }
 
     //! Return matrix containing stoichiometric coefficients
-    const Eigen::SparseMatrix<double>& stoichCoeffs() const
+    const Eigen::SparseMatrix<CanteraDouble>& stoichCoeffs() const
     {
         if (!m_ready) {
             // This can happen if a user overrides default behavior:
@@ -780,8 +780,8 @@ public:
      *  @param conc    Species concentration.
      *  @param rates   Rates-of-progress.
      */
-    Eigen::SparseMatrix<double> derivatives(span<const double> conc,
-                                            span<const double> rates)
+    Eigen::SparseMatrix<CanteraDouble> derivatives(span<const CanteraDouble> conc,
+                                            span<const CanteraDouble> rates)
     {
         // calculate derivative entries using known sparse storage order
         std::fill(m_values.begin(), m_values.end(), 0.);
@@ -790,13 +790,13 @@ public:
         _derivatives(m_c3_list.begin(), m_c3_list.end(), conc, rates, m_values);
         _derivatives(m_cn_list.begin(), m_cn_list.end(), conc, rates, m_values);
 
-        return Eigen::Map<Eigen::SparseMatrix<double>>(
+        return Eigen::Map<Eigen::SparseMatrix<CanteraDouble>>(
             m_stoichCoeffs.cols(), m_stoichCoeffs.rows(), m_values.size(),
             m_outerIndices.data(), m_innerIndices.data(), m_values.data());
     }
 
     //! Scale input by reaction order and factor
-    void scale(span<const double> in, span<double> out, double factor) const
+    void scale(span<const CanteraDouble> in, span<CanteraDouble> out, CanteraDouble factor) const
     {
         _scale(m_c1_list.begin(), m_c1_list.end(), in, out, factor);
         _scale(m_c2_list.begin(), m_c2_list.end(), in, out, factor);
@@ -814,12 +814,12 @@ private:
 
     //! Sparse matrices for stoichiometric coefficients
     SparseTriplets m_coeffList;
-    Eigen::SparseMatrix<double> m_stoichCoeffs;
+    Eigen::SparseMatrix<CanteraDouble> m_stoichCoeffs;
 
     //! Storage indicies used to build derivatives
     vector<int> m_outerIndices;
     vector<int> m_innerIndices;
-    vector<double> m_values;
+    vector<CanteraDouble> m_values;
 };
 
 }

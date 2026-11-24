@@ -26,8 +26,8 @@ class EquilOpt
 public:
     EquilOpt() = default;
 
-    double relTolerance = 1e-8; //!< Relative tolerance
-    double absElemTol = 1e-70; //!< Abs Tol in element number
+    CanteraDouble relTolerance = 1e-8; //!< Relative tolerance
+    CanteraDouble absElemTol = 1e-70; //!< Abs Tol in element number
     int maxIterations = 1000; //!< Maximum number of iterations
     int iterations = 0; //!< Iteration counter
 
@@ -129,7 +129,7 @@ public:
      *
      * @since The possible return value of 1 is new in %Cantera 4.0.
      */
-    int equilibrate(ThermoPhase& s, const char* XY, span<double> elMoles,
+    int equilibrate(ThermoPhase& s, const char* XY, span<CanteraDouble> elMoles,
                     int loglevel = 0);
 
     /**
@@ -148,7 +148,7 @@ protected:
     ThermoPhase* m_phase;
 
     //! number of atoms of element m in species k.
-    double nAtoms(size_t k, size_t m) const {
+    CanteraDouble nAtoms(size_t k, size_t m) const {
         return m_comp[k*m_mm + m];
     }
 
@@ -167,15 +167,15 @@ protected:
      * @f[ \lambda_m/RT @f].
      * @param t temperature in K.
      */
-    void setToEquilState(ThermoPhase& s, span<const double> x, double t);
+    void setToEquilState(ThermoPhase& s, span<const CanteraDouble> x, CanteraDouble t);
 
     //! Estimate the initial mole numbers. This version borrows from the
     //! MultiPhaseEquil solver.
-    int setInitialMoles(ThermoPhase& s, span<double> elMoleGoal, int loglevel = 0);
+    int setInitialMoles(ThermoPhase& s, span<CanteraDouble> elMoleGoal, int loglevel = 0);
 
     //! Generate a starting estimate for the element potentials.
-    int estimateElementPotentials(ThermoPhase& s, span<double> lambda,
-                                  span<double> elMolesGoal, int loglevel = 0);
+    int estimateElementPotentials(ThermoPhase& s, span<CanteraDouble> lambda,
+                                  span<CanteraDouble> elMolesGoal, int loglevel = 0);
 
     /**
      * Do a calculation of the element potentials using the Brinkley method,
@@ -210,7 +210,7 @@ protected:
      *
      * NOTE: update for activity coefficients.
      */
-    int estimateEP_Brinkley(ThermoPhase& s, span<double> lambda, span<double> elMoles);
+    int estimateEP_Brinkley(ThermoPhase& s, span<CanteraDouble> lambda, span<CanteraDouble> elMoles);
 
     //! Find an acceptable step size and take it.
     /*!
@@ -225,20 +225,20 @@ protected:
      * limited to a factor of 2 jump in the values from this method. Near
      * convergence, the delta damping gets out of the way.
      */
-    void dampStep(span<double> oldx, span<double> step, span<double> x);
+    void dampStep(span<CanteraDouble> oldx, span<CanteraDouble> step, span<CanteraDouble> x);
 
     /**
      *  Evaluates the residual vector F, of length #m_mm
      */
-    void equilResidual(ThermoPhase& s, span<const double> x,
-                       span<const double> elmtotal, span<double> resid,
-                       double xval, double yval, int loglevel = 0);
+    void equilResidual(ThermoPhase& s, span<const CanteraDouble> x,
+                       span<const CanteraDouble> elmtotal, span<CanteraDouble> resid,
+                       CanteraDouble xval, CanteraDouble yval, int loglevel = 0);
 
-    void equilJacobian(ThermoPhase& s, span<double> x,
-                       span<const double> elmols, DenseMatrix& jac,
-                       double xval, double yval, int loglevel = 0);
+    void equilJacobian(ThermoPhase& s, span<CanteraDouble> x,
+                       span<const CanteraDouble> elmols, DenseMatrix& jac,
+                       CanteraDouble xval, CanteraDouble yval, int loglevel = 0);
 
-    void adjustEloc(ThermoPhase& s, span<double> elMolesGoal);
+    void adjustEloc(ThermoPhase& s, span<CanteraDouble> elMolesGoal);
 
     //! Update internally stored state information.
     void update(const ThermoPhase& s);
@@ -252,9 +252,9 @@ protected:
      * @param[in] Xmol_i_calc Mole fractions of the species
      * @param[in] pressureConst Pressure
      */
-    double calcEmoles(ThermoPhase& s, span<double> x, const double& n_t,
-                      span<const double> Xmol_i_calc, span<double> eMolesCalc,
-                      span<double> n_i_calc, double pressureConst);
+    CanteraDouble calcEmoles(ThermoPhase& s, span<CanteraDouble> x, const CanteraDouble& n_t,
+                      span<const CanteraDouble> Xmol_i_calc, span<CanteraDouble> eMolesCalc,
+                      span<CanteraDouble> n_i_calc, CanteraDouble pressureConst);
 
     size_t m_mm; //!< number of elements in the phase
     size_t m_kk; //!< number of species in the phase
@@ -264,38 +264,38 @@ protected:
     //! it is computed. It's initialized to #m_mm.
     size_t m_nComponents;
 
-    function<double(ThermoPhase&)> m_p1, m_p2;
+    function<CanteraDouble(ThermoPhase&)> m_p1, m_p2;
 
     //! Current value of the mole fractions in the single phase. length = #m_kk.
-    vector<double> m_molefractions;
+    vector<CanteraDouble> m_molefractions;
 
     //! Current value of the sum of the element abundances given the current
     //! element potentials.
-    double m_elementTotalSum = 1.0;
+    CanteraDouble m_elementTotalSum = 1.0;
 
     //! Current value of the element mole fractions. Note these aren't the goal
     //! element mole fractions.
-    vector<double> m_elementmolefracs;
-    vector<double> m_jwork1;
-    vector<double> m_jwork2;
+    vector<CanteraDouble> m_elementmolefracs;
+    vector<CanteraDouble> m_jwork1;
+    vector<CanteraDouble> m_jwork2;
 
     //! Storage of the element compositions. natom(k,m) = m_comp[k*m_mm+ m];
-    vector<double> m_comp;
+    vector<CanteraDouble> m_comp;
 
     //! Index of the element id corresponding to the electric charge of each
     //! species. Equal to -1 if there is no such element id.
     size_t m_eloc = npos;
 
-    vector<double> m_mu_RT;
+    vector<CanteraDouble> m_mu_RT;
 
     //! Dimensionless values of the Gibbs free energy for the standard state of
     //! each species, at the temperature and pressure of the solution (the star
     //! standard state).
-    vector<double> m_muSS_RT;
+    vector<CanteraDouble> m_muSS_RT;
     vector<size_t> m_component;
 
     //! element fractional cutoff, below which the element will be zeroed.
-    double m_elemFracCutoff = 1e-100;
+    CanteraDouble m_elemFracCutoff = 1e-100;
 
     vector<size_t> m_orderVectorElements;
     vector<size_t> m_orderVectorSpecies;

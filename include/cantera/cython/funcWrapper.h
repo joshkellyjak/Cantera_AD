@@ -9,7 +9,7 @@
 #include <stdexcept>
 #include "Python.h"
 
-typedef double(*callback_wrapper)(double, void*, void**);
+typedef CanteraDouble(*callback_wrapper)(CanteraDouble, void*, void**);
 
 //! A class to hold information needed to call Python functions from delegated
 //! methods (see class Delegator).
@@ -148,9 +148,9 @@ public:
         m_pyobj(pyobj) {
     }
 
-    double eval(double t) const override {
+    CanteraDouble eval(CanteraDouble t) const override {
         void* err[2] = {0, 0};
-        double y = m_callback(t, m_pyobj, err);
+        CanteraDouble y = m_callback(t, m_pyobj, err);
         if (err[0]) {
             throw CallbackError(err[0], err[1]);
         }

@@ -56,7 +56,7 @@ public:
      * @param reltol scalar relative tolerance
      * @param abstol vector of absolute tolerance values, length nEquations().
      */
-    virtual void setTolerances(double reltol, span<const double> abstol) {
+    virtual void setTolerances(CanteraDouble reltol, span<const CanteraDouble> abstol) {
         warn("setTolerances");
     }
 
@@ -65,7 +65,7 @@ public:
      * @param reltol scalar relative tolerance
      * @param abstol scalar absolute tolerance
      */
-    virtual void setTolerances(double reltol, double abstol) {
+    virtual void setTolerances(CanteraDouble reltol, CanteraDouble abstol) {
         warn("setTolerances");
     }
 
@@ -74,7 +74,7 @@ public:
      * @param reltol scalar relative tolerance
      * @param abstol scalar absolute tolerance
      */
-    virtual void setSensitivityTolerances(double reltol, double abstol)
+    virtual void setSensitivityTolerances(CanteraDouble reltol, CanteraDouble abstol)
     { }
 
     //! Set the linear solver type.
@@ -94,7 +94,7 @@ public:
     virtual void setRootFunctionCount([[maybe_unused]] size_t nroots) {}
 
     //! Current value of the independent variable tracked by the integrator
-    virtual double currentTime() const = 0;
+    virtual CanteraDouble currentTime() const = 0;
 
     //! Set preconditioner used by the linear solver
     /*!
@@ -121,7 +121,7 @@ public:
      * @param[in] rhs right hand side vector used in linear system
      * @param[out] output output vector for solution
      */
-    virtual void preconditionerSolve(span<const double> rhs, span<double> output) {
+    virtual void preconditionerSolve(span<const CanteraDouble> rhs, span<CanteraDouble> output) {
         m_preconditioner->solve(rhs, output);
     }
 
@@ -147,11 +147,11 @@ public:
      * @param t0   initial time
      * @param func RHS evaluator object for system of equations.
      */
-    virtual void initialize(double t0, FuncEval& func) {
+    virtual void initialize(CanteraDouble t0, FuncEval& func) {
         warn("initialize");
     }
 
-    virtual void reinitialize(double t0, FuncEval& func) {
+    virtual void reinitialize(CanteraDouble t0, FuncEval& func) {
         warn("reinitialize");
     }
 
@@ -160,7 +160,7 @@ public:
      * @param tout Integrate to this time. Note that this is the
      *             absolute time value, not a time interval.
      */
-    virtual void integrate(double tout) {
+    virtual void integrate(CanteraDouble tout) {
         warn("integrate");
     }
 
@@ -169,25 +169,25 @@ public:
      * @param tout integrate to this time. Note that this is the
      * absolute time value, not a time interval.
      */
-    virtual double step(double tout) {
+    virtual CanteraDouble step(CanteraDouble tout) {
         warn("step");
         return 0.0;
     }
 
     //! The current value of the solution of equation k.
-    virtual double& solution(size_t k) {
+    virtual CanteraDouble& solution(size_t k) {
         warn("solution");
         return m_dummy;
     }
 
     //! The current value of the solution of the system of equations.
-    virtual span<double> solution() {
+    virtual span<CanteraDouble> solution() {
         warn("solution");
         return {};
     }
 
     //! n-th derivative of the output function at time tout.
-    virtual span<double> derivative(double tout, int n) {
+    virtual span<CanteraDouble> derivative(CanteraDouble tout, int n) {
         warn("derivative");
         return {};
     }
@@ -226,12 +226,12 @@ public:
     }
 
     //! Set the maximum step size
-    virtual void setMaxStepSize(double hmax) {
+    virtual void setMaxStepSize(CanteraDouble hmax) {
         warn("setMaxStepSize");
     }
 
     //! Set the minimum step size
-    virtual void setMinStepSize(double hmin) {
+    virtual void setMinStepSize(CanteraDouble hmin) {
         warn("setMinStepSize");
     }
 
@@ -264,7 +264,7 @@ public:
         return 0;
     }
 
-    virtual double sensitivity(size_t k, size_t p) {
+    virtual CanteraDouble sensitivity(size_t k, size_t p) {
         warn("sensitivity");
         return 0.0;
     }
@@ -310,7 +310,7 @@ protected:
     // methods for DAE solvers
 
 private:
-    double m_dummy;
+    CanteraDouble m_dummy;
     void warn(const string& msg) const {
         writelog(">>>> Warning: method "+msg+" of base class "
                  +"Integrator called. Nothing done.\n");

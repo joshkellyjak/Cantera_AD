@@ -63,12 +63,12 @@ const char* targetPropertyName(int XY)
 }
 
 [[noreturn]] void throwTemperatureBoundError(const string& XYstr, int XY,
-                                             double target, double current,
-                                             double currentT, double Tmin,
-                                             double Tmax, int boundDirection)
+                                             CanteraDouble target, CanteraDouble current,
+                                             CanteraDouble currentT, CanteraDouble Tmin,
+                                             CanteraDouble Tmax, int boundDirection)
 {
     string bound = boundDirection > 0 ? "upper" : "lower";
-    double Tbound = boundDirection > 0 ? Tmax : Tmin;
+    CanteraDouble Tbound = boundDirection > 0 ? Tmax : Tmin;
     throw CanteraError("ChemEquil::equilibrate",
         "Equilibration with the '{}' property pair failed because the solver "
         "reached the {} temperature bound of {} K. The target {} is {}, but "
@@ -151,7 +151,7 @@ void ChemEquil::initialize(ThermoPhase& s)
     }
 }
 
-void ChemEquil::setToEquilState(ThermoPhase& s, span<const double> lambda_RT, double t)
+void ChemEquil::setToEquilState(ThermoPhase& s, span<const CanteraDouble> lambda_RT, CanteraDouble t)
 {
     // Construct the chemical potentials by summing element potentials
     fill(m_mu_RT.begin(), m_mu_RT.end(), 0.0);
@@ -177,7 +177,7 @@ void ChemEquil::update(const ThermoPhase& s)
     s.getMoleFractions(m_molefractions);
 
     // compute the elemental mole fractions
-    double sum = 0.0;
+    CanteraDouble sum = 0.0;
     for (size_t m = 0; m < m_mm; m++) {
         m_elementmolefracs[m] = 0.0;
         for (size_t k = 0; k < m_kk; k++) {
@@ -198,7 +198,7 @@ void ChemEquil::update(const ThermoPhase& s)
     }
 }
 
-int ChemEquil::setInitialMoles(ThermoPhase& s, span<double> elMoleGoal, int loglevel)
+int ChemEquil::setInitialMoles(ThermoPhase& s, span<CanteraDouble> elMoleGoal, int loglevel)
 {
     MultiPhase mp;
     // Create a non-owning shared_ptr, since ThermoPhase `s` is guaranteed to outlive
@@ -235,12 +235,12 @@ int ChemEquil::setInitialMoles(ThermoPhase& s, span<double> elMoleGoal, int logl
     return 0;
 }
 
-int ChemEquil::estimateElementPotentials(ThermoPhase& s, span<double> lambda_RT,
-        span<double> elMolesGoal, int loglevel)
+int ChemEquil::estimateElementPotentials(ThermoPhase& s, span<CanteraDouble> lambda_RT,
+        span<CanteraDouble> elMolesGoal, int loglevel)
 {
-    vector<double> b(m_mm, -999.0);
-    vector<double> mu_RT(m_kk, 0.0);
-    vector<double> xMF_est(m_kk, 0.0);
+    vector<CanteraDouble> b(m_mm, -999.0);
+    vector<CanteraDouble> mu_RT(m_kk, 0.0);
+    vector<CanteraDouble> xMF_est(m_kk, 0.0);
 
     s.getMoleFractions(xMF_est);
     for (size_t n = 0; n < s.nSpecies(); n++) {
@@ -253,7 +253,7 @@ int ChemEquil::estimateElementPotentials(ThermoPhase& s, span<double> lambda_RT,
     mp.addPhase(shared_ptr<ThermoPhase>(&s, [](ThermoPhase*) {}), 1.0);
     mp.init();
     bool usedZeroedSpecies = false;
-    vector<double> formRxnMatrix(mp.nSpecies() * mp.nElements());
+    vector<CanteraDouble> formRxnMatrix(mp.nSpecies() * mp.nElements());
     m_nComponents = BasisOptimize(usedZeroedSpecies, false,
                                   &mp, m_orderVectorSpecies,
                                   m_orderVectorElements, formRxnMatrix);
@@ -311,7 +311,7 @@ int ChemEquil::estimateElementPotentials(ThermoPhase& s, span<double> lambda_RT,
         writelog(" id      CompSpecies      ChemPot       EstChemPot       Diff\n");
         for (size_t m = 0; m < m_nComponents; m++) {
             size_t isp = m_component[m];
-            double tmp = 0.0;
+            CanteraDouble tmp = 0.0;
             for (size_t n = 0; n < m_mm; n++) {
                 tmp += nAtoms(isp, n) * lambda_RT[n];
             }
@@ -331,16 +331,16 @@ int ChemEquil::equilibrate(ThermoPhase& s, const char* XY, int loglevel)
 {
     initialize(s);
     update(s);
-    vector<double> elMolesGoal = m_elementmolefracs;
+    vector<CanteraDouble> elMolesGoal = m_elementmolefracs;
     return equilibrate(s, XY, elMolesGoal, loglevel-1);
 }
 
 int ChemEquil::equilibrate(ThermoPhase& s, const char* XYstr,
-                           span<double> elMolesGoal, int loglevel)
+                           span<CanteraDouble> elMolesGoal, int loglevel)
 {
     bool tempFixed = true;
     int XY = _equilflag(XYstr);
-    vector<double> state(s.stateSize());
+    vector<CanteraDouble> state(s.stateSize());
     s.saveState(state);
     m_loglevel = loglevel;
 
@@ -394,7 +394,7 @@ int ChemEquil::equilibrate(ThermoPhase& s, const char* XYstr,
     // If the temperature is one of the specified variables, and it is outside
     // the valid range, throw an exception if strict limits are requested.
     if (tempFixed && options.enforceTemperatureLimits) {
-        double tfixed = s.temperature();
+        CanteraDouble tfixed = s.temperature();
         if (tfixed > s.maxTemp() + 1.0 || tfixed < s.minTemp() - 1.0) {
             throw CanteraError("ChemEquil::equilibrate", "Specified temperature"
                                " ({} K) outside valid range of {} K to {} K\n",
@@ -404,20 +404,20 @@ int ChemEquil::equilibrate(ThermoPhase& s, const char* XYstr,
 
     // Before we do anything to change the ThermoPhase object, we calculate and
     // store the two specified thermodynamic properties that we are after.
-    double xval = m_p1(s);
-    double yval = m_p2(s);
+    CanteraDouble xval = m_p1(s);
+    CanteraDouble yval = m_p2(s);
 
     size_t mm = m_mm;
     size_t nvar = mm + 1;
     DenseMatrix jac(nvar, nvar); // Jacobian
-    vector<double> x(nvar, -102.0); // solution vector
-    vector<double> res_trial(nvar, 0.0); // residual
+    vector<CanteraDouble> x(nvar, -102.0); // solution vector
+    vector<CanteraDouble> res_trial(nvar, 0.0); // residual
 
     // Replace one of the element abundance fraction equations with the
     // specified property calculation.
     //
     // We choose the equation of the element with the highest element abundance.
-    double tmp = -1.0;
+    CanteraDouble tmp = -1.0;
     for (size_t im = 0; im < m_nComponents; im++) {
         size_t m = m_orderVectorElements[im];
         if (elMolesGoal[m] > tmp) {
@@ -433,7 +433,7 @@ int ChemEquil::equilibrate(ThermoPhase& s, const char* XYstr,
     // start with a composition with everything non-zero. Note that since we
     // have already save the target element moles, changing the composition at
     // this point only affects the starting point, not the final solution.
-    vector<double> xmm(m_kk, 0.0);
+    vector<CanteraDouble> xmm(m_kk, 0.0);
     for (size_t k = 0; k < m_kk; k++) {
         xmm[k] = s.moleFraction(k) + 1.0E-32;
     }
@@ -442,11 +442,11 @@ int ChemEquil::equilibrate(ThermoPhase& s, const char* XYstr,
     // Update the internally stored element mole fractions.
     update(s);
 
-    double tmaxPhase = s.maxTemp();
-    double tminPhase = s.minTemp();
-    double tminSolver = options.enforceTemperatureLimits ? tminPhase :
+    CanteraDouble tmaxPhase = s.maxTemp();
+    CanteraDouble tminPhase = s.minTemp();
+    CanteraDouble tminSolver = options.enforceTemperatureLimits ? tminPhase :
         clip(SmallNumber, 0.5 * tminPhase, 100.0);
-    double tmaxSolver = options.enforceTemperatureLimits ? tmaxPhase :
+    CanteraDouble tmaxSolver = options.enforceTemperatureLimits ? tmaxPhase :
         std::max(tmaxPhase + 1000.0, 10.0 * tmaxPhase);
     if (tmaxSolver <= tminSolver) {
         tmaxSolver = tminSolver + 20.0;
@@ -455,16 +455,16 @@ int ChemEquil::equilibrate(ThermoPhase& s, const char* XYstr,
 
     // loop to estimate T
     if (!tempFixed) {
-        double tmin = std::max(s.temperature(), tminSolver);
+        CanteraDouble tmin = std::max(s.temperature(), tminSolver);
         if (tmin > tmaxSolver) {
             tmin = tmaxSolver - 20;
         }
-        double tmax = std::min(tmin + 10., tmaxSolver);
+        CanteraDouble tmax = std::min(tmin + 10., tmaxSolver);
         if (tmax < tminSolver) {
             tmax = tminSolver + 20;
         }
 
-        double slope, phigh, plow, pval, dt;
+        CanteraDouble slope, phigh, plow, pval, dt;
 
         // first get the property values at the upper and lower temperature
         // limits. Since p1 (h, s, or u) is monotonic in T, these values
@@ -479,7 +479,7 @@ int ChemEquil::equilibrate(ThermoPhase& s, const char* XYstr,
         plow = m_p1(s);
 
         // start with T at the midpoint of the range
-        double t0 = 0.5*(tmin + tmax);
+        CanteraDouble t0 = 0.5*(tmin + tmax);
         s.setTemperature(t0);
 
         // loop up to 5 times
@@ -519,8 +519,8 @@ int ChemEquil::equilibrate(ThermoPhase& s, const char* XYstr,
             // update the T estimate
             t0 += dt;
             if (t0 <= tminSolver || t0 >= tmaxSolver) {
-                double current = m_p1(s);
-                double currentT = s.temperature();
+                CanteraDouble current = m_p1(s);
+                CanteraDouble currentT = s.temperature();
                 s.restoreState(state);
                 throwTemperatureBoundError(XYstr, XY, xval, current, currentT,
                                            tminPhase, tmaxPhase,
@@ -556,8 +556,8 @@ int ChemEquil::equilibrate(ThermoPhase& s, const char* XYstr,
     // Setting the max and min values for x[]. Also, if element abundance vector
     // is zero, setting x[] to -1000. This effectively zeroes out all species
     // containing that element.
-    vector<double> above(nvar);
-    vector<double> below(nvar);
+    vector<CanteraDouble> above(nvar);
+    vector<CanteraDouble> below(nvar);
     for (size_t m = 0; m < mm; m++) {
         above[m] = 200.0;
         below[m] = -2000.0;
@@ -577,7 +577,7 @@ int ChemEquil::equilibrate(ThermoPhase& s, const char* XYstr,
         below[mm] = log(tminSolver);
     }
 
-    vector<double> oldx(nvar, 0.0); // old solution
+    vector<CanteraDouble> oldx(nvar, 0.0); // old solution
     // Stall detection: a mixture whose equilibrium composition is dominated by a few
     // species can leave some element potentials determined only by trace species,
     // making the numerically-evaluated Jacobian rank deficient. Plain LU then returns a
@@ -587,13 +587,13 @@ int ChemEquil::equilibrate(ThermoPhase& s, const char* XYstr,
     bool stalled = false;
     bool rankDeficient = false;
     int noProgress = 0;
-    double bestResid = BigNumber;
-    double maxResid = 0.0;
-    double dxmax = 0.0;
+    CanteraDouble bestResid = BigNumber;
+    CanteraDouble maxResid = 0.0;
+    CanteraDouble dxmax = 0.0;
     // Largest relative error in the element abundances that will be accepted as a
     // reduced-accuracy solution. Beyond this, the result is too inaccurate to be
     // useful, and lack of convergence is reported instead.
-    const double maxInexactResid = 1e-5;
+    const CanteraDouble maxInexactResid = 1e-5;
 
     // Any error raised while evaluating the residual, the Jacobian, or the Newton step
     // means the iteration has reached a point where the element potential formulation
@@ -621,14 +621,14 @@ int ChemEquil::equilibrate(ThermoPhase& s, const char* XYstr,
         } catch (CanteraError& err) {
             throw iterationError(iter, err);
         }
-        double xx = m_p1(s);
-        double yy = m_p2(s);
-        double deltax = (xx - xval)/xval;
-        double deltay = (yy - yval)/yval;
+        CanteraDouble xx = m_p1(s);
+        CanteraDouble yy = m_p2(s);
+        CanteraDouble deltax = (xx - xval)/xval;
+        CanteraDouble deltay = (yy - yval)/yval;
         bool passThis = true;
         maxResid = 0.0;
         for (size_t m = 0; m < nvar; m++) {
-            double tval = options.relTolerance;
+            CanteraDouble tval = options.relTolerance;
             if (m < mm) {
                 // Special case convergence requirements for electron element.
                 // This is a special case because the element coefficients may
@@ -673,11 +673,11 @@ int ChemEquil::equilibrate(ThermoPhase& s, const char* XYstr,
             if (!passThis && options.warnOnInexactConvergence) {
                 // Report the accuracy actually achieved in terms of the largest
                 // relative error in the mole fraction of any element.
-                double relErr = 0.0;
+                CanteraDouble relErr = 0.0;
                 size_t worst = 0;
                 for (size_t m = 0; m < mm; m++) {
                     if (elMolesGoal[m] > m_elemFracCutoff) {
-                        double err = fabs(m_elementmolefracs[m] - elMolesGoal[m])
+                        CanteraDouble err = fabs(m_elementmolefracs[m] - elMolesGoal[m])
                                      / elMolesGoal[m];
                         if (err > relErr) {
                             relErr = err;
@@ -753,7 +753,7 @@ int ChemEquil::equilibrate(ThermoPhase& s, const char* XYstr,
             if (stalled) {
                 // Rank-truncated least-squares step: components of the step
                 // along directions the Jacobian cannot resolve are dropped.
-                MappedMatrix J(const_cast<double*>(jac.data().data()),
+                MappedMatrix J(const_cast<CanteraDouble*>(jac.data().data()),
                                jac.nRows(), jac.nColumns());
                 Eigen::JacobiSVD<Eigen::MatrixXd> svd(
                     J, Eigen::ComputeThinU | Eigen::ComputeThinV);
@@ -774,12 +774,12 @@ int ChemEquil::equilibrate(ThermoPhase& s, const char* XYstr,
 
         // find the factor by which the Newton step can be multiplied
         // to keep the solution within bounds.
-        double fctr = 1.0;
+        CanteraDouble fctr = 1.0;
         // Track strict temperature bounds reached by the undamped Newton step.
         // The damped iterate can remain just inside the bound, so remember the
         // limiting direction across iterations for max-iteration diagnostics.
         if (options.enforceTemperatureLimits && !tempFixed) {
-            double newTempVal = x[mm] + res_trial[mm];
+            CanteraDouble newTempVal = x[mm] + res_trial[mm];
             if (newTempVal > above[mm]) {
                 limitingTemperatureBound = 1;
             } else if (newTempVal < below[mm]) {
@@ -787,7 +787,7 @@ int ChemEquil::equilibrate(ThermoPhase& s, const char* XYstr,
             }
         }
         for (size_t m = 0; m < nvar; m++) {
-            double newval = x[m] + res_trial[m];
+            CanteraDouble newval = x[m] + res_trial[m];
             if (newval > above[m]) {
                 fctr = std::max(0.0,
                                 std::min(fctr,0.8*(above[m] - x[m])/(newval - x[m])));
@@ -831,8 +831,8 @@ int ChemEquil::equilibrate(ThermoPhase& s, const char* XYstr,
             limitingTemperatureBound = -1;
         }
     }
-    double current = m_p1(s);
-    double currentT = s.temperature();
+    CanteraDouble current = m_p1(s);
+    CanteraDouble currentT = s.temperature();
     s.restoreState(state);
     if (limitingTemperatureBound != 0) {
         throwTemperatureBoundError(XYstr, XY, xval, current, currentT,
@@ -843,11 +843,11 @@ int ChemEquil::equilibrate(ThermoPhase& s, const char* XYstr,
 }
 
 
-void ChemEquil::dampStep(span<double> oldx, span<double> step, span<double> x)
+void ChemEquil::dampStep(span<CanteraDouble> oldx, span<CanteraDouble> step, span<CanteraDouble> x)
 {
     // Carry out a delta damping approach on the dimensionless element
     // potentials.
-    double damp = 1.0;
+    CanteraDouble damp = 1.0;
     for (size_t m = 0; m < m_mm; m++) {
         if (m == m_eloc) {
             if (step[m] > 1.25) {
@@ -879,14 +879,14 @@ void ChemEquil::dampStep(span<double> oldx, span<double> step, span<double> x)
     }
 }
 
-void ChemEquil::equilResidual(ThermoPhase& s, span<const double> x,
-                              span<const double> elmFracGoal, span<double> resid,
-                              double xval, double yval, int loglevel)
+void ChemEquil::equilResidual(ThermoPhase& s, span<const CanteraDouble> x,
+                              span<const CanteraDouble> elmFracGoal, span<CanteraDouble> resid,
+                              CanteraDouble xval, CanteraDouble yval, int loglevel)
 {
     setToEquilState(s, x, exp(x[m_mm]));
 
     // residuals are the total element moles
-    vector<double>& elmFrac = m_elementmolefracs;
+    vector<CanteraDouble>& elmFrac = m_elementmolefracs;
     for (size_t n = 0; n < m_mm; n++) {
         size_t m = m_orderVectorElements[n];
         // drive element potential for absent elements to -1000
@@ -913,8 +913,8 @@ void ChemEquil::equilResidual(ThermoPhase& s, span<const double> x,
         }
     }
 
-    double xx = m_p1(s);
-    double yy = m_p2(s);
+    CanteraDouble xx = m_p1(s);
+    CanteraDouble yy = m_p2(s);
     resid[m_mm] = xx/xval - 1.0;
     resid[m_skip] = yy/yval - 1.0;
 
@@ -925,24 +925,24 @@ void ChemEquil::equilResidual(ThermoPhase& s, span<const double> x,
     }
 }
 
-void ChemEquil::equilJacobian(ThermoPhase& s, span<double> x, span<const double> elmols,
-                              DenseMatrix& jac, double xval, double yval, int loglevel)
+void ChemEquil::equilJacobian(ThermoPhase& s, span<CanteraDouble> x, span<const CanteraDouble> elmols,
+                              DenseMatrix& jac, CanteraDouble xval, CanteraDouble yval, int loglevel)
 {
-    vector<double>& r0 = m_jwork1;
-    vector<double>& r1 = m_jwork2;
+    vector<CanteraDouble>& r0 = m_jwork1;
+    vector<CanteraDouble>& r1 = m_jwork2;
     size_t len = x.size();
     r0.resize(len);
     r1.resize(len);
-    double atol = 1.e-10;
+    CanteraDouble atol = 1.e-10;
 
     equilResidual(s, x, elmols, r0, xval, yval, loglevel-1);
 
     for (size_t n = 0; n < len; n++) {
-        double xsave = x[n];
-        double dx = std::max(atol, fabs(xsave) * 1.0E-7);
+        CanteraDouble xsave = x[n];
+        CanteraDouble dx = std::max(atol, fabs(xsave) * 1.0E-7);
         x[n] = xsave + dx;
         dx = x[n] - xsave;
-        double rdx = 1.0/dx;
+        CanteraDouble rdx = 1.0/dx;
 
         // calculate perturbed residual
         equilResidual(s, x, elmols, r1, xval, yval, loglevel-1);
@@ -955,21 +955,21 @@ void ChemEquil::equilJacobian(ThermoPhase& s, span<double> x, span<const double>
     }
 }
 
-double ChemEquil::calcEmoles(ThermoPhase& s, span<double> x, const double& n_t,
-                             span<const double> Xmol_i_calc, span<double> eMolesCalc,
-                             span<double> n_i_calc, double pressureConst)
+CanteraDouble ChemEquil::calcEmoles(ThermoPhase& s, span<CanteraDouble> x, const CanteraDouble& n_t,
+                             span<const CanteraDouble> Xmol_i_calc, span<CanteraDouble> eMolesCalc,
+                             span<CanteraDouble> n_i_calc, CanteraDouble pressureConst)
 {
-    double n_t_calc = 0.0;
+    CanteraDouble n_t_calc = 0.0;
 
     // Calculate the activity coefficients of the solution, at the previous
     // solution state.
-    vector<double> actCoeff(m_kk, 1.0);
+    vector<CanteraDouble> actCoeff(m_kk, 1.0);
     s.setMoleFractions(Xmol_i_calc);
     s.setPressure(pressureConst);
     s.getActivityCoefficients(actCoeff);
 
     for (size_t k = 0; k < m_kk; k++) {
-        double tmp = - (m_muSS_RT[k] + log(actCoeff[k]));
+        CanteraDouble tmp = - (m_muSS_RT[k] + log(actCoeff[k]));
         for (size_t m = 0; m < m_mm; m++) {
             tmp += nAtoms(k,m) * x[m];
         }
@@ -990,37 +990,37 @@ double ChemEquil::calcEmoles(ThermoPhase& s, span<double> x, const double& n_t,
     return n_t_calc;
 }
 
-int ChemEquil::estimateEP_Brinkley(ThermoPhase& s, span<double> x, span<double> elMoles)
+int ChemEquil::estimateEP_Brinkley(ThermoPhase& s, span<CanteraDouble> x, span<CanteraDouble> elMoles)
 {
     // Before we do anything, we will save the state of the solution. Then, if
     // things go drastically wrong, we will restore the saved state.
-    vector<double> state(s.stateSize());
+    vector<CanteraDouble> state(s.stateSize());
     s.saveState(state);
     bool modifiedMatrix = false;
     size_t neq = m_mm+1;
     int retn = 1;
     DenseMatrix a1(neq, neq, 0.0);
-    vector<double> b(neq, 0.0);
-    vector<double> n_i(m_kk,0.0);
-    vector<double> n_i_calc(m_kk,0.0);
-    vector<double> actCoeff(m_kk, 1.0);
-    double beta = 1.0;
+    vector<CanteraDouble> b(neq, 0.0);
+    vector<CanteraDouble> n_i(m_kk,0.0);
+    vector<CanteraDouble> n_i_calc(m_kk,0.0);
+    vector<CanteraDouble> actCoeff(m_kk, 1.0);
+    CanteraDouble beta = 1.0;
 
     s.getMoleFractions(n_i);
-    double pressureConst = s.pressure();
-    vector<double> Xmol_i_calc = n_i;
+    CanteraDouble pressureConst = s.pressure();
+    vector<CanteraDouble> Xmol_i_calc = n_i;
 
-    vector<double> x_old(m_mm+1, 0.0);
-    vector<double> resid(m_mm+1, 0.0);
+    vector<CanteraDouble> x_old(m_mm+1, 0.0);
+    vector<CanteraDouble> resid(m_mm+1, 0.0);
     vector<int> lumpSum(m_mm+1, 0);
 
     // Get the nondimensional Gibbs functions for the species at their standard
     // states of solution at the current T and P of the solution.
     s.getGibbs_RT(m_muSS_RT);
 
-    vector<double> eMolesCalc(m_mm, 0.0);
-    vector<double> eMolesFix(m_mm, 0.0);
-    double elMolesTotal = 0.0;
+    vector<CanteraDouble> eMolesCalc(m_mm, 0.0);
+    vector<CanteraDouble> eMolesFix(m_mm, 0.0);
+    CanteraDouble elMolesTotal = 0.0;
     for (size_t m = 0; m < m_mm; m++) {
         elMolesTotal += elMoles[m];
         for (size_t k = 0; k < m_kk; k++) {
@@ -1036,16 +1036,16 @@ int ChemEquil::estimateEP_Brinkley(ThermoPhase& s, span<double> x, span<double> 
         }
     }
 
-    double n_t = 0.0;
-    double nAtomsMax = 1.0;
+    CanteraDouble n_t = 0.0;
+    CanteraDouble nAtomsMax = 1.0;
     s.setMoleFractions(Xmol_i_calc);
     s.setPressure(pressureConst);
     s.getActivityCoefficients(actCoeff);
     for (size_t k = 0; k < m_kk; k++) {
-        double tmp = - (m_muSS_RT[k] + log(actCoeff[k]));
-        double sum2 = 0.0;
+        CanteraDouble tmp = - (m_muSS_RT[k] + log(actCoeff[k]));
+        CanteraDouble sum2 = 0.0;
         for (size_t m = 0; m < m_mm; m++) {
-            double sum = nAtoms(k,m);
+            CanteraDouble sum = nAtoms(k,m);
             tmp += sum * x[m];
             sum2 += sum;
             nAtomsMax = std::max(nAtomsMax, sum2);
@@ -1093,7 +1093,7 @@ int ChemEquil::estimateEP_Brinkley(ThermoPhase& s, span<double> x, span<double> 
             writelogf("START ITERATION %d:\n", iter);
         }
         // Calculate the mole numbers of species and elements.
-        double n_t_calc = calcEmoles(s, x, n_t, Xmol_i_calc, eMolesCalc, n_i_calc,
+        CanteraDouble n_t_calc = calcEmoles(s, x, n_t, Xmol_i_calc, eMolesCalc, n_i_calc,
                                      pressureConst);
 
         for (size_t k = 0; k < m_kk; k++) {
@@ -1183,7 +1183,7 @@ int ChemEquil::estimateEP_Brinkley(ThermoPhase& s, span<double> x, span<double> 
                 lumpSum[m] = 1;
             }
 
-            double nCutoff = 1.0E-9 * n_t_calc;
+            CanteraDouble nCutoff = 1.0E-9 * n_t_calc;
             if (m_loglevel > 0) {
                 writelog(" Lump Sum Elements Calculation: \n");
             }
@@ -1194,7 +1194,7 @@ int ChemEquil::estimateEP_Brinkley(ThermoPhase& s, span<double> x, span<double> 
                     if (n_i_calc[k] > nCutoff && fabs(nAtoms(k,m)) > 0.001) {
                         if (kMSp != npos) {
                             kMSp2 = k;
-                            double factor = fabs(nAtoms(kMSp,m) / nAtoms(kMSp2,m));
+                            CanteraDouble factor = fabs(nAtoms(kMSp,m) / nAtoms(kMSp2,m));
                             for (size_t n = 0; n < m_mm; n++) {
                                 if (fabs(factor * nAtoms(kMSp2,n) - nAtoms(kMSp,n)) > 1.0E-8) {
                                     lumpSum[m] = 0;
@@ -1235,7 +1235,7 @@ int ChemEquil::estimateEP_Brinkley(ThermoPhase& s, span<double> x, span<double> 
 
             // Formulate the residual, resid, and the estimate for the
             // convergence criteria, sum
-            double sum = 0.0;
+            CanteraDouble sum = 0.0;
             for (size_t im = 0; im < m_mm; im++) {
                 size_t m = m_orderVectorElements[im];
                 if (im < m_nComponents) {
@@ -1249,7 +1249,7 @@ int ChemEquil::estimateEP_Brinkley(ThermoPhase& s, span<double> x, span<double> 
                 // criteria by a condition limited by finite precision of
                 // inverting a matrix. Other equations with just positive
                 // coefficients aren't limited by this.
-                double tmp;
+                CanteraDouble tmp;
                 if (m == m_eloc) {
                     tmp = resid[m] / (elMoles[m] + elMolesTotal*1.0E-6 + options.absElemTol);
                 } else {
@@ -1306,7 +1306,7 @@ int ChemEquil::estimateEP_Brinkley(ThermoPhase& s, span<double> x, span<double> 
 
             // Row Sum scaling
             for (size_t m = 0; m <= m_mm; m++) {
-                double tmp = 0.0;
+                CanteraDouble tmp = 0.0;
                 for (size_t n = 0; n <= m_mm; n++) {
                     tmp += fabs(a1(m,n));
                 }
@@ -1446,8 +1446,8 @@ int ChemEquil::estimateEP_Brinkley(ThermoPhase& s, span<double> x, span<double> 
         }
     }
     if (m_loglevel > 0) {
-        double temp = s.temperature();
-        double pres = s.pressure();
+        CanteraDouble temp = s.temperature();
+        CanteraDouble pres = s.pressure();
 
         if (retn == 0) {
             writelogf(" ChemEquil::estimateEP_Brinkley() SUCCESS: equilibrium found at T = %g, Pres = %g\n",
@@ -1461,7 +1461,7 @@ int ChemEquil::estimateEP_Brinkley(ThermoPhase& s, span<double> x, span<double> 
 }
 
 
-void ChemEquil::adjustEloc(ThermoPhase& s, span<double> elMolesGoal)
+void ChemEquil::adjustEloc(ThermoPhase& s, span<CanteraDouble> elMolesGoal)
 {
     if (m_eloc == npos) {
         return;
@@ -1472,8 +1472,8 @@ void ChemEquil::adjustEloc(ThermoPhase& s, span<double> elMolesGoal)
     s.getMoleFractions(m_molefractions);
     size_t maxPosEloc = npos;
     size_t maxNegEloc = npos;
-    double maxPosVal = -1.0;
-    double maxNegVal = -1.0;
+    CanteraDouble maxPosVal = -1.0;
+    CanteraDouble maxNegVal = -1.0;
     if (m_loglevel > 0) {
         for (size_t k = 0; k < m_kk; k++) {
             if (nAtoms(k,m_eloc) > 0.0 && m_molefractions[k] > maxPosVal && m_molefractions[k] > 0.0) {
@@ -1487,8 +1487,8 @@ void ChemEquil::adjustEloc(ThermoPhase& s, span<double> elMolesGoal)
         }
     }
 
-    double sumPos = 0.0;
-    double sumNeg = 0.0;
+    CanteraDouble sumPos = 0.0;
+    CanteraDouble sumNeg = 0.0;
     for (size_t k = 0; k < m_kk; k++) {
         if (nAtoms(k,m_eloc) > 0.0) {
             sumPos += nAtoms(k,m_eloc) * m_molefractions[k];
@@ -1503,7 +1503,7 @@ void ChemEquil::adjustEloc(ThermoPhase& s, span<double> elMolesGoal)
         if (sumPos <= 0.0) {
             return;
         }
-        double factor = (elMolesGoal[m_eloc] + sumNeg) / sumPos;
+        CanteraDouble factor = (elMolesGoal[m_eloc] + sumNeg) / sumPos;
         if (m_loglevel > 0 && factor < 0.9999999999) {
             writelogf("adjustEloc: adjusted %s and friends from %g to %g to ensure neutrality condition\n",
                       s.speciesName(maxPosEloc),
@@ -1515,7 +1515,7 @@ void ChemEquil::adjustEloc(ThermoPhase& s, span<double> elMolesGoal)
             }
         }
     } else {
-        double factor = (-elMolesGoal[m_eloc] + sumPos) / sumNeg;
+        CanteraDouble factor = (-elMolesGoal[m_eloc] + sumPos) / sumNeg;
         if (m_loglevel > 0 && factor < 0.9999999999) {
             writelogf("adjustEloc: adjusted %s and friends from %g to %g to ensure neutrality condition\n",
                       s.speciesName(maxNegEloc),

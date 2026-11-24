@@ -91,24 +91,24 @@ bool IonFlow::componentActive(size_t n) const
     }
 }
 
-void IonFlow::updateTransport(span<const double> x, size_t j0, size_t j1)
+void IonFlow::updateTransport(span<const CanteraDouble> x, size_t j0, size_t j1)
 {
     Flow1D::updateTransport(x,j0,j1);
     for (size_t j = j0; j < j1; j++) {
         setGasAtMidpoint(x,j);
-        m_trans->getMobilities(span<double>(&m_mobility[j*m_nsp], m_nsp));
+        m_trans->getMobilities(span<CanteraDouble>(&m_mobility[j*m_nsp], m_nsp));
         if (m_import_electron_transport) {
             size_t k = m_kElectron;
-            double tlog = log(m_thermo->temperature());
+            CanteraDouble tlog = log(m_thermo->temperature());
             m_mobility[k+m_nsp*j] = poly5(tlog, m_mobi_e_fix);
-            double rho = m_thermo->density();
-            double wtm = m_thermo->meanMolecularWeight();
+            CanteraDouble rho = m_thermo->density();
+            CanteraDouble wtm = m_thermo->meanMolecularWeight();
             m_diff[k+m_nsp*j] = m_wt[k]*rho*poly5(tlog, m_diff_e_fix)/wtm;
         }
     }
 }
 
-void IonFlow::updateDiffFluxes(span<const double> x, size_t j0, size_t j1)
+void IonFlow::updateDiffFluxes(span<const CanteraDouble> x, size_t j0, size_t j1)
 {
     if (m_do_electric_field) {
         electricFieldMethod(x,j0,j1);
@@ -117,11 +117,11 @@ void IonFlow::updateDiffFluxes(span<const double> x, size_t j0, size_t j1)
     }
 }
 
-void IonFlow::frozenIonMethod(span<const double> x, size_t j0, size_t j1)
+void IonFlow::frozenIonMethod(span<const CanteraDouble> x, size_t j0, size_t j1)
 {
     for (size_t j = j0; j < j1; j++) {
-        double dz = z(j+1) - z(j);
-        double sum = 0.0;
+        CanteraDouble dz = z(j+1) - z(j);
+        CanteraDouble sum = 0.0;
         for (size_t k : m_kNeutral) {
             m_flux(k,j) = m_diff[k+m_nsp*j];
             m_flux(k,j) *= (X(x,k,j) - X(x,k,j+1))/dz;
@@ -142,11 +142,11 @@ void IonFlow::frozenIonMethod(span<const double> x, size_t j0, size_t j1)
     }
 }
 
-void IonFlow::electricFieldMethod(span<const double> x, size_t j0, size_t j1)
+void IonFlow::electricFieldMethod(span<const CanteraDouble> x, size_t j0, size_t j1)
 {
     for (size_t j = j0; j < j1; j++) {
-        double rho = density(j);
-        double dz = z(j+1) - z(j);
+        CanteraDouble rho = density(j);
+        CanteraDouble dz = z(j+1) - z(j);
 
         // mixture-average diffusion
         for (size_t k = 0; k < m_nsp; k++) {
@@ -155,20 +155,20 @@ void IonFlow::electricFieldMethod(span<const double> x, size_t j0, size_t j1)
         }
 
         // ambipolar diffusion
-        double E_ambi = E(x,j);
+        CanteraDouble E_ambi = E(x,j);
         for (size_t k : m_kCharge) {
-            double Yav = 0.5 * (Y(x,k,j) + Y(x,k,j+1));
-            double drift = rho * Yav * E_ambi
+            CanteraDouble Yav = 0.5 * (Y(x,k,j) + Y(x,k,j+1));
+            CanteraDouble drift = rho * Yav * E_ambi
                            * m_speciesCharge[k] * m_mobility[k+m_nsp*j];
             m_flux(k,j) += drift;
         }
 
         // correction flux
-        double sum_flux = 0.0;
+        CanteraDouble sum_flux = 0.0;
         for (size_t k = 0; k < m_nsp; k++) {
             sum_flux -= m_flux(k,j); // total net flux
         }
-        double sum_ion = 0.0;
+        CanteraDouble sum_ion = 0.0;
         for (size_t k : m_kCharge) {
             sum_ion += Y(x,k,j);
         }
@@ -180,8 +180,8 @@ void IonFlow::electricFieldMethod(span<const double> x, size_t j0, size_t j1)
 }
 
 //! Evaluate the electric field equation residual
-void IonFlow::evalElectricField(span<const double> x, span<double> rsd, span<int> diag,
-                                double rdt, size_t jmin, size_t jmax)
+void IonFlow::evalElectricField(span<const CanteraDouble> x, span<CanteraDouble> rsd, span<int> diag,
+                                CanteraDouble rdt, size_t jmin, size_t jmax)
 {
     Flow1D::evalElectricField(x, rsd, diag, rdt, jmin, jmax);
     if (!m_do_electric_field) {
@@ -205,8 +205,8 @@ void IonFlow::evalElectricField(span<const double> x, span<double> rsd, span<int
     }
 }
 
-void IonFlow::evalSpecies(span<const double> x, span<double> rsd, span<int> diag,
-                          double rdt, size_t jmin, size_t jmax)
+void IonFlow::evalSpecies(span<const CanteraDouble> x, span<CanteraDouble> rsd, span<int> diag,
+                          CanteraDouble rdt, size_t jmin, size_t jmax)
 {
     Flow1D::evalSpecies(x, rsd, diag, rdt, jmin, jmax);
     if (!m_do_electric_field) {
@@ -247,13 +247,13 @@ void IonFlow::fixElectricField()
     m_do_electric_field = false;
 }
 
-void IonFlow::setElectronTransport(span<const double> tfix, span<const double> diff_e,
-                                   span<const double> mobi_e)
+void IonFlow::setElectronTransport(span<const CanteraDouble> tfix, span<const CanteraDouble> diff_e,
+                                   span<const CanteraDouble> mobi_e)
 {
     m_import_electron_transport = true;
     size_t degree = 5;
     size_t n = tfix.size();
-    vector<double> tlog;
+    vector<CanteraDouble> tlog;
     for (size_t i = 0; i < n; i++) {
         tlog.push_back(log(tfix[i]));
     }

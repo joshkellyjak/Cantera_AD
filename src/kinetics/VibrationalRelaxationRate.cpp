@@ -17,7 +17,7 @@ const string WhereSetContext =
 
 } // namespace
 
-void VibrationalRelaxationData::update(double T)
+void VibrationalRelaxationData::update(CanteraDouble T)
 {
     ReactionData::update(T);
     recipT13 = std::cbrt(recipT);
@@ -25,7 +25,7 @@ void VibrationalRelaxationData::update(double T)
 
 bool VibrationalRelaxationData::update(const ThermoPhase& phase, const Kinetics& kin)
 {
-    const double T = phase.temperature();
+    const CanteraDouble T = phase.temperature();
 
     if (T == temperature) {
         return false;
@@ -39,8 +39,8 @@ bool VibrationalRelaxationData::update(const ThermoPhase& phase, const Kinetics&
 VibrationalRelaxationRate::VibrationalRelaxationRate() = default;
 
 VibrationalRelaxationRate::VibrationalRelaxationRate(
-    double A, double b, double C0, double C13,
-    double Cm, double m, double Cn, double n)
+    CanteraDouble A, CanteraDouble b, CanteraDouble C0, CanteraDouble C13,
+    CanteraDouble Cm, CanteraDouble m, CanteraDouble Cn, CanteraDouble n)
     : m_A(A), m_b(b) , m_C0(C0), m_C13(C13), m_Cm(Cm),
     m_m(m), m_Cn(Cn), m_n(n)
 {
@@ -85,7 +85,7 @@ void VibrationalRelaxationRate::getPreExponentialFactor(
     }
 }
 
-double VibrationalRelaxationRate::ddTScaledFromStruct(
+CanteraDouble VibrationalRelaxationRate::ddTScaledFromStruct(
     const VibrationalRelaxationData& shared_data) const
 {
 

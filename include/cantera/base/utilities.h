@@ -93,7 +93,7 @@ inline auto dot5(const X& x, const Y& y)
  * @return The return is hard-coded to return a double.
  */
 template<class InputIter, class InputIter2>
-inline double dot(InputIter x_begin, InputIter x_end, InputIter2 y_begin)
+inline CanteraDouble dot(InputIter x_begin, InputIter x_end, InputIter2 y_begin)
 {
     return std::inner_product(x_begin, x_end, y_begin, 0.0);
 }
@@ -119,7 +119,7 @@ inline void scale(InputIter begin, InputIter end,
                   OutputIter out, S scale_factor)
 {
     std::transform(begin, end, out,
-        [scale_factor](double x) { return x * scale_factor; });
+        [scale_factor](CanteraDouble x) { return x * scale_factor; });
 }
 
 //! Templated evaluation of a polynomial of order 6
@@ -204,7 +204,7 @@ auto poly3(D x, const C& c)
 //! @}
 
 //! Check to see that a number is finite (not NaN, +Inf or -Inf)
-void checkFinite(const double tmp);
+void checkFinite(const CanteraDouble tmp);
 
 //! Check to see that all elements in an array are finite
 /*!
@@ -212,7 +212,7 @@ void checkFinite(const double tmp);
  * @param name    Name to be used in the exception message if the check fails
  * @param values  Array of values to be checked
  */
-void checkFinite(const string& name, span<const double> values);
+void checkFinite(const string& name, span<const CanteraDouble> values);
 
 //! Const accessor for a value in a map.
 /*

@@ -51,8 +51,8 @@ Nasa9PolyMultiTempRegion::Nasa9PolyMultiTempRegion(span<Nasa9Poly1*> regionPts)
     }
 }
 
-Nasa9PolyMultiTempRegion::Nasa9PolyMultiTempRegion(double tlow, double thigh, double pref,
-                                                   span<const double> coeffs)
+Nasa9PolyMultiTempRegion::Nasa9PolyMultiTempRegion(CanteraDouble tlow, CanteraDouble thigh, CanteraDouble pref,
+                                                   span<const CanteraDouble> coeffs)
     : SpeciesThermoInterpType(tlow, thigh, pref)
 {
     size_t regions = static_cast<size_t>(coeffs[0]);
@@ -79,7 +79,7 @@ Nasa9PolyMultiTempRegion::Nasa9PolyMultiTempRegion(double tlow, double thigh, do
     }
 }
 
-void Nasa9PolyMultiTempRegion::setParameters(const map<double, vector<double>>& regions)
+void Nasa9PolyMultiTempRegion::setParameters(const map<CanteraDouble, vector<CanteraDouble>>& regions)
 {
     m_regionPts.clear();
     m_lowerTempBounds.clear();
@@ -102,7 +102,7 @@ int Nasa9PolyMultiTempRegion::reportType() const
     return NASA9MULTITEMP;
 }
 
-void Nasa9PolyMultiTempRegion::updateTemperaturePoly(double T, span<double> T_poly) const
+void Nasa9PolyMultiTempRegion::updateTemperaturePoly(CanteraDouble T, span<CanteraDouble> T_poly) const
 {
     T_poly[0] = T;
     T_poly[1] = T * T;
@@ -113,8 +113,8 @@ void Nasa9PolyMultiTempRegion::updateTemperaturePoly(double T, span<double> T_po
     T_poly[6] = std::log(T);
 }
 
-void Nasa9PolyMultiTempRegion::updateProperties(span<const double> tt,
-        double& cp_R, double& h_RT, double& s_R) const
+void Nasa9PolyMultiTempRegion::updateProperties(span<const CanteraDouble> tt,
+        CanteraDouble& cp_R, CanteraDouble& h_RT, CanteraDouble& s_R) const
 {
     m_currRegion = 0;
     for (size_t i = 1; i < m_regionPts.size(); i++) {
@@ -127,8 +127,8 @@ void Nasa9PolyMultiTempRegion::updateProperties(span<const double> tt,
     m_regionPts[m_currRegion]->updateProperties(tt, cp_R, h_RT, s_R);
 }
 
-void Nasa9PolyMultiTempRegion::updatePropertiesTemp(const double temp,
-        double& cp_R, double& h_RT, double& s_R) const
+void Nasa9PolyMultiTempRegion::updatePropertiesTemp(const CanteraDouble temp,
+        CanteraDouble& cp_R, CanteraDouble& h_RT, CanteraDouble& s_R) const
 {
     // Now find the region
     m_currRegion = 0;
@@ -148,19 +148,19 @@ size_t Nasa9PolyMultiTempRegion::nCoeffs() const
 }
 
 void Nasa9PolyMultiTempRegion::reportParameters(size_t& n, int& type,
-        double& tlow, double& thigh, double& pref, span<double> coeffs) const
+        CanteraDouble& tlow, CanteraDouble& thigh, CanteraDouble& pref, span<CanteraDouble> coeffs) const
 {
     n = 0;
     type = NASA9MULTITEMP;
     tlow = m_lowT;
     thigh = m_highT;
     pref = m_Pref;
-    double ctmp[12];
-    coeffs[0] = double(m_regionPts.size());
+    CanteraDouble ctmp[12];
+    coeffs[0] = CanteraDouble(m_regionPts.size());
     int index = 1;
     size_t n_tmp = 0;
     int type_tmp = 0;
-    double pref_tmp = 0.0;
+    CanteraDouble pref_tmp = 0.0;
     for (size_t iReg = 0; iReg < m_regionPts.size(); iReg++) {
         m_regionPts[iReg]->reportParameters(
             n_tmp, type_tmp, coeffs[index], coeffs[index+1], pref_tmp, ctmp);
@@ -178,7 +178,7 @@ void Nasa9PolyMultiTempRegion::getParameters(AnyMap& thermo) const
     auto T_ranges = m_lowerTempBounds;
     T_ranges.push_back(m_highT);
     thermo["temperature-ranges"].setQuantity(T_ranges, "K");
-    thermo["data"] = vector<vector<double>>();
+    thermo["data"] = vector<vector<CanteraDouble>>();
     for (const auto& region : m_regionPts) {
         region->getParameters(thermo);
     }

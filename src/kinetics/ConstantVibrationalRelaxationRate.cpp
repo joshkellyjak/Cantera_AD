@@ -25,7 +25,7 @@ ConstantVibrationalRelaxationRate::
 }
 
 ConstantVibrationalRelaxationRate::
-    ConstantVibrationalRelaxationRate(double A)
+    ConstantVibrationalRelaxationRate(CanteraDouble A)
     : VibrationalRelaxationRate(A, 0.0, 0.0, 0.0, 0.0,
         2.0 / 3.0, 0.0, 1.0)
 {

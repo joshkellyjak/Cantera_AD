@@ -339,7 +339,7 @@ class CLibSourceGenerator(SourceGenerator):
         cxx_rtype = cxx_func.ret_type
         if cxx_rtype.endswith(("int", "size_t")):
             error = ["ERR", "ERR"]
-        elif cxx_rtype.endswith("double"):
+        elif cxx_rtype.endswith(("double", "CanteraDouble")):
             error = ["DERR", "DERR"]
         elif "shared_ptr" in cxx_rtype:
             error = ["-2", "ERR"]

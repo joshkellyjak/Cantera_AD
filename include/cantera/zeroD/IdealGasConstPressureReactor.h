@@ -28,12 +28,12 @@ public:
         return "IdealGasConstPressureReactor";
     }
 
-    void getState(span<double> y) override;
+    void getState(span<CanteraDouble> y) override;
 
-    void initialize(double t0=0.0) override;
-    void eval(double t, span<double> LHS, span<double> RHS) override;
-    void evalSteady(double t, span<double> LHS, span<double> RHS) override;
-    void updateState(span<const double> y) override;
+    void initialize(CanteraDouble t0=0.0) override;
+    void eval(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS) override;
+    void evalSteady(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS) override;
+    void updateState(span<const CanteraDouble> y) override;
     vector<size_t> initializeSteady() override;
 
     //! Return the index in the solution vector for this reactor of the
@@ -42,17 +42,17 @@ public:
     //! surface species.
     size_t componentIndex(const string& nm) const override;
     string componentName(size_t k) override;
-    double upperBound(size_t k) const override;
-    double lowerBound(size_t k) const override;
+    CanteraDouble upperBound(size_t k) const override;
+    CanteraDouble lowerBound(size_t k) const override;
 
 protected:
-    vector<double> m_hk; //!< Species molar enthalpies
+    vector<CanteraDouble> m_hk; //!< Species molar enthalpies
 
      //! Initial mass [kg]; used for steady-state calculations
-    double m_initialMass;
+    CanteraDouble m_initialMass;
 
     //! Initial temperature [K]; used for steady-state calculations
-    double m_initialTemperature;
+    CanteraDouble m_initialTemperature;
 };
 }
 

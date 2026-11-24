@@ -28,8 +28,8 @@ public:
     StarikovskiyVibrationalRelaxationRate() = default;
 
     explicit StarikovskiyVibrationalRelaxationRate(
-        double A, double b = 0.0, double C0 = 0.0, double C13 = 0.0, double Cm = 0.0,
-        double m = 1.0, double Cn = 0.0, double n = 1.0);
+        CanteraDouble A, CanteraDouble b = 0.0, CanteraDouble C0 = 0.0, CanteraDouble C13 = 0.0, CanteraDouble Cm = 0.0,
+        CanteraDouble m = 1.0, CanteraDouble Cn = 0.0, CanteraDouble n = 1.0);
 
     explicit StarikovskiyVibrationalRelaxationRate(
         const AnyMap& node, const UnitStack& rate_units = {});

@@ -25,8 +25,8 @@ CastelaVibrationalRelaxationRate::
 }
 
 CastelaVibrationalRelaxationRate::
-    CastelaVibrationalRelaxationRate(double a, double b,
-        double referencePressure)
+    CastelaVibrationalRelaxationRate(CanteraDouble a, CanteraDouble b,
+        CanteraDouble referencePressure)
 {
     if (referencePressure <= 0.0) {
         throw CanteraError(

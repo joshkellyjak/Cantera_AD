@@ -22,20 +22,20 @@ struct TwoTempPlasmaData : public ReactionData
     TwoTempPlasmaData() = default;
 
     bool update(const ThermoPhase& phase, const Kinetics& kin) override;
-    void update(double T) override;
-    void update(double T, double Te) override;
+    void update(CanteraDouble T) override;
+    void update(CanteraDouble T, CanteraDouble Te) override;
     using ReactionData::update;
 
-    virtual void updateTe(double Te);
+    virtual void updateTe(CanteraDouble Te);
 
     void invalidateCache() override {
         ReactionData::invalidateCache();
         electronTemp = NAN;
     }
 
-    double electronTemp = 1.0; //!< electron temperature
-    double logTe = 0.0; //!< logarithm of electron temperature
-    double recipTe = 1.0; //!< inverse of electron temperature
+    CanteraDouble electronTemp = 1.0; //!< electron temperature
+    CanteraDouble logTe = 0.0; //!< logarithm of electron temperature
+    CanteraDouble recipTe = 1.0; //!< inverse of electron temperature
 };
 
 //! Two temperature plasma reaction rate type depends on both
@@ -81,8 +81,8 @@ public:
      *      @f$ \exp(-T/T_\mathrm{inv}) @f$ [K]. If zero, this term is omitted.
      *      Defaults to 0.
      */
-    TwoTempPlasmaRate(double A, double b, double Ea=0.0, double EE=0.0, double bg=0.0,
-                      double Tinv=0.0);
+    TwoTempPlasmaRate(CanteraDouble A, CanteraDouble b, CanteraDouble Ea=0.0, CanteraDouble EE=0.0, CanteraDouble bg=0.0,
+                      CanteraDouble Tinv=0.0);
 
     //! Constructor based on an AnyMap object instead of all parameters directly.
     TwoTempPlasmaRate(const AnyMap& node, const UnitStack& rate_units={});
@@ -107,7 +107,7 @@ public:
     /*!
      *  @param shared_data  data shared by all reactions of a given type.
      */
-    double evalFromStruct(const TwoTempPlasmaData& shared_data) const {
+    CanteraDouble evalFromStruct(const TwoTempPlasmaData& shared_data) const {
         // m_E4_R is the electron activation energy in temperature units.
         return m_A * std::exp(m_bg * shared_data.logT
                        + m_b * shared_data.logTe
@@ -124,10 +124,10 @@ public:
      *  A corresponding warning is raised.
      *  @param shared_data  data shared by all reactions of a given type.
      */
-    double ddTScaledFromStruct(const TwoTempPlasmaData& shared_data) const;
+    CanteraDouble ddTScaledFromStruct(const TwoTempPlasmaData& shared_data) const;
 
     //! Return the electron activation energy *Ea* [J/kmol].
-    double activationElectronEnergy() const {
+    CanteraDouble activationElectronEnergy() const {
         return m_E4_R * GasConstant;
     }
 
@@ -136,14 +136,14 @@ protected:
     void getParameters(AnyMap& node) const override;
 
     //! Gas temperature exponent.
-    double m_bg = 0.0;
+    CanteraDouble m_bg = 0.0;
 
     //! Reciprocate of the temperature scale for the optional term
     //! @f$ \exp(-T/T_\mathrm{inv}) @f$.
     /*!
      * A value of zero disables this term.
      */
-    double m_recip_Tinv = 0.0;
+    CanteraDouble m_recip_Tinv = 0.0;
 };
 
 }

@@ -80,8 +80,8 @@ public:
 
     //! @name Molar Thermodynamic properties
     //! @{
-    double cp_mole() const override;
-    double cv_mole() const override;
+    CanteraDouble cp_mole() const override;
+    CanteraDouble cv_mole() const override;
     //! @}
     //! @name Mechanical Properties
     //! @{
@@ -96,7 +96,7 @@ public:
      *    P = \frac{RT}{v-b_{mix}} - \frac{a_{mix}}{T^{0.5} v \left( v + b_{mix} \right) }
      * @f]
      */
-    double pressure() const override;
+    CanteraDouble pressure() const override;
 
     //! @}
 
@@ -116,7 +116,7 @@ public:
      * @return
      *   Returns the standard Concentration in units of m3 kmol-1.
      */
-    double standardConcentration(size_t k=0) const override;
+    CanteraDouble standardConcentration(size_t k=0) const override;
 
     //! Get the array of non-dimensional activity coefficients at the current
     //! solution temperature, pressure, and solution concentration.
@@ -127,12 +127,12 @@ public:
      *
      * @param ac Output vector of activity coefficients. Length: m_kk.
      */
-    void getActivityCoefficients(span<double> ac) const override;
+    void getActivityCoefficients(span<CanteraDouble> ac) const override;
 
     //! @name  Partial Molar Properties of the Solution
     //! @{
 
-    void getChemPotentials(span<double> mu) const override;
+    void getChemPotentials(span<CanteraDouble> mu) const override;
 
     //! Return partial molar enthalpies @f$ \bar{h}_k @f$ (J/kmol).
     /*!
@@ -165,9 +165,9 @@ public:
      * S_k = 2T A'_k - 3A_k.
      * @f]
      */
-    void getPartialMolarEnthalpies(span<double> hbar) const override;
-    void getPartialMolarEntropies(span<double> sbar) const override;
-    void getPartialMolarIntEnergies(span<double> ubar) const override;
+    void getPartialMolarEnthalpies(span<CanteraDouble> hbar) const override;
+    void getPartialMolarEntropies(span<CanteraDouble> sbar) const override;
+    void getPartialMolarIntEnergies(span<CanteraDouble> ubar) const override;
 
     //! Get the species molar internal energies associated with the derivatives
     //! of total internal energy at constant volume [J/kmol].
@@ -186,7 +186,7 @@ public:
      * @f$ \bar{u}_k = \left(\partial U/\partial n_k\right)_{T,P,n_{j\ne k}} @f$
      * calculated by the getPartialMolarIntEnergies() method.
      */
-    void getPartialMolarIntEnergies_TV(span<double> utilde) const override;
+    void getPartialMolarIntEnergies_TV(span<CanteraDouble> utilde) const override;
 
     //! Get the partial molar heat capacities at constant pressure [J/kmol/K].
     /*!
@@ -250,7 +250,7 @@ public:
      * S_{k,T} \equiv \frac{dS_k}{dT}\Bigg|_{P,\mathbf{X}} = -A'_k.
      * @f]
      */
-    void getPartialMolarCp(span<double> cpbar) const override;
+    void getPartialMolarCp(span<CanteraDouble> cpbar) const override;
 
     //! Get the species molar heat capacities associated with the constant volume
     //! partial molar internal energies [J/kmol/K].
@@ -293,8 +293,8 @@ public:
      *     \left.\frac{\partial a}{\partial T}\right|_{\mathbf{X}}.
      * @f]
      */
-    void getPartialMolarCv_TV(span<double> cvtilde) const override;
-    void getPartialMolarVolumes(span<double> vbar) const override;
+    void getPartialMolarCv_TV(span<CanteraDouble> cvtilde) const override;
+    void getPartialMolarVolumes(span<CanteraDouble> vbar) const override;
     //! @}
 
 public:
@@ -323,7 +323,7 @@ public:
      *      "a" parameter of the specified species [Pa-m^6/kmol^2/K]
      *  @param b         "b" parameter in the Redlich-Kwong model [m^3/kmol]
      */
-    void setSpeciesCoeffs(const string& species, double a0, double a1, double b);
+    void setSpeciesCoeffs(const string& species, CanteraDouble a0, CanteraDouble a1, CanteraDouble b);
 
     //! Set values for the interaction parameter between two species
     /*!
@@ -341,23 +341,23 @@ public:
      *      [Pa-m^6/kmol^2/K]
      */
     void setBinaryCoeffs(const string& species_i,
-                         const string& species_j, double a0, double a1);
+                         const string& species_j, CanteraDouble a0, CanteraDouble a1);
     //! @}
 
 protected:
     // Special functions inherited from MixtureFugacityTP
-    double sresid() const override;
-    double hresid() const override;
+    CanteraDouble sresid() const override;
+    CanteraDouble hresid() const override;
 
 public:
-    double liquidVolEst(double T, double& pres) const override;
-    double densityCalc(double T, double pressure, int phase, double rhoguess) override;
-    double dpdVCalc(double T, double molarVol, double& presCalc) const override;
+    CanteraDouble liquidVolEst(CanteraDouble T, CanteraDouble& pres) const override;
+    CanteraDouble densityCalc(CanteraDouble T, CanteraDouble pressure, int phase, CanteraDouble rhoguess) override;
+    CanteraDouble dpdVCalc(CanteraDouble T, CanteraDouble molarVol, CanteraDouble& presCalc) const override;
 
-    double isothermalCompressibility() const override;
-    double thermalExpansionCoeff() const override;
-    double internalPressure() const override;
-    double soundSpeed() const override;
+    CanteraDouble isothermalCompressibility() const override;
+    CanteraDouble thermalExpansionCoeff() const override;
+    CanteraDouble internalPressure() const override;
+    CanteraDouble soundSpeed() const override;
 
     //! Calculate dpdV and dpdT at the current conditions
     /*!
@@ -382,16 +382,16 @@ public:
      * @param aCalc (output)  Returns the a value
      * @param bCalc (output)  Returns the b value.
      */
-    void calculateAB(double T, double& aCalc, double& bCalc) const;
+    void calculateAB(CanteraDouble T, CanteraDouble& aCalc, CanteraDouble& bCalc) const;
 
     // Special functions not inherited from MixtureFugacityTP
 
-    double da_dt() const;
+    CanteraDouble da_dt() const;
 
-    void calcCriticalConditions(double& pc, double& tc, double& vc) const override;
+    void calcCriticalConditions(CanteraDouble& pc, CanteraDouble& tc, CanteraDouble& vc) const override;
 
     //! Prepare variables and call the function to solve the cubic equation of state
-    int solveCubic(double T, double pres, double a, double b, span<double> Vroot) const;
+    int solveCubic(CanteraDouble T, CanteraDouble pres, CanteraDouble a, CanteraDouble b, span<CanteraDouble> Vroot) const;
 
 protected:
     //! Form of the temperature parameterization
@@ -405,13 +405,13 @@ protected:
     /*!
      *  `m_bMix` is a function of the temperature and the mole fraction.
      */
-    double m_bMix = 0.0;
+    CanteraDouble m_bMix = 0.0;
 
     //! Value of a in the equation of state
     /*!
      *  `m_aMix` is a function of the temperature and the mole fraction.
      */
-    double m_aMix = 0.0;
+    CanteraDouble m_aMix = 0.0;
 
     //! Current temperature-dependent value of @f$ a_{jk} @f$ for each species pair.
     //! Size #m_kk by #m_kk.
@@ -429,7 +429,7 @@ protected:
     Eigen::MatrixXd m_a1;
 
     //! Explicitly-specified binary interaction parameters
-    map<string, map<string, pair<double, double>>> m_binaryParameters;
+    map<string, map<string, pair<CanteraDouble, CanteraDouble>>> m_binaryParameters;
 
     enum class CoeffSource { EoS, CritProps, Database };
     //! For each species, specifies the source of the a and b coefficients
@@ -437,13 +437,13 @@ protected:
 
     int NSolns_ = 0;
 
-    double Vroot_[3] = {0.0, 0.0, 0.0};
+    CanteraDouble Vroot_[3] = {0.0, 0.0, 0.0};
 
     //! @f$ A_k = \sum_i X_i a_{ki} @f$. Length #m_kk.
     mutable Eigen::ArrayXd m_Ak;
 
     // Partial molar volumes of the species
-    mutable vector<double> m_partialMolarVolumes;
+    mutable vector<CanteraDouble> m_partialMolarVolumes;
 
     //! @f$ A'_k = dA_k/dT = \sum_i X_i a_{ki,1} @f$. Length #m_kk.
     mutable Eigen::ArrayXd m_dAkdT;
@@ -453,14 +453,14 @@ protected:
      * Calculated at the current conditions. temperature and mole number kept
      * constant
      */
-    mutable double dpdV_ = 0.0;
+    mutable CanteraDouble dpdV_ = 0.0;
 
     //! The derivative of the pressure wrt the temperature
     /*!
      *  Calculated at the current conditions. Total volume and mole number kept
      *  constant
      */
-    mutable double dpdT_ = 0.0;
+    mutable CanteraDouble dpdT_ = 0.0;
 
     //! Vector of derivatives of pressure wrt mole number
     /*!
@@ -474,13 +474,13 @@ private:
     /*!
      *  this was calculated from a small nonlinear solve
      */
-    static const double omega_a;
+    static const CanteraDouble omega_a;
 
     //! Omega constant for b
-    static const double omega_b;
+    static const CanteraDouble omega_b;
 
     //! Omega constant for the critical molar volume
-    static const double omega_vc;
+    static const CanteraDouble omega_vc;
 };
 }
 

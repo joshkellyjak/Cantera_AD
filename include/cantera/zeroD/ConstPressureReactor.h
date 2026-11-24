@@ -31,12 +31,12 @@ public:
         return "ConstPressureReactor";
     }
 
-    void getState(span<double> y) override;
-    void eval(double t, span<double> LHS, span<double> RHS) override;
-    void evalSteady(double t, span<double> LHS, span<double> RHS) override;
+    void getState(span<CanteraDouble> y) override;
+    void eval(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS) override;
+    void evalSteady(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS) override;
     vector<size_t> initializeSteady() override;
 
-    void updateState(span<const double> y) override;
+    void updateState(span<const CanteraDouble> y) override;
 
     //! Return the index in the solution vector for this reactor of the
     //! component named *nm*. Possible values for *nm* are "mass", "enthalpy",
@@ -44,12 +44,12 @@ public:
     //! species.
     size_t componentIndex(const string& nm) const override;
     string componentName(size_t k) override;
-    double upperBound(size_t k) const override;
-    double lowerBound(size_t k) const override;
-    void resetBadValues(span<double> y) override;
+    CanteraDouble upperBound(size_t k) const override;
+    CanteraDouble lowerBound(size_t k) const override;
+    void resetBadValues(span<CanteraDouble> y) override;
 
 protected:
-    double m_initialMass; //!< Initial mass [kg]; used for steady-state calculations
+    CanteraDouble m_initialMass; //!< Initial mass [kg]; used for steady-state calculations
 };
 
 }

@@ -152,7 +152,7 @@ public:
     //! @name  Molar Thermodynamic Properties
     //! @{
 
-    double cv_mole() const override;
+    CanteraDouble cv_mole() const override;
 
     //! @}
     //! @name Activities, Standard States, and Activity Concentrations
@@ -164,13 +164,13 @@ public:
     //! on temperature and pressure.
     //! @{
 
-    void getLnActivityCoefficients(span<double> lnac) const override;
+    void getLnActivityCoefficients(span<CanteraDouble> lnac) const override;
 
     //! @}
     //! @name  Partial Molar Properties of the Solution
     //! @{
 
-    void getChemPotentials(span<double> mu) const override;
+    void getChemPotentials(span<CanteraDouble> mu) const override;
 
     //! Returns an array of partial molar enthalpies for the species in the
     //! mixture.
@@ -188,7 +188,7 @@ public:
      * @param hbar  Vector of returned partial molar enthalpies
      *              (length m_kk, units = J/kmol)
      */
-    void getPartialMolarEnthalpies(span<double> hbar) const override;
+    void getPartialMolarEnthalpies(span<CanteraDouble> hbar) const override;
 
     //! Returns an array of partial molar entropies for the species in the
     //! mixture.
@@ -205,7 +205,7 @@ public:
      * @param sbar  Vector of returned partial molar entropies
      *              (length m_kk, units = J/kmol/K)
      */
-    void getPartialMolarEntropies(span<double> sbar) const override;
+    void getPartialMolarEntropies(span<CanteraDouble> sbar) const override;
 
     //! Returns an array of partial molar heat capacities for the species in the
     //! mixture.
@@ -223,12 +223,12 @@ public:
      * @param cpbar  Vector of returned partial molar heat capacities
      *              (length m_kk, units = J/kmol/K)
      */
-    void getPartialMolarCp(span<double> cpbar) const override;
+    void getPartialMolarCp(span<CanteraDouble> cpbar) const override;
 
-    void getPartialMolarVolumes(span<double> vbar) const override;
+    void getPartialMolarVolumes(span<CanteraDouble> vbar) const override;
     //! @}
 
-    void getdlnActCoeffdT(span<double> dlnActCoeffdT) const override;
+    void getdlnActCoeffdT(span<CanteraDouble> dlnActCoeffdT) const override;
 
     //! @name Initialization
     //!
@@ -248,16 +248,16 @@ public:
      * @param excess_entropy   coefficients of the excess entropy polynomial
      */
     void addBinaryInteraction(const string& speciesA, const string& speciesB,
-        span<const double> excess_enthalpy, span<const double> excess_entropy);
+        span<const CanteraDouble> excess_enthalpy, span<const CanteraDouble> excess_entropy);
 
     //! @name  Derivatives of Thermodynamic Variables needed for Applications
     //! @{
 
-    void getdlnActCoeffds(const double dTds, span<const double> dXds,
-                          span<double> dlnActCoeffds) const override;
-    void getdlnActCoeffdlnX_diag(span<double> dlnActCoeffdlnX_diag) const override;
-    void getdlnActCoeffdlnN_diag(span<double> dlnActCoeffdlnN_diag) const override;
-    void getdlnActCoeffdlnN(const size_t ld, span<double> const dlnActCoeffdlnN) override;
+    void getdlnActCoeffds(const CanteraDouble dTds, span<const CanteraDouble> dXds,
+                          span<CanteraDouble> dlnActCoeffds) const override;
+    void getdlnActCoeffdlnX_diag(span<CanteraDouble> dlnActCoeffdlnX_diag) const override;
+    void getdlnActCoeffdlnN_diag(span<CanteraDouble> dlnActCoeffdlnN_diag) const override;
+    void getdlnActCoeffdlnN(const size_t ld, span<CanteraDouble> const dlnActCoeffdlnN) override;
     //! @}
 
 private:
@@ -319,11 +319,11 @@ protected:
 
     //! Enthalpy term for the binary mole fraction interaction of the excess
     //! Gibbs free energy expression
-    vector<vector<double>> m_HE_m_ij;
+    vector<vector<CanteraDouble>> m_HE_m_ij;
 
     //! Entropy term for the binary mole fraction interaction of the excess
     //! Gibbs free energy expression
-    vector<vector<double>> m_SE_m_ij;
+    vector<vector<CanteraDouble>> m_SE_m_ij;
 
     //! Two dimensional array of derivatives of activity coefficients wrt mole
     //! fractions

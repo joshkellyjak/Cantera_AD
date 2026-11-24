@@ -51,9 +51,9 @@ public:
     //! @name Molar Thermodynamic Properties
     //! @{
 
-    double enthalpy_mole() const override;
-    double entropy_mole() const override;
-    double cp_mole() const override;
+    CanteraDouble enthalpy_mole() const override;
+    CanteraDouble entropy_mole() const override;
+    CanteraDouble cp_mole() const override;
 
     //! Molar heat capacity at constant volume.
     //!
@@ -64,13 +64,13 @@ public:
     //!
     //! If all species have pressure-independent standard state volumes
     //! (@f$ \kappa_T = 0 @f$), then @f$ c_v = c_p @f$.
-    double cv_mole() const override;
+    CanteraDouble cv_mole() const override;
 
     //! @}
     //! @name Mechanical Properties
     //! @{
 
-    void setPressure(double p) override;
+    void setPressure(CanteraDouble p) override;
 
     //! Isothermal compressibility of the mixture.
     /*!
@@ -83,7 +83,7 @@ public:
      * phases where all species have pressure-independent standard state volumes,
      * returns zero.
      */
-    double isothermalCompressibility() const override;
+    CanteraDouble isothermalCompressibility() const override;
 
     //! Thermal expansion coefficient of the mixture.
     /*!
@@ -94,7 +94,7 @@ public:
      * @f]
      * using the species standard state volume derivatives from each PDSS object.
      */
-    double thermalExpansionCoeff() const override;
+    CanteraDouble thermalExpansionCoeff() const override;
 
 protected:
     void calcDensity() override;
@@ -102,7 +102,7 @@ protected:
 
 public:
     Units standardConcentrationUnits() const override;
-    void getActivityConcentrations(span<double> c) const override;
+    void getActivityConcentrations(span<CanteraDouble> c) const override;
 
     //! Returns the standard concentration @f$ C^0_k @f$, which is used to
     //! normalize the generalized concentration.
@@ -116,20 +116,20 @@ public:
      * @return
      *   Returns the standard Concentration in units of m3 kmol-1.
      */
-    double standardConcentration(size_t k=0) const override;
+    CanteraDouble standardConcentration(size_t k=0) const override;
 
-    void getActivityCoefficients(span<double> ac) const override;
+    void getActivityCoefficients(span<CanteraDouble> ac) const override;
 
 
     //! @name  Partial Molar Properties of the Solution
     //! @{
 
-    void getChemPotentials(span<double> mu) const override;
-    void getPartialMolarEnthalpies(span<double> hbar) const override;
-    void getPartialMolarEntropies(span<double> sbar) const override;
-    void getPartialMolarIntEnergies(span<double> ubar) const override;
-    void getPartialMolarCp(span<double> cpbar) const override;
-    void getPartialMolarVolumes(span<double> vbar) const override;
+    void getChemPotentials(span<CanteraDouble> mu) const override;
+    void getPartialMolarEnthalpies(span<CanteraDouble> hbar) const override;
+    void getPartialMolarEntropies(span<CanteraDouble> sbar) const override;
+    void getPartialMolarIntEnergies(span<CanteraDouble> ubar) const override;
+    void getPartialMolarCp(span<CanteraDouble> cpbar) const override;
+    void getPartialMolarVolumes(span<CanteraDouble> vbar) const override;
     //! @}
 
 public:
@@ -144,7 +144,7 @@ public:
     bool addSpecies(shared_ptr<Species> spec) override;
     void initThermo() override;
     void getParameters(AnyMap& phaseNode) const override;
-    void setToEquilState(span<const double> lambda_RT) override;
+    void setToEquilState(span<const CanteraDouble> lambda_RT) override;
 
     //! @}
 
@@ -158,7 +158,7 @@ protected:
     int m_formGC = 0;
 
     //! Temporary storage - length = m_kk.
-    vector<double> m_pp;
+    vector<CanteraDouble> m_pp;
 };
 }
 

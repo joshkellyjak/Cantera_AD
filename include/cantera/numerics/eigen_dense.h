@@ -33,7 +33,7 @@ typedef Eigen::Map<const Eigen::RowVectorXd> ConstMappedRowVector;
 //! @}
 
 template<class Derived>
-concept EigenDenseDouble = std::same_as<typename Derived::Scalar, double>;
+concept EigenDenseDouble = std::same_as<typename Derived::Scalar, CanteraDouble>;
 
 // Require a 1D type with contiguous storage
 template<class Derived>
@@ -43,39 +43,39 @@ concept EigenVectorLike = EigenDenseDouble<Derived>
 //! Convenience wrapper for accessing Eigen vector/array/map data as a span
 //! @todo Remove once %Cantera requires Eigen 5.0 or newer.
 template<EigenVectorLike Derived>
-inline span<double> asSpan(Eigen::DenseBase<Derived>& v)
+inline span<CanteraDouble> asSpan(Eigen::DenseBase<Derived>& v)
 {
-    return span<double>(v.derived().data(), v.size());
+    return span<CanteraDouble>(v.derived().data(), v.size());
 }
 
 //! Convenience wrapper for accessing Eigen vector/array/map data as a span
 //! @todo Remove once %Cantera requires Eigen 5.0 or newer.
 template<EigenVectorLike Derived>
-inline span<const double> asSpan(const Eigen::DenseBase<Derived>& v)
+inline span<const CanteraDouble> asSpan(const Eigen::DenseBase<Derived>& v)
 {
-    return span<const double>(v.derived().data(), v.size());
+    return span<const CanteraDouble>(v.derived().data(), v.size());
 }
 
 //! Convenience wrapper for accessing std::vector as an Eigen VectorXd
-inline MappedVector asVectorXd(vector<double>& v)
+inline MappedVector asVectorXd(vector<CanteraDouble>& v)
 {
     return MappedVector(v.data(), static_cast<Eigen::Index>(v.size()));
 }
 
 //! Convenience wrapper for accessing std::vector as an Eigen VectorXd
-inline ConstMappedVector asVectorXd(const vector<double>& v)
+inline ConstMappedVector asVectorXd(const vector<CanteraDouble>& v)
 {
     return ConstMappedVector(v.data(), static_cast<Eigen::Index>(v.size()));
 }
 
 //! Convenience wrapper for accessing std::span as an Eigen VectorXd
-inline MappedVector asVectorXd(span<double> v)
+inline MappedVector asVectorXd(span<CanteraDouble> v)
 {
     return MappedVector(v.data(), static_cast<Eigen::Index>(v.size()));
 }
 
 //! Convenience wrapper for accessing std::span as an Eigen VectorXd
-inline ConstMappedVector asVectorXd(span<const double> v)
+inline ConstMappedVector asVectorXd(span<const CanteraDouble> v)
 {
     return ConstMappedVector(v.data(), static_cast<Eigen::Index>(v.size()));
 }

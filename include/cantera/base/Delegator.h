@@ -124,7 +124,7 @@ public:
     }
 
     //! set delegates for member functions with the signature `void(double)`
-    void setDelegate(const string& name, const function<void(double)>& func,
+    void setDelegate(const string& name, const function<void(CanteraDouble)>& func,
                      const string& when)
     {
         if (!m_funcs_v_d.count(name)) {
@@ -175,7 +175,7 @@ public:
 
     //! Set delegates for member functions with the signature `void(span<double>)`
     void setDelegate(const string& name,
-                     const function<void(span<double>)>& func,
+                     const function<void(span<CanteraDouble>)>& func,
                      const string& when)
     {
         if (!m_funcs_v_dp.count(name)) {
@@ -189,7 +189,7 @@ public:
     //! `void(double, span<double>)`
     void setDelegate(
         const string& name,
-        const function<void(double, span<double>)>& func,
+        const function<void(CanteraDouble, span<CanteraDouble>)>& func,
         const string& when)
     {
         if (!m_funcs_v_d_dp.count(name)) {
@@ -204,7 +204,7 @@ public:
     //! `void(double, span<double>, span<double>)`
     void setDelegate(
         const string& name,
-        const function<void(double, span<double>, span<double>)>& func,
+        const function<void(CanteraDouble, span<CanteraDouble>, span<CanteraDouble>)>& func,
         const string& when)
     {
         if (!m_funcs_v_d_dp_dp.count(name)) {
@@ -219,7 +219,7 @@ public:
     //! `void(span<double>, span<double>, span<double>)`
     void setDelegate(
         const string& name,
-        const function<void(span<double>, span<double>, span<double>)>& func,
+        const function<void(span<CanteraDouble>, span<CanteraDouble>, span<CanteraDouble>)>& func,
         const string& when)
     {
         if (!m_funcs_v_dp_dp_dp.count(name)) {
@@ -232,7 +232,7 @@ public:
 
     //! set delegates for member functions with the signature `double(void*)`
     void setDelegate(const string& name,
-                     const function<int(double&, void*)>& func,
+                     const function<int(CanteraDouble&, void*)>& func,
                      const string& when)
     {
         if (!m_funcs_d_vp.count(name)) {
@@ -257,7 +257,7 @@ public:
 
     //! Set delegates for member functions with the signature `double(size_t)`
     void setDelegate(const string& name,
-                     const function<int(double&, size_t)>& func,
+                     const function<int(CanteraDouble&, size_t)>& func,
                      const string& when)
     {
         if (!m_funcs_d_sz.count(name)) {
@@ -330,8 +330,8 @@ protected:
     }
 
     //! Install a function with the signature `void(double)` as being delegatable
-    void install(const string& name, function<void(double)>& target,
-                 const function<void(double)>& func)
+    void install(const string& name, function<void(CanteraDouble)>& target,
+                 const function<void(CanteraDouble)>& func)
     {
         target = func;
         m_funcs_v_d[name] = &target;
@@ -366,8 +366,8 @@ protected:
 
     //! Install a function with the signature `void(span<double>)` as being delegatable
     void install(const string& name,
-                 function<void(span<double>)>& target,
-                 const function<void(span<double>)>& func)
+                 function<void(span<CanteraDouble>)>& target,
+                 const function<void(span<CanteraDouble>)>& func)
     {
         target = func;
         m_funcs_v_dp[name] = &target;
@@ -375,8 +375,8 @@ protected:
 
     //! Install a function with the signature `void(double, span<double>)` as being delegatable
     void install(const string& name,
-                 function<void(double, span<double>)>& target,
-                 const function<void(double, span<double>)>& func)
+                 function<void(CanteraDouble, span<CanteraDouble>)>& target,
+                 const function<void(CanteraDouble, span<CanteraDouble>)>& func)
     {
         target = func;
         m_funcs_v_d_dp[name] = &target;
@@ -385,8 +385,8 @@ protected:
     //! Install a function with the signature `void(double, span<double>, span<double>)`
     //! as being delegatable
     void install(const string& name,
-                 function<void(double, span<double>, span<double>)>& target,
-                 const function<void(double, span<double>, span<double>)>& func)
+                 function<void(CanteraDouble, span<CanteraDouble>, span<CanteraDouble>)>& target,
+                 const function<void(CanteraDouble, span<CanteraDouble>, span<CanteraDouble>)>& func)
     {
         target = func;
         m_funcs_v_d_dp_dp[name] = &target;
@@ -395,16 +395,16 @@ protected:
     //! Install a function with the signature
     //! `void(span<double>, span<double>, span<double>)` as being delegatable
     void install(const string& name,
-                 function<void(span<double>, span<double>, span<double>)>& target,
-                 const function<void(span<double>, span<double>, span<double>)>& base)
+                 function<void(span<CanteraDouble>, span<CanteraDouble>, span<CanteraDouble>)>& target,
+                 const function<void(span<CanteraDouble>, span<CanteraDouble>, span<CanteraDouble>)>& base)
     {
         target = base;
         m_funcs_v_dp_dp_dp[name] = &target;
     }
 
     //! Install a function with the signature `double(void*)` as being delegatable
-    void install(const string& name, function<double(void*)>& target,
-                 const function<double(void*)>& func)
+    void install(const string& name, function<CanteraDouble(void*)>& target,
+                 const function<CanteraDouble(void*)>& func)
     {
         target = func;
         m_funcs_d_vp[name] = &target;
@@ -422,8 +422,8 @@ protected:
 
     //! Install a function with the signature `double(size_t)` as being delegatable
     void install(const string& name,
-                 function<double(size_t)>& target,
-                 const function<double(size_t)>& base)
+                 function<CanteraDouble(size_t)>& target,
+                 const function<CanteraDouble(size_t)>& base)
     {
         target = base;
         m_funcs_d_sz[name] = &target;
@@ -534,8 +534,8 @@ protected:
 
     //! Helper to remove const for cases where the delegated function signature uses
     //! `span<const double>`.
-    span<double> stripConst(const span<const double>& s) {
-        return span<double>(const_cast<double*>(s.data()), s.size());
+    span<CanteraDouble> stripConst(const span<const CanteraDouble>& s) {
+        return span<CanteraDouble>(const_cast<CanteraDouble*>(s.data()), s.size());
     }
 
     //! @name Containers for delegates and base class implementations.
@@ -566,29 +566,29 @@ protected:
     // Delegates with no return value
     map<string, function<void()>*> m_funcs_v;
     map<string, function<void(bool)>*> m_funcs_v_b;
-    map<string, function<void(double)>*> m_funcs_v_d;
+    map<string, function<void(CanteraDouble)>*> m_funcs_v_d;
     map<string, function<void(AnyMap&)>*> m_funcs_v_AMr;
     map<string, function<void(const AnyMap&, const UnitStack&)>*> m_funcs_v_cAMr_cUSr;
     map<string, function<void(const string&, void*)>*> m_funcs_v_csr_vp;
-    map<string, function<void(span<double>)>*> m_funcs_v_dp;
-    map<string, function<void(double, span<double>)>*> m_funcs_v_d_dp;
+    map<string, function<void(span<CanteraDouble>)>*> m_funcs_v_dp;
+    map<string, function<void(CanteraDouble, span<CanteraDouble>)>*> m_funcs_v_d_dp;
     map<string,
-        function<void(double, span<double>, span<double>)>*> m_funcs_v_d_dp_dp;
+        function<void(CanteraDouble, span<CanteraDouble>, span<CanteraDouble>)>*> m_funcs_v_d_dp_dp;
     map<string,
-        function<void(span<double>, span<double>, span<double>)>*> m_funcs_v_dp_dp_dp;
+        function<void(span<CanteraDouble>, span<CanteraDouble>, span<CanteraDouble>)>*> m_funcs_v_dp_dp_dp;
     map<string, function<void(SparseTriplets&)>*> m_funcs_v_vET;
 
     // Delegates with a return value
-    map<string, function<double(void*)>> m_base_d_vp;
-    map<string, function<double(void*)>*> m_funcs_d_vp;
+    map<string, function<CanteraDouble(void*)>> m_base_d_vp;
+    map<string, function<CanteraDouble(void*)>*> m_funcs_d_vp;
 
     // Delegates with a return value of type string
     map<string, function<string(size_t)>> m_base_s_sz;
     map<string, function<string(size_t)>*> m_funcs_s_sz;
 
     // Delegates with a return value of type double
-    map<string, function<double(size_t)>> m_base_d_sz;
-    map<string, function<double(size_t)>*> m_funcs_d_sz;
+    map<string, function<CanteraDouble(size_t)>> m_base_d_sz;
+    map<string, function<CanteraDouble(size_t)>*> m_funcs_d_sz;
 
     map<string, function<size_t(const string&)>> m_base_sz_csr;
     map<string, function<size_t(const string&)>*> m_funcs_sz_csr;

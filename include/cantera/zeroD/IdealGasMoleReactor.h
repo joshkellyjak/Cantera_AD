@@ -28,18 +28,18 @@ public:
 
     size_t componentIndex(const string& nm) const override;
     string componentName(size_t k) override;
-    double upperBound(size_t k) const override;
-    double lowerBound(size_t k) const override;
+    CanteraDouble upperBound(size_t k) const override;
+    CanteraDouble lowerBound(size_t k) const override;
     vector<size_t> initializeSteady() override;
 
-    void getState(span<double> y) override;
+    void getState(span<CanteraDouble> y) override;
 
-    void initialize(double t0=0.0) override;
+    void initialize(CanteraDouble t0=0.0) override;
 
-    void eval(double t, span<double> LHS, span<double> RHS) override;
-    void evalSteady(double t, span<double> LHS, span<double> RHS) override;
+    void eval(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS) override;
+    void evalSteady(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS) override;
 
-    void updateState(span<const double> y) override;
+    void updateState(span<const CanteraDouble> y) override;
 
     //! Calculate an approximate Jacobian to accelerate preconditioned solvers
 
@@ -47,27 +47,27 @@ public:
     //! fully-dense Jacobian. Connector terms are included for supported flow devices
     //! and walls, subject to derivative settings that control sparse approximations.
     void getJacobianElements(SparseTriplets& trips) override;
-    void getJacobianScalingFactors(double& f_species, span<double> f_energy) override;
+    void getJacobianScalingFactors(CanteraDouble& f_species, span<CanteraDouble> f_energy) override;
     void addPressureJacobian(SparseTriplets& trips, size_t row,
-                             double coeff, bool includeSpecies=true) const override;
+                             CanteraDouble coeff, bool includeSpecies=true) const override;
     void addTemperatureJacobian(SparseTriplets& trips, size_t row,
-                                double coeff) const override;
+                                CanteraDouble coeff) const override;
     void addSpeciesMassFractionJacobian(SparseTriplets& trips, size_t row, size_t k,
-                                        double coeff) const override;
-    void addEnthalpyJacobian(SparseTriplets& trips, size_t row, double coeff,
+                                        CanteraDouble coeff) const override;
+    void addEnthalpyJacobian(SparseTriplets& trips, size_t row, CanteraDouble coeff,
                              bool includeComposition=true) const override;
 
     bool preconditionerSupported() const override {return true;};
 
 protected:
-    vector<double> m_uk; //!< Species molar internal energies
-    double m_TotalCv; //!< Total heat capacity (@f$ m c_v @f$) [J/K]
+    vector<CanteraDouble> m_uk; //!< Species molar internal energies
+    CanteraDouble m_TotalCv; //!< Total heat capacity (@f$ m c_v @f$) [J/K]
 
      //! Initial volume [m³]; used for steady-state calculations
-    double m_initialVolume;
+    CanteraDouble m_initialVolume;
 
      //! Initial temperature [K]; used for steady-state calculations
-    double m_initialTemperature;
+    CanteraDouble m_initialTemperature;
 };
 
 }

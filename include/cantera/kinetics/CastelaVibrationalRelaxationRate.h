@@ -35,8 +35,8 @@ class CastelaVibrationalRelaxationRate final
 public:
     CastelaVibrationalRelaxationRate() = default;
 
-    CastelaVibrationalRelaxationRate(double a, double b,
-        double referencePressure = OneAtm);
+    CastelaVibrationalRelaxationRate(CanteraDouble a, CanteraDouble b,
+        CanteraDouble referencePressure = OneAtm);
 
     explicit CastelaVibrationalRelaxationRate(
         const AnyMap& node, const UnitStack& rate_units = {});
@@ -58,13 +58,13 @@ public:
 
 private:
     //! Castela coefficient a.
-    double m_castela_a = 0.0;
+    CanteraDouble m_castela_a = 0.0;
 
     //! Castela coefficient b.
-    double m_castela_b = 0.0;
+    CanteraDouble m_castela_b = 0.0;
 
     //! Reference pressure.
-    double m_referencePressure = OneAtm;
+    CanteraDouble m_referencePressure = OneAtm;
 
 protected:
     void getRateParameters(AnyMap& rateNode) const override;

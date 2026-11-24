@@ -34,7 +34,7 @@ public:
     }
 
     //! Mass flow rate (kg/s).
-    double massFlowRate() {
+    CanteraDouble massFlowRate() {
         if (m_mdot == Undef) {
             throw CanteraError("FlowDevice::massFlowRate",
                                "Flow device is not ready. Try initializing the reactor network.");
@@ -45,10 +45,10 @@ public:
 
     //! Update the mass flow rate at time 'time'.
     //! This must be overloaded in derived classes to update m_mdot.
-    virtual void updateMassFlowRate(double time) {}
+    virtual void updateMassFlowRate(CanteraDouble time) {}
 
     //! Set the fixed mass flow rate (kg/s) through a flow device.
-    virtual void setMassFlowRate(double mdot) {
+    virtual void setMassFlowRate(CanteraDouble mdot) {
         throw NotImplementedError("FlowDevice::setMassFlowRate");
     }
 
@@ -58,19 +58,19 @@ public:
     //! indicates that pressure coupling does not contribute Jacobian entries.
     //!
     //! @since New in %Cantera 4.0.
-    virtual double massFlowRate_ddP() const {
+    virtual CanteraDouble massFlowRate_ddP() const {
         return 0.0;
     }
 
     //! Get the device coefficient (defined by derived class).
     //! @since  New in %Cantera 3.2.
-    double deviceCoefficient() const {
+    CanteraDouble deviceCoefficient() const {
         return m_coeff;
     }
 
     //! Set the device coefficient (defined by derived class).
     //! @since  New in %Cantera 3.2.
-    void setDeviceCoefficient(double c) {
+    void setDeviceCoefficient(CanteraDouble c) {
         m_coeff = c;
     }
 
@@ -82,7 +82,7 @@ public:
 
     //! Mass flow rate (kg/s) of outlet species k. Returns zero if this species
     //! is not present in the upstream mixture.
-    double outletSpeciesMassFlowRate(size_t k);
+    CanteraDouble outletSpeciesMassFlowRate(size_t k);
 
     //! Add Jacobian terms proportional to derivatives of the mass flow rate.
     //!
@@ -101,7 +101,7 @@ public:
     //!     may be dense and are controlled by preconditioner sparsity settings.
     //! @since New in %Cantera 4.0.
     virtual void addMassFlowRateJacobian(SparseTriplets& trips, size_t row,
-        double coeff, bool includePressureSpecies=true);
+        CanteraDouble coeff, bool includePressureSpecies=true);
 
     //! Add Jacobian terms proportional to derivatives of
     //! `outletSpeciesMassFlowRate(k)`.
@@ -120,7 +120,7 @@ public:
     //!     species state variables when pressure is a derived quantity.
     //! @since New in %Cantera 4.0.
     void addOutletSpeciesMassFlowRateJacobian(
-        SparseTriplets& trips, size_t row, size_t k, double coeff,
+        SparseTriplets& trips, size_t row, size_t k, CanteraDouble coeff,
         bool includeComposition=true, bool includePressureSpecies=true);
 
     //! Add Jacobian terms for the inlet enthalpy dependence on upstream state.
@@ -136,11 +136,11 @@ public:
     //!     to upstream species moles. These terms add composition-mediated fill-in and
     //!     are controlled by preconditioner sparsity settings.
     //! @since New in %Cantera 4.0.
-    void addInletEnthalpyJacobian(SparseTriplets& trips, size_t row, double coeff,
+    void addInletEnthalpyJacobian(SparseTriplets& trips, size_t row, CanteraDouble coeff,
                                    bool includeComposition=true);
 
     //! specific enthalpy
-    double enthalpy_mass();
+    CanteraDouble enthalpy_mass();
 
     virtual bool ready() {
         return (m_in != 0 && m_out != 0);
@@ -169,7 +169,7 @@ public:
      * The calculation of mass flow rate depends to the flow device.
      * @since New in %Cantera 3.0.
      */
-    double evalPressureFunction();
+    CanteraDouble evalPressureFunction();
 
     //! Set a function of pressure to modify the pressure response.
     //! Set a function of pressure that is used in determining the
@@ -187,7 +187,7 @@ public:
      * The calculation of mass flow rate depends on the flow device.
      * @since New in %Cantera 3.0.
      */
-    double evalTimeFunction();
+    CanteraDouble evalTimeFunction();
 
     //! Set a function of time to modulate the mass flow rate.
     //! Set a function of time that is used in determining
@@ -202,7 +202,7 @@ public:
     /*!
      * @since New in %Cantera 3.0.
      */
-    void setSimTime(double time) {
+    void setSimTime(CanteraDouble time) {
         m_time = time;
     }
 
@@ -210,9 +210,9 @@ protected:
     //! Return the derivative of the pressure function at `deltaP`.
     //! @param deltaP  Pressure difference `P_in - P_out` [Pa].
     //! @since New in %Cantera 4.0.
-    double pressureFunction_ddP(double deltaP) const;
+    CanteraDouble pressureFunction_ddP(CanteraDouble deltaP) const;
 
-    double m_mdot = Undef;
+    CanteraDouble m_mdot = Undef;
 
     //! Function set by setPressureFunction; used by updateMassFlowRate
     shared_ptr<Func1> m_pfunc;
@@ -221,10 +221,10 @@ protected:
     shared_ptr<Func1> m_tfunc;
 
     //! Coefficient set by derived classes; used by updateMassFlowRate
-    double m_coeff = 1.0;
+    CanteraDouble m_coeff = 1.0;
 
     //! Current reactor network time
-    double m_time = 0.;
+    CanteraDouble m_time = 0.;
 
 private:
     size_t m_nspin = 0;

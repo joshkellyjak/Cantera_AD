@@ -60,24 +60,24 @@ public:
      *                  coeffs]. This is the coefficient order used in the
      *                  standard NASA format.
      */
-    NasaPoly2(double tlow, double thigh, double pref, span<const double> coeffs) :
+    NasaPoly2(CanteraDouble tlow, CanteraDouble thigh, CanteraDouble pref, span<const CanteraDouble> coeffs) :
         SpeciesThermoInterpType(tlow, thigh, pref),
         m_midT(coeffs[0]),
         mnp_low(tlow, coeffs[0], pref, coeffs.subspan(8, 7)),
         mnp_high(coeffs[0], thigh, pref, coeffs.subspan(1, 7)) {
     }
 
-    void setMinTemp(double Tmin) override {
+    void setMinTemp(CanteraDouble Tmin) override {
         SpeciesThermoInterpType::setMinTemp(Tmin);
         mnp_low.setMinTemp(Tmin);
     }
 
-    void setMaxTemp(double Tmax) override {
+    void setMaxTemp(CanteraDouble Tmax) override {
         SpeciesThermoInterpType::setMaxTemp(Tmax);
         mnp_high.setMaxTemp(Tmax);
     }
 
-    void setRefPressure(double Pref) override {
+    void setRefPressure(CanteraDouble Pref) override {
         SpeciesThermoInterpType::setRefPressure(Pref);
         mnp_low.setRefPressure(Pref);
         mnp_high.setRefPressure(Pref);
@@ -89,7 +89,7 @@ public:
      * @param low   Vector of 7 coefficients for the low temperature polynomial
      * @param high  Vector of 7 coefficients for the high temperature polynomial
      */
-    void setParameters(double Tmid, span<const double> low, span<const double> high);
+    void setParameters(CanteraDouble Tmid, span<const CanteraDouble> low, span<const CanteraDouble> high);
 
     int reportType() const override {
         return NASA2;
@@ -97,13 +97,13 @@ public:
 
     size_t temperaturePolySize() const override { return 6; }
 
-    void updateTemperaturePoly(double T, span<double> T_poly) const override {
+    void updateTemperaturePoly(CanteraDouble T, span<CanteraDouble> T_poly) const override {
         mnp_low.updateTemperaturePoly(T, T_poly);
     }
 
     //! @copydoc NasaPoly1::updateProperties
-    void updateProperties(span<const double> tt, double& cp_R, double& h_RT,
-                          double& s_R) const override {
+    void updateProperties(span<const CanteraDouble> tt, CanteraDouble& cp_R, CanteraDouble& h_RT,
+                          CanteraDouble& s_R) const override {
         if (tt[0] <= m_midT) {
             mnp_low.updateProperties(tt, cp_R, h_RT, s_R);
         } else {
@@ -111,8 +111,8 @@ public:
         }
     }
 
-    void updatePropertiesTemp(const double temp, double& cp_R, double& h_RT,
-                              double& s_R) const override {
+    void updatePropertiesTemp(const CanteraDouble temp, CanteraDouble& cp_R, CanteraDouble& h_RT,
+                              CanteraDouble& s_R) const override {
         if (temp <= m_midT) {
             mnp_low.updatePropertiesTemp(temp, cp_R, h_RT, s_R);
         } else {
@@ -122,8 +122,8 @@ public:
 
     size_t nCoeffs() const override { return 15; }
 
-    void reportParameters(size_t& n, int& type, double& tlow, double& thigh,
-                          double& pref, span<double> coeffs) const override {
+    void reportParameters(size_t& n, int& type, CanteraDouble& tlow, CanteraDouble& thigh,
+                          CanteraDouble& pref, span<CanteraDouble> coeffs) const override {
         mnp_high.reportParameters(n, type, coeffs[0], thigh, pref, coeffs.subspan(1));
         mnp_low.reportParameters(n, type, tlow, coeffs[0], pref, coeffs.subspan(8));
         type = NASA2;
@@ -131,7 +131,7 @@ public:
 
     void getParameters(AnyMap& thermo) const override;
 
-    double reportHf298() const override {
+    CanteraDouble reportHf298() const override {
         if (298.15 <= m_midT) {
             return mnp_low.reportHf298();
         } else {
@@ -144,11 +144,11 @@ public:
         mnp_high.resetHf298();
     }
 
-    void modifyOneHf298(const size_t k, const double Hf298New) override {
-        double h298now = reportHf298();
-        double delH = Hf298New - h298now;
-        double h = mnp_low.reportHf298();
-        double hnew = h + delH;
+    void modifyOneHf298(const size_t k, const CanteraDouble Hf298New) override {
+        CanteraDouble h298now = reportHf298();
+        CanteraDouble delH = Hf298New - h298now;
+        CanteraDouble h = mnp_low.reportHf298();
+        CanteraDouble hnew = h + delH;
         mnp_low.modifyOneHf298(k, hnew);
         h = mnp_high.reportHf298();
         hnew = h + delH;
@@ -159,7 +159,7 @@ public:
 
 protected:
     //! Midrange temperature
-    double m_midT = 0.0;
+    CanteraDouble m_midT = 0.0;
     //! NasaPoly1 object for the low temperature region.
     NasaPoly1 mnp_low;
     //! NasaPoly1 object for the high temperature region.

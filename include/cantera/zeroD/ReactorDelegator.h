@@ -29,24 +29,24 @@ public:
     virtual void setNEq(size_t n) = 0;
 
     //! Get the net rate of volume change (for example, from moving walls) [m^3/s]
-    virtual double expansionRate() const = 0;
+    virtual CanteraDouble expansionRate() const = 0;
 
     //! Set the net rate of volume change (for example, from moving walls) [m^3/s]
-    virtual void setExpansionRate(double v) = 0;
+    virtual void setExpansionRate(CanteraDouble v) = 0;
 
     //! Get the net heat transfer rate (for example, through walls) into the
     //! reactor [W]. This value is initialized and calculated as part of
     //! Reactor::evalWalls().
-    virtual double heatRate() const = 0;
+    virtual CanteraDouble heatRate() const = 0;
 
     //! Set the net heat transfer rate (for example, through walls) into the
     //! reactor [W]. For a value set using this method to affect the calculations done
     //! by Reactor::eval, this method should be called in either a "replace" or "after"
     //! delegate for Reactor::evalWalls().
-    virtual void setHeatRate(double q) = 0;
+    virtual void setHeatRate(CanteraDouble q) = 0;
 
     //! @copydoc ReactorBase::surfaceProductionRates
-    virtual span<double> surfaceProductionRates() = 0;
+    virtual span<CanteraDouble> surfaceProductionRates() = 0;
 };
 
 //! Delegate methods of the Reactor class to external functions
@@ -59,24 +59,24 @@ public:
     ReactorDelegator(Args&&... args)
         : R(std::forward<Args>(args)...)
     {
-        install("initialize", m_initialize, [this](double t0) { R::initialize(t0); });
+        install("initialize", m_initialize, [this](CanteraDouble t0) { R::initialize(t0); });
         install("getState", m_getState,
-            [this](span<double> y) {
+            [this](span<CanteraDouble> y) {
                 R::getState(y);
             });
         install("updateState", m_updateState,
-            [this](span<double> y) {
+            [this](span<CanteraDouble> y) {
                 R::updateState(y);
             });
         install("updateConnected", m_updateConnected,
             [this](bool updatePressure) { R::updateConnected(updatePressure); });
         install("eval", m_eval,
-            [this](double t, span<double> LHS, span<double> RHS) {
+            [this](CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS) {
                 R::eval(t, LHS, RHS);
             }
         );
         if constexpr (std::is_base_of<Reactor, R>::value) {
-            install("evalWalls", m_evalWalls, [this](double t) { R::evalWalls(t); });
+            install("evalWalls", m_evalWalls, [this](CanteraDouble t) { R::evalWalls(t); });
         }
         install("componentName", m_componentName,
             [this](size_t k) { return R::componentName(k); });
@@ -96,16 +96,16 @@ public:
         return fmt::format("Extensible{}", R::type());
     }
 
-    void initialize(double t0) override {
+    void initialize(CanteraDouble t0) override {
         m_initialize(t0);
     }
 
-    void getState(span<double> y) override {
+    void getState(span<CanteraDouble> y) override {
         checkArraySize("ReactorDelegator::getState", y.size(), R::m_nv);
         m_getState(y);
     }
 
-    void updateState(span<const double> y) override {
+    void updateState(span<const CanteraDouble> y) override {
         checkArraySize("ReactorDelegator::updateState", y.size(), R::m_nv);
         m_updateState(stripConst(y));
     }
@@ -114,13 +114,13 @@ public:
         m_updateConnected(updatePressure);
     }
 
-    void eval(double t, span<double> LHS, span<double> RHS) override {
+    void eval(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS) override {
         checkArraySize("ReactorDelegator::eval[LHS]", LHS.size(), R::m_nv);
         checkArraySize("ReactorDelegator::eval[RHS]", RHS.size(), R::m_nv);
         m_eval(t, LHS, RHS);
     }
 
-    void evalWalls(double t) override {
+    void evalWalls(CanteraDouble t) override {
         if constexpr (std::is_base_of<Reactor, R>::value) {
             m_evalWalls(t);
         } else {
@@ -136,11 +136,11 @@ public:
         return m_componentIndex(nm);
     }
 
-    double upperBound(size_t k) const override {
+    CanteraDouble upperBound(size_t k) const override {
         return m_upperBound(k);
     }
 
-    double lowerBound(size_t k) const override {
+    CanteraDouble lowerBound(size_t k) const override {
         return m_lowerBound(k);
     }
 
@@ -154,7 +154,7 @@ public:
         R::m_nv = n;
     }
 
-    double expansionRate() const override {
+    CanteraDouble expansionRate() const override {
         if constexpr (std::is_base_of<Reactor, R>::value) {
             return R::m_vdot;
         } else {
@@ -163,7 +163,7 @@ public:
         }
     }
 
-    void setExpansionRate(double v) override {
+    void setExpansionRate(CanteraDouble v) override {
         if constexpr (std::is_base_of<Reactor, R>::value) {
             R::m_vdot = v;
         } else {
@@ -172,7 +172,7 @@ public:
         }
     }
 
-    double heatRate() const override {
+    CanteraDouble heatRate() const override {
         if constexpr (std::is_base_of<Reactor, R>::value) {
             return R::m_Qdot;
         } else {
@@ -181,7 +181,7 @@ public:
         }
     }
 
-    void setHeatRate(double q) override {
+    void setHeatRate(CanteraDouble q) override {
         if constexpr (std::is_base_of<Reactor, R>::value) {
             R::m_Qdot = q;
         } else {
@@ -190,21 +190,21 @@ public:
         }
     }
 
-    span<double> surfaceProductionRates() override {
+    span<CanteraDouble> surfaceProductionRates() override {
         return R::m_sdot;
     }
 
 private:
-    function<void(double)> m_initialize;
-    function<void(span<double>)> m_getState;
-    function<void(span<double>)> m_updateState;
+    function<void(CanteraDouble)> m_initialize;
+    function<void(span<CanteraDouble>)> m_getState;
+    function<void(span<CanteraDouble>)> m_updateState;
     function<void(bool)> m_updateConnected;
-    function<void(double, span<double>, span<double>)> m_eval;
-    function<void(double)> m_evalWalls;
+    function<void(CanteraDouble, span<CanteraDouble>, span<CanteraDouble>)> m_eval;
+    function<void(CanteraDouble)> m_evalWalls;
     function<string(size_t)> m_componentName;
     function<size_t(const string&)> m_componentIndex;
-    function<double(size_t)> m_upperBound;
-    function<double(size_t)> m_lowerBound;
+    function<CanteraDouble(size_t)> m_upperBound;
+    function<CanteraDouble(size_t)> m_lowerBound;
     function<void(SparseTriplets&)> m_getJacobianElements;
 };
 

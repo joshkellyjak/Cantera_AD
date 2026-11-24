@@ -24,27 +24,27 @@ StoichSubstance::StoichSubstance(const string& infile, const string& id_)
 
 // ----- Mechanical Equation of State ------
 
-double StoichSubstance::pressure() const
+CanteraDouble StoichSubstance::pressure() const
 {
     return m_press;
 }
 
-void StoichSubstance::setPressure(double p)
+void StoichSubstance::setPressure(CanteraDouble p)
 {
     m_press = p;
 }
 
-double StoichSubstance::isothermalCompressibility() const
+CanteraDouble StoichSubstance::isothermalCompressibility() const
 {
     return 0.0;
 }
 
-double StoichSubstance::thermalExpansionCoeff() const
+CanteraDouble StoichSubstance::thermalExpansionCoeff() const
 {
     return 0.0;
 }
 
-double StoichSubstance::internalPressure() const
+CanteraDouble StoichSubstance::internalPressure() const
 {
     // In the constant-volume, fixed-stoichiometry model, U is independent of V.
     // The natural model-consistent choice for (dU/dV)_T is therefore zero.
@@ -58,56 +58,56 @@ Units StoichSubstance::standardConcentrationUnits() const
     return Units(1.0);
 }
 
-void StoichSubstance::getActivityConcentrations(span<double> c) const
+void StoichSubstance::getActivityConcentrations(span<CanteraDouble> c) const
 {
     checkArraySize("StoichSubstance::getActivityConcentrations", c.size(), 1);
     c[0] = 1.0;
 }
 
-double StoichSubstance::standardConcentration(size_t k) const
+CanteraDouble StoichSubstance::standardConcentration(size_t k) const
 {
     return 1.0;
 }
 
-double StoichSubstance::logStandardConc(size_t k) const
+CanteraDouble StoichSubstance::logStandardConc(size_t k) const
 {
     return 0.0;
 }
 
 // Properties of the Standard State of the Species in the Solution
 
-void StoichSubstance::getStandardChemPotentials(span<double> mu0) const
+void StoichSubstance::getStandardChemPotentials(span<CanteraDouble> mu0) const
 {
     getGibbs_RT(mu0);
     mu0[0] *= RT();
 }
 
-void StoichSubstance::getEnthalpy_RT(span<double> hrt) const
+void StoichSubstance::getEnthalpy_RT(span<CanteraDouble> hrt) const
 {
     getEnthalpy_RT_ref(hrt);
-    double presCorrect = (m_press - m_p0) / molarDensity();
+    CanteraDouble presCorrect = (m_press - m_p0) / molarDensity();
     hrt[0] += presCorrect / RT();
 }
 
-void StoichSubstance::getEntropy_R(span<double> sr) const
+void StoichSubstance::getEntropy_R(span<CanteraDouble> sr) const
 {
     getEntropy_R_ref(sr);
 }
 
-void StoichSubstance::getGibbs_RT(span<double> grt) const
+void StoichSubstance::getGibbs_RT(span<CanteraDouble> grt) const
 {
     getEnthalpy_RT(grt);
     grt[0] -= m_s0_R;
 }
 
-void StoichSubstance::getCp_R(span<double> cpr) const
+void StoichSubstance::getCp_R(span<CanteraDouble> cpr) const
 {
     checkArraySize("StoichSubstance::getCp_R", cpr.size(), 1);
     _updateThermo();
     cpr[0] = m_cp0_R;
 }
 
-void StoichSubstance::getIntEnergy_RT(span<double> urt) const
+void StoichSubstance::getIntEnergy_RT(span<CanteraDouble> urt) const
 {
     checkArraySize("StoichSubstance::getIntEnergy_RT", urt.size(), 1);
     _updateThermo();
@@ -116,7 +116,7 @@ void StoichSubstance::getIntEnergy_RT(span<double> urt) const
 
 // ---- Thermodynamic Values for the Species Reference States ----
 
-void StoichSubstance::getIntEnergy_RT_ref(span<double> urt) const
+void StoichSubstance::getIntEnergy_RT_ref(span<CanteraDouble> urt) const
 {
     checkArraySize("StoichSubstance::getIntEnergy_RT_ref", urt.size(), 1);
     _updateThermo();

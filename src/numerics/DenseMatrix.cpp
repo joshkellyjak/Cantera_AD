@@ -17,7 +17,7 @@
 namespace Cantera
 {
 
-DenseMatrix::DenseMatrix(size_t n, size_t m, double v) :
+DenseMatrix::DenseMatrix(size_t n, size_t m, CanteraDouble v) :
     Array2D(n, m, v)
 {
     m_ipiv.resize(std::max(n, m));
@@ -39,13 +39,13 @@ DenseMatrix& DenseMatrix::operator=(const DenseMatrix& y)
     return *this;
 }
 
-void DenseMatrix::resize(size_t n, size_t m, double v)
+void DenseMatrix::resize(size_t n, size_t m, CanteraDouble v)
 {
     Array2D::resize(n,m,v);
     m_ipiv.resize(std::max(n,m));
 }
 
-void DenseMatrix::mult(span<const double> b, span<double> prod) const
+void DenseMatrix::mult(span<const CanteraDouble> b, span<CanteraDouble> prod) const
 {
     checkArraySize("DenseMatrix::mult", b.size(), nColumns());
     checkArraySize("DenseMatrix::mult", prod.size(), nRows());
@@ -55,8 +55,8 @@ void DenseMatrix::mult(span<const double> b, span<double> prod) const
              static_cast<int>(nColumns()), 1.0, col(0).data(),
              static_cast<int>(nRows()), b.data(), 1, 0.0, prod.data(), 1);
 #else
-    MappedMatrix mat(const_cast<double*>(m_data.data()), nRows(), nColumns());
-    MappedVector bm(const_cast<double*>(b.data()), nColumns());
+    MappedMatrix mat(const_cast<CanteraDouble*>(m_data.data()), nRows(), nColumns());
+    MappedVector bm(const_cast<CanteraDouble*>(b.data()), nColumns());
     MappedVector pm(prod.data(), nRows());
     pm = mat * bm;
 #endif
@@ -80,12 +80,12 @@ void DenseMatrix::mult(const DenseMatrix& B, DenseMatrix& prod) const
     }
 }
 
-void DenseMatrix::leftMult(span<const double> b, span<double> prod) const
+void DenseMatrix::leftMult(span<const CanteraDouble> b, span<CanteraDouble> prod) const
 {
     checkArraySize("DenseMatrix::leftMult", b.size(), nRows());
     checkArraySize("DenseMatrix::leftMult", prod.size(), nColumns());
     for (size_t n = 0; n < nColumns(); n++) {
-        double sum = 0.0;
+        CanteraDouble sum = 0.0;
         for (size_t i = 0; i < nRows(); i++) {
             sum += value(i,n)*b[i];
         }
@@ -98,7 +98,7 @@ vector<int>& DenseMatrix::ipiv()
     return m_ipiv;
 }
 
-void solve(DenseMatrix& A, span<double> b, size_t nrhs, size_t ldb)
+void solve(DenseMatrix& A, span<CanteraDouble> b, size_t nrhs, size_t ldb)
 {
     if (A.nColumns() != A.nRows()) {
         throw CanteraError("solve(DenseMatrix& A, span<double> b)",
@@ -153,12 +153,12 @@ void solve(DenseMatrix& A, DenseMatrix& b)
     solve(A, b.data(), b.nColumns(), b.nRows());
 }
 
-void multiply(const DenseMatrix& A, span<const double> b, span<double> prod)
+void multiply(const DenseMatrix& A, span<const CanteraDouble> b, span<CanteraDouble> prod)
 {
     A.mult(b, prod);
 }
 
-void increment(const DenseMatrix& A, span<const double> b, span<double> prod)
+void increment(const DenseMatrix& A, span<const CanteraDouble> b, span<CanteraDouble> prod)
 {
     checkArraySize("increment", b.size(), A.nColumns());
     checkArraySize("increment", prod.size(), A.nRows());
@@ -168,7 +168,7 @@ void increment(const DenseMatrix& A, span<const double> b, span<double> prod)
                  A.data().data(), static_cast<int>(A.nRows()), b.data(), 1, 1.0, prod.data(), 1);
     #else
         MappedMatrix Am(&const_cast<DenseMatrix&>(A)(0,0), A.nRows(), A.nColumns());
-        MappedVector bm(const_cast<double*>(b.data()), A.nColumns());
+        MappedVector bm(const_cast<CanteraDouble*>(b.data()), A.nColumns());
         MappedVector pm(prod.data(), A.nRows());
         pm += Am * bm;
     #endif
@@ -185,7 +185,7 @@ void invert(DenseMatrix& A, size_t nn)
             throw CanteraError("invert(DenseMatrix& A, size_t nn)", "DGETRF returned INFO = {}", info);
         }
 
-        vector<double> work(n);
+        vector<CanteraDouble> work(n);
         integer lwork = static_cast<int>(work.size());
         ct_dgetri(n, A.data().data(), static_cast<int>(A.nRows()),
                   &A.ipiv()[0], &work[0], lwork, info);

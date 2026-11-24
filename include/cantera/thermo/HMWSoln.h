@@ -810,7 +810,7 @@ public:
      *
      * Note this is kmol of the total solution.
      */
-    virtual double relative_enthalpy() const;
+    virtual CanteraDouble relative_enthalpy() const;
 
     /**
      * Excess molar enthalpy of the solution from
@@ -819,9 +819,9 @@ public:
      *
      * Note this is kmol of the guessed at salt composition
      */
-    virtual double relative_molal_enthalpy() const;
+    virtual CanteraDouble relative_molal_enthalpy() const;
 
-    double cv_mole() const override;
+    CanteraDouble cv_mole() const override;
 
     //! @}
     //! @name Mechanical Equation of State Properties
@@ -872,7 +872,7 @@ public:
      * @param c Array of generalized concentrations. The
      *          units are kmol m-3 for both the solvent and the solute species
      */
-    void getActivityConcentrations(span<double> c) const override;
+    void getActivityConcentrations(span<CanteraDouble> c) const override;
 
     //! Return the standard concentration for the kth species
     /*!
@@ -952,7 +952,7 @@ public:
      *         assume this refers to species 0.
      * @returns the standard Concentration in units of m^3/kmol.
      */
-    double standardConcentration(size_t k=0) const override;
+    CanteraDouble standardConcentration(size_t k=0) const override;
 
     //! Get the array of non-dimensional activities at the current solution
     //! temperature, pressure, and solution concentration.
@@ -966,7 +966,7 @@ public:
      *
      * @param ac  Output vector of activities. Length: m_kk.
      */
-    void getActivities(span<double> ac) const override;
+    void getActivities(span<CanteraDouble> ac) const override;
 
     //! @}
     //! @name  Partial Molar Properties of the Solution
@@ -985,7 +985,7 @@ public:
      * @param mu  Output vector of species chemical
      *            potentials. Length: m_kk. Units: J/kmol
      */
-    void getChemPotentials(span<double> mu) const override;
+    void getChemPotentials(span<CanteraDouble> mu) const override;
 
     //! Returns an array of partial molar enthalpies for the species
     //! in the mixture. Units (J/kmol)
@@ -1008,7 +1008,7 @@ public:
      * @param hbar    Output vector of species partial molar enthalpies.
      *                Length: m_kk. units are J/kmol.
      */
-    void getPartialMolarEnthalpies(span<double> hbar) const override;
+    void getPartialMolarEnthalpies(span<CanteraDouble> hbar) const override;
 
     //! Returns an array of partial molar entropies of the species in the
     //! solution. Units: J/kmol/K.
@@ -1035,7 +1035,7 @@ public:
      *  @param sbar    Output vector of species partial molar entropies.
      *                 Length = m_kk. units are J/kmol/K.
      */
-    void getPartialMolarEntropies(span<double> sbar) const override;
+    void getPartialMolarEntropies(span<CanteraDouble> sbar) const override;
 
     //! Return an array of partial molar volumes for the species in the mixture.
     //! Units: m^3/kmol.
@@ -1055,7 +1055,7 @@ public:
      * @param vbar   Output vector of species partial molar volumes.
      *               Length = m_kk. units are m^3/kmol.
      */
-    void getPartialMolarVolumes(span<double> vbar) const override;
+    void getPartialMolarVolumes(span<CanteraDouble> vbar) const override;
 
     //! Return an array of partial molar heat capacities for the species in the
     //! mixture.  Units: J/kmol/K
@@ -1076,7 +1076,7 @@ public:
      * @param cpbar   Output vector of species partial molar heat capacities at
      *                constant pressure. Length = m_kk. units are J/kmol/K.
      */
-    void getPartialMolarCp(span<double> cpbar) const override;
+    void getPartialMolarCp(span<CanteraDouble> cpbar) const override;
 
 public:
     //! @}
@@ -1095,41 +1095,41 @@ public:
      *
      * @param T  Temperature (kelvin)
      */
-    double satPressure(double T) override;
+    CanteraDouble satPressure(CanteraDouble T) override;
 
     /*
      *  -------------- Utilities -------------------------------
      */
 
     void setBinarySalt(const string& sp1, const string& sp2,
-        span<const double> beta0, span<const double> beta1,
-        span<const double> beta2, span<const double> Cphi, double alpha1,
-        double alpha2);
+        span<const CanteraDouble> beta0, span<const CanteraDouble> beta1,
+        span<const CanteraDouble> beta2, span<const CanteraDouble> Cphi, CanteraDouble alpha1,
+        CanteraDouble alpha2);
     void setTheta(const string& sp1, const string& sp2,
-        span<const double> theta);
+        span<const CanteraDouble> theta);
     void setPsi(const string& sp1, const string& sp2,
-        const string& sp3, span<const double> psi);
+        const string& sp3, span<const CanteraDouble> psi);
     void setLambda(const string& sp1, const string& sp2,
-        span<const double> lambda);
-    void setMunnn(const string& sp, span<const double> munnn);
+        span<const CanteraDouble> lambda);
+    void setMunnn(const string& sp, span<const CanteraDouble> munnn);
     void setZeta(const string& sp1, const string& sp2,
-        const string& sp3, span<const double> psi);
+        const string& sp3, span<const CanteraDouble> psi);
 
     void setPitzerTempModel(const string& model);
-    void setPitzerRefTemperature(double Tref) {
+    void setPitzerRefTemperature(CanteraDouble Tref) {
         m_TempPitzerRef = Tref;
     }
 
     //! Set the A_Debye parameter. If a negative value is provided, enables
     //! calculation of A_Debye using the detailed water equation of state.
-    void setA_Debye(double A);
+    void setA_Debye(CanteraDouble A);
 
-    void setMaxIonicStrength(double Imax) {
+    void setMaxIonicStrength(CanteraDouble Imax) {
         m_maxIionicStrength = Imax;
     }
 
-    void setCroppingCoefficients(double ln_gamma_k_min, double ln_gamma_k_max,
-                                 double ln_gamma_o_min, double ln_gamma_o_max);
+    void setCroppingCoefficients(CanteraDouble ln_gamma_k_min, CanteraDouble ln_gamma_k_max,
+                                 CanteraDouble ln_gamma_o_min, CanteraDouble ln_gamma_o_max);
 
     void initThermo() override;
     void getParameters(AnyMap& phaseNode) const override;
@@ -1146,8 +1146,8 @@ public:
      * @param pressure    Pressure of the derivative calculation
      *                    or -1 to indicate the current pressure
      */
-    virtual double A_Debye_TP(double temperature = -1.0,
-                              double pressure = -1.0) const;
+    virtual CanteraDouble A_Debye_TP(CanteraDouble temperature = -1.0,
+                              CanteraDouble pressure = -1.0) const;
 
     //! Value of the derivative of the Debye Huckel constant with respect to
     //! temperature as a function of temperature and pressure.
@@ -1161,8 +1161,8 @@ public:
      * @param pressure    Pressure of the derivative calculation
      *                    or -1 to indicate the current pressure
      */
-    virtual double dA_DebyedT_TP(double temperature = -1.0,
-                                 double pressure = -1.0) const;
+    virtual CanteraDouble dA_DebyedT_TP(CanteraDouble temperature = -1.0,
+                                 CanteraDouble pressure = -1.0) const;
 
     /**
      * Value of the derivative of the Debye Huckel constant with respect to
@@ -1177,8 +1177,8 @@ public:
      * @param pressure    Pressure of the derivative calculation
      *                    or -1 to indicate the current pressure
      */
-    virtual double dA_DebyedP_TP(double temperature = -1.0,
-                                 double pressure = -1.0) const;
+    virtual CanteraDouble dA_DebyedP_TP(CanteraDouble temperature = -1.0,
+                                 CanteraDouble pressure = -1.0) const;
 
     /**
      * Return Pitzer's definition of A_L. This is basically the
@@ -1195,7 +1195,7 @@ public:
      * @param pressure    Pressure of the derivative calculation
      *                    or -1 to indicate the current pressure
      */
-    double ADebye_L(double temperature = -1.0, double pressure = -1.0) const;
+    CanteraDouble ADebye_L(CanteraDouble temperature = -1.0, CanteraDouble pressure = -1.0) const;
 
     /**
      * Return Pitzer's definition of A_J. This is basically the temperature
@@ -1212,7 +1212,7 @@ public:
      * @param pressure    Pressure of the derivative calculation
      *                    or -1 to indicate the current pressure
      */
-    double ADebye_J(double temperature = -1.0, double pressure = -1.0) const;
+    CanteraDouble ADebye_J(CanteraDouble temperature = -1.0, CanteraDouble pressure = -1.0) const;
 
     /**
      * Return Pitzer's definition of A_V. This is the derivative wrt pressure of
@@ -1229,7 +1229,7 @@ public:
      * @param pressure    Pressure of the derivative calculation
      *                    or -1 to indicate the current pressure
      */
-    double ADebye_V(double temperature = -1.0, double pressure = -1.0) const;
+    CanteraDouble ADebye_V(CanteraDouble temperature = -1.0, CanteraDouble pressure = -1.0) const;
 
     //! Value of the 2nd derivative of the Debye Huckel constant with respect to
     //! temperature as a function of temperature and pressure.
@@ -1243,8 +1243,8 @@ public:
      * @param pressure    Pressure of the derivative calculation
      *                    or -1 to indicate the current pressure
      */
-    virtual double d2A_DebyedT2_TP(double temperature = -1.0,
-                                   double pressure = -1.0) const;
+    virtual CanteraDouble d2A_DebyedT2_TP(CanteraDouble temperature = -1.0,
+                                   CanteraDouble pressure = -1.0) const;
 
     //! Print out all of the input Pitzer coefficients.
     void printCoeffs() const;
@@ -1261,7 +1261,7 @@ public:
      * @param acMolality Output vector containing the molality based activity coefficients.
      *                   length: m_kk.
      */
-    void getUnscaledMolalityActivityCoefficients(span<double> acMolality) const override;
+    void getUnscaledMolalityActivityCoefficients(span<CanteraDouble> acMolality) const override;
 
 private:
     //! Apply the current phScale to a set of activity Coefficients
@@ -1295,27 +1295,27 @@ private:
     /*!
      *  We assume here that the m_IionicMolality variable is up to date.
      */
-    double s_NBS_CLM_lnMolalityActCoeff() const;
+    CanteraDouble s_NBS_CLM_lnMolalityActCoeff() const;
 
     //! Calculate the temperature derivative of the Chlorine activity
     //! coefficient on the NBS scale
     /*!
      *  We assume here that the m_IionicMolality variable is up to date.
      */
-    double s_NBS_CLM_dlnMolalityActCoeff_dT() const;
+    CanteraDouble s_NBS_CLM_dlnMolalityActCoeff_dT() const;
 
     //! Calculate the second temperature derivative of the Chlorine activity
     //! coefficient on the NBS scale
     /*!
      *  We assume here that the m_IionicMolality variable is up to date.
      */
-    double s_NBS_CLM_d2lnMolalityActCoeff_dT2() const;
+    CanteraDouble s_NBS_CLM_d2lnMolalityActCoeff_dT2() const;
 
     //! Calculate the pressure derivative of the Chlorine activity coefficient
     /*!
      *  We assume here that the m_IionicMolality variable is up to date.
      */
-    double s_NBS_CLM_dlnMolalityActCoeff_dP() const;
+    CanteraDouble s_NBS_CLM_dlnMolalityActCoeff_dP() const;
 
 private:
     /**
@@ -1331,14 +1331,14 @@ private:
     //! Current value of the ionic strength on the molality scale Associated
     //! Salts, if present in the mechanism, don't contribute to the value of the
     //! ionic strength in this version of the Ionic strength.
-    mutable double m_IionicMolality = 0.0;
+    mutable CanteraDouble m_IionicMolality = 0.0;
 
     //! Maximum value of the ionic strength allowed in the calculation of the
     //! activity coefficients.
-    double m_maxIionicStrength;
+    CanteraDouble m_maxIionicStrength;
 
     //! Reference Temperature for the Pitzer formulations.
-    double m_TempPitzerRef = 298.15;
+    CanteraDouble m_TempPitzerRef = 298.15;
 
 public:
     /**
@@ -1387,7 +1387,7 @@ private:
      *          dw = C_0 * M_0 (density of water) (kg/m3)
      *             = 1.0E3 at 25C
      */
-    mutable double m_A_Debye = 1.172576;
+    mutable CanteraDouble m_A_Debye = 1.172576;
 
     //! Water standard state calculator
     /*!
@@ -1405,16 +1405,16 @@ private:
      *  symmetric. counterIJ where counterIJ = m_counterIJ[i][j] is used to
      *  access this array.
      */
-    mutable vector<double> m_Beta0MX_ij;
+    mutable vector<CanteraDouble> m_Beta0MX_ij;
 
     //! Derivative of Beta0_ij[i][j] wrt T. Vector index is counterIJ
-    mutable vector<double> m_Beta0MX_ij_L;
+    mutable vector<CanteraDouble> m_Beta0MX_ij_L;
 
     //! Derivative of Beta0_ij[i][j] wrt TT. Vector index is counterIJ
-    mutable vector<double> m_Beta0MX_ij_LL;
+    mutable vector<CanteraDouble> m_Beta0MX_ij_LL;
 
     //! Derivative of Beta0_ij[i][j] wrt P. Vector index is counterIJ
-    mutable vector<double> m_Beta0MX_ij_P;
+    mutable vector<CanteraDouble> m_Beta0MX_ij_P;
 
     //! Array of coefficients for Beta0, a variable in Pitzer's papers
     /*!
@@ -1428,16 +1428,16 @@ private:
     //! iff i and j are both charged and have opposite sign. The array is also
     //! symmetric. counterIJ where counterIJ = m_counterIJ[i][j] is used to
     //! access this array.
-    mutable vector<double> m_Beta1MX_ij;
+    mutable vector<CanteraDouble> m_Beta1MX_ij;
 
     //! Derivative of Beta1_ij[i][j] wrt T. Vector index is counterIJ
-    mutable vector<double> m_Beta1MX_ij_L;
+    mutable vector<CanteraDouble> m_Beta1MX_ij_L;
 
     //! Derivative of Beta1_ij[i][j] wrt TT. Vector index is counterIJ
-    mutable vector<double> m_Beta1MX_ij_LL;
+    mutable vector<CanteraDouble> m_Beta1MX_ij_LL;
 
     //! Derivative of Beta1_ij[i][j] wrt P. Vector index is counterIJ
-    mutable vector<double> m_Beta1MX_ij_P;
+    mutable vector<CanteraDouble> m_Beta1MX_ij_P;
 
     //! Array of coefficients for Beta1, a variable in Pitzer's papers
     /*!
@@ -1451,16 +1451,16 @@ private:
     //! iff i and j are both charged and have opposite sign, and i and j both
     //! have charges of 2 or more. The array is also symmetric. counterIJ where
     //! counterIJ = m_counterIJ[i][j] is used to access this array.
-    mutable vector<double> m_Beta2MX_ij;
+    mutable vector<CanteraDouble> m_Beta2MX_ij;
 
     //! Derivative of Beta2_ij[i][j] wrt T. Vector index is counterIJ
-    mutable vector<double> m_Beta2MX_ij_L;
+    mutable vector<CanteraDouble> m_Beta2MX_ij_L;
 
     //! Derivative of Beta2_ij[i][j] wrt TT. Vector index is counterIJ
-    mutable vector<double> m_Beta2MX_ij_LL;
+    mutable vector<CanteraDouble> m_Beta2MX_ij_LL;
 
     //! Derivative of Beta2_ij[i][j] wrt P. Vector index is counterIJ
-    mutable vector<double> m_Beta2MX_ij_P;
+    mutable vector<CanteraDouble> m_Beta2MX_ij_P;
 
     //! Array of coefficients for Beta2, a variable in Pitzer's papers
     /*!
@@ -1477,7 +1477,7 @@ private:
     // nonzero iff i and j are both charged and have opposite sign. It is
     // symmetric wrt i, j. counterIJ where counterIJ = m_counterIJ[i][j] is used
     // to access this array.
-    vector<double> m_Alpha1MX_ij;
+    vector<CanteraDouble> m_Alpha1MX_ij;
 
     //! Array of 2D data used in the Pitzer/HMW formulation. Alpha2MX_ij[i][j]
     //! is the value of the alpha2 coefficient for the ij interaction. It will
@@ -1485,23 +1485,23 @@ private:
     //! and j both have charges of 2 or more, usually. It is symmetric wrt i, j.
     //! counterIJ, where counterIJ = m_counterIJ[i][j], is used to access this
     //! array.
-    vector<double> m_Alpha2MX_ij;
+    vector<CanteraDouble> m_Alpha2MX_ij;
 
     //! Array of 2D data used in the Pitzer/HMW formulation. CphiMX_ij[i][j] is
     //! the value of the Cphi coefficient for the ij interaction. It will be
     //! nonzero iff i and j are both charged and have opposite sign, and i and j
     //! both have charges of 2 or more. The array is also symmetric. counterIJ
     //! where counterIJ = m_counterIJ[i][j] is used to access this array.
-    mutable vector<double> m_CphiMX_ij;
+    mutable vector<CanteraDouble> m_CphiMX_ij;
 
     //! Derivative of Cphi_ij[i][j] wrt T. Vector index is counterIJ
-    mutable vector<double> m_CphiMX_ij_L;
+    mutable vector<CanteraDouble> m_CphiMX_ij_L;
 
     //! Derivative of Cphi_ij[i][j] wrt TT. Vector index is counterIJ
-    mutable vector<double> m_CphiMX_ij_LL;
+    mutable vector<CanteraDouble> m_CphiMX_ij_LL;
 
     //! Derivative of Cphi_ij[i][j] wrt P. Vector index is counterIJ
-    mutable vector<double> m_CphiMX_ij_P;
+    mutable vector<CanteraDouble> m_CphiMX_ij_P;
 
     //! Array of coefficients for CphiMX, a parameter in the activity
     //! coefficient formulation
@@ -1522,16 +1522,16 @@ private:
      *  HKM Recent Pitzer papers have used a functional form for Theta_ij, which
      *      depends on the ionic strength.
      */
-    mutable vector<double> m_Theta_ij;
+    mutable vector<CanteraDouble> m_Theta_ij;
 
     //! Derivative of Theta_ij[i][j] wrt T. Vector index is counterIJ
-    mutable vector<double> m_Theta_ij_L;
+    mutable vector<CanteraDouble> m_Theta_ij_L;
 
     //! Derivative of Theta_ij[i][j] wrt TT. Vector index is counterIJ
-    mutable vector<double> m_Theta_ij_LL;
+    mutable vector<CanteraDouble> m_Theta_ij_LL;
 
     //! Derivative of Theta_ij[i][j] wrt P. Vector index is counterIJ
-    mutable vector<double> m_Theta_ij_P;
+    mutable vector<CanteraDouble> m_Theta_ij_P;
 
     //! Array of coefficients for Theta_ij[i][j] in the Pitzer/HMW formulation.
     /*!
@@ -1556,19 +1556,19 @@ private:
      * symmetric wrt cations, and the last two coordinates are symmetric wrt
      * anions.
      */
-    mutable vector<double> m_Psi_ijk;
+    mutable vector<CanteraDouble> m_Psi_ijk;
 
     //! Derivative of Psi_ijk[n] wrt T. See m_Psi_ijk for reference on the
     //! indexing into this variable.
-    mutable vector<double> m_Psi_ijk_L;
+    mutable vector<CanteraDouble> m_Psi_ijk_L;
 
     //! Derivative of Psi_ijk[n] wrt TT. See m_Psi_ijk for reference on the
     //! indexing into this variable.
-    mutable vector<double> m_Psi_ijk_LL;
+    mutable vector<CanteraDouble> m_Psi_ijk_LL;
 
     //! Derivative of Psi_ijk[n] wrt P. See m_Psi_ijk for reference on the
     //! indexing into this variable.
-    mutable vector<double> m_Psi_ijk_P;
+    mutable vector<CanteraDouble> m_Psi_ijk_P;
 
     //! Array of coefficients for Psi_ijk[n] in the Pitzer/HMW formulation.
     /*!
@@ -1626,7 +1626,7 @@ private:
      * the Mu coefficient for the nnn interaction. This is a general interaction
      * representing neutral species interacting with itself.
      */
-    mutable vector<double> m_Mu_nnn;
+    mutable vector<CanteraDouble> m_Mu_nnn;
 
     //! Mu coefficient temperature derivative for the self-ternary neutral
     //! coefficient
@@ -1636,7 +1636,7 @@ private:
      * interaction. This is a general interaction representing neutral species
      * interacting with itself.
      */
-    mutable vector<double> m_Mu_nnn_L;
+    mutable vector<CanteraDouble> m_Mu_nnn_L;
 
     //! Mu coefficient 2nd temperature derivative for the self-ternary neutral
     //! coefficient
@@ -1646,7 +1646,7 @@ private:
      * interaction. This is a general interaction representing neutral species
      * interacting with itself.
      */
-    mutable vector<double> m_Mu_nnn_LL;
+    mutable vector<CanteraDouble> m_Mu_nnn_LL;
 
     //! Mu coefficient pressure derivative for the self-ternary neutral
     //! coefficient
@@ -1656,7 +1656,7 @@ private:
      * interaction. This is a general interaction representing neutral species
      * interacting with itself.
      */
-    mutable vector<double> m_Mu_nnn_P;
+    mutable vector<CanteraDouble> m_Mu_nnn_P;
 
     //! Array of coefficients form_Mu_nnn term
     Array2D m_Mu_nnn_coeff;
@@ -1666,44 +1666,44 @@ private:
      * mutable because we change this if the composition or temperature or
      * pressure changes. Index is the species index
      */
-    mutable vector<double> m_lnActCoeffMolal_Scaled;
+    mutable vector<CanteraDouble> m_lnActCoeffMolal_Scaled;
 
     //! Logarithm of the activity coefficients on the molality scale.
     /*!
      * mutable because we change this if the composition or temperature or
      * pressure changes. Index is the species index
      */
-    mutable vector<double> m_lnActCoeffMolal_Unscaled;
+    mutable vector<CanteraDouble> m_lnActCoeffMolal_Unscaled;
 
     //! Derivative of the Logarithm of the activity coefficients on the molality
     //! scale wrt T. Index is the species index
-    mutable vector<double> m_dlnActCoeffMolaldT_Scaled;
+    mutable vector<CanteraDouble> m_dlnActCoeffMolaldT_Scaled;
 
     //! Derivative of the Logarithm of the activity coefficients on the molality
     //! scale wrt T. Index is the species index
-    mutable vector<double> m_dlnActCoeffMolaldT_Unscaled;
+    mutable vector<CanteraDouble> m_dlnActCoeffMolaldT_Unscaled;
 
     //! Derivative of the Logarithm of the activity coefficients on the molality
     //! scale wrt TT. Index is the species index.
-    mutable vector<double> m_d2lnActCoeffMolaldT2_Scaled;
+    mutable vector<CanteraDouble> m_d2lnActCoeffMolaldT2_Scaled;
 
     //! Derivative of the Logarithm of the activity coefficients on the molality
     //! scale wrt TT. Index is the species index
-    mutable vector<double> m_d2lnActCoeffMolaldT2_Unscaled;
+    mutable vector<CanteraDouble> m_d2lnActCoeffMolaldT2_Unscaled;
 
     //! Derivative of the Logarithm of the activity coefficients on the
     //! molality scale wrt P. Index is the species index
-    mutable vector<double> m_dlnActCoeffMolaldP_Scaled;
+    mutable vector<CanteraDouble> m_dlnActCoeffMolaldP_Scaled;
 
     //! Derivative of the Logarithm of the activity coefficients on the
     //! molality scale wrt P. Index is the species index
-    mutable vector<double> m_dlnActCoeffMolaldP_Unscaled;
+    mutable vector<CanteraDouble> m_dlnActCoeffMolaldP_Unscaled;
 
     // -------- Temporary Variables Used in the Activity Coeff Calc
 
     //! Cropped and modified values of the molalities used in activity
     //! coefficient calculations
-    mutable vector<double> m_molalitiesCropped;
+    mutable vector<CanteraDouble> m_molalitiesCropped;
 
     //! Boolean indicating whether the molalities are cropped or are modified
     mutable bool m_molalitiesAreCropped = false;
@@ -1717,10 +1717,10 @@ private:
     mutable vector<int> m_CounterIJ;
 
     //! This is elambda, MEC
-    mutable double elambda[17];
+    mutable CanteraDouble elambda[17];
 
     //! This is elambda1, MEC
-    mutable double elambda1[17];
+    mutable CanteraDouble elambda1[17];
 
     /**
      *  Various temporary arrays used in the calculation of the Pitzer activity
@@ -1729,150 +1729,150 @@ private:
      */
 
     //! This is the value of g(x) in Pitzer's papers. Vector index is counterIJ
-    mutable vector<double> m_gfunc_IJ;
+    mutable vector<CanteraDouble> m_gfunc_IJ;
 
     //! This is the value of g2(x2) in Pitzer's papers. Vector index is counterIJ
-    mutable vector<double> m_g2func_IJ;
+    mutable vector<CanteraDouble> m_g2func_IJ;
 
     //! hfunc, was called gprime in Pitzer's paper. However, it's not the
     //! derivative of gfunc(x), so I renamed it. Vector index is counterIJ
-    mutable vector<double> m_hfunc_IJ;
+    mutable vector<CanteraDouble> m_hfunc_IJ;
 
     //! hfunc2, was called gprime in Pitzer's paper. However, it's not the
     //! derivative of gfunc(x), so I renamed it. Vector index is counterIJ
-    mutable vector<double> m_h2func_IJ;
+    mutable vector<CanteraDouble> m_h2func_IJ;
 
     //! Intermediate variable called BMX in Pitzer's paper. This is the basic
     //! cation - anion interaction. Vector index is counterIJ
-    mutable vector<double> m_BMX_IJ;
+    mutable vector<CanteraDouble> m_BMX_IJ;
 
     //! Derivative of BMX_IJ wrt T. Vector index is counterIJ
-    mutable vector<double> m_BMX_IJ_L;
+    mutable vector<CanteraDouble> m_BMX_IJ_L;
 
     //! Derivative of BMX_IJ wrt TT. Vector index is counterIJ
-    mutable vector<double> m_BMX_IJ_LL;
+    mutable vector<CanteraDouble> m_BMX_IJ_LL;
 
     //! Derivative of BMX_IJ wrt P. Vector index is counterIJ
-    mutable vector<double> m_BMX_IJ_P;
+    mutable vector<CanteraDouble> m_BMX_IJ_P;
 
     //! Intermediate variable called BprimeMX in Pitzer's paper. Vector index is
     //! counterIJ
-    mutable vector<double> m_BprimeMX_IJ;
+    mutable vector<CanteraDouble> m_BprimeMX_IJ;
 
     //! Derivative of BprimeMX wrt T. Vector index is counterIJ
-    mutable vector<double> m_BprimeMX_IJ_L;
+    mutable vector<CanteraDouble> m_BprimeMX_IJ_L;
 
     //! Derivative of BprimeMX wrt TT. Vector index is counterIJ
-    mutable vector<double> m_BprimeMX_IJ_LL;
+    mutable vector<CanteraDouble> m_BprimeMX_IJ_LL;
 
     //! Derivative of BprimeMX wrt P. Vector index is counterIJ
-    mutable vector<double> m_BprimeMX_IJ_P;
+    mutable vector<CanteraDouble> m_BprimeMX_IJ_P;
 
     //! Intermediate variable called BphiMX in Pitzer's paper. Vector index is
     //! counterIJ
-    mutable vector<double> m_BphiMX_IJ;
+    mutable vector<CanteraDouble> m_BphiMX_IJ;
 
     //! Derivative of BphiMX_IJ wrt T. Vector index is counterIJ
-    mutable vector<double> m_BphiMX_IJ_L;
+    mutable vector<CanteraDouble> m_BphiMX_IJ_L;
 
     //! Derivative of BphiMX_IJ wrt TT. Vector index is counterIJ
-    mutable vector<double> m_BphiMX_IJ_LL;
+    mutable vector<CanteraDouble> m_BphiMX_IJ_LL;
 
     //! Derivative of BphiMX_IJ wrt P. Vector index is counterIJ
-    mutable vector<double> m_BphiMX_IJ_P;
+    mutable vector<CanteraDouble> m_BphiMX_IJ_P;
 
     //! Intermediate variable called Phi in Pitzer's paper. Vector index is
     //! counterIJ
-    mutable vector<double> m_Phi_IJ;
+    mutable vector<CanteraDouble> m_Phi_IJ;
 
     //! Derivative of m_Phi_IJ wrt T. Vector index is counterIJ
-    mutable vector<double> m_Phi_IJ_L;
+    mutable vector<CanteraDouble> m_Phi_IJ_L;
 
     //! Derivative of m_Phi_IJ wrt TT. Vector index is counterIJ
-    mutable vector<double> m_Phi_IJ_LL;
+    mutable vector<CanteraDouble> m_Phi_IJ_LL;
 
     //! Derivative of m_Phi_IJ wrt P. Vector index is counterIJ
-    mutable vector<double> m_Phi_IJ_P;
+    mutable vector<CanteraDouble> m_Phi_IJ_P;
 
     //! Intermediate variable called Phiprime in Pitzer's paper. Vector index is
     //! counterIJ
-    mutable vector<double> m_Phiprime_IJ;
+    mutable vector<CanteraDouble> m_Phiprime_IJ;
 
     //! Intermediate variable called PhiPhi in Pitzer's paper. Vector index is
     //! counterIJ
-    mutable vector<double> m_PhiPhi_IJ;
+    mutable vector<CanteraDouble> m_PhiPhi_IJ;
 
     //! Derivative of m_PhiPhi_IJ wrt T. Vector index is counterIJ
-    mutable vector<double> m_PhiPhi_IJ_L;
+    mutable vector<CanteraDouble> m_PhiPhi_IJ_L;
 
     //! Derivative of m_PhiPhi_IJ wrt TT. Vector index is counterIJ
-    mutable vector<double> m_PhiPhi_IJ_LL;
+    mutable vector<CanteraDouble> m_PhiPhi_IJ_LL;
 
     //! Derivative of m_PhiPhi_IJ wrt P. Vector index is counterIJ
-    mutable vector<double> m_PhiPhi_IJ_P;
+    mutable vector<CanteraDouble> m_PhiPhi_IJ_P;
 
     //! Intermediate variable called CMX in Pitzer's paper. Vector index is
     //! counterIJ
-    mutable vector<double> m_CMX_IJ;
+    mutable vector<CanteraDouble> m_CMX_IJ;
 
     //! Derivative of m_CMX_IJ wrt T. Vector index is counterIJ
-    mutable vector<double> m_CMX_IJ_L;
+    mutable vector<CanteraDouble> m_CMX_IJ_L;
 
     //! Derivative of m_CMX_IJ wrt TT. Vector index is counterIJ
-    mutable vector<double> m_CMX_IJ_LL;
+    mutable vector<CanteraDouble> m_CMX_IJ_LL;
 
     //! Derivative of m_CMX_IJ wrt P. Vector index is counterIJ
-    mutable vector<double> m_CMX_IJ_P;
+    mutable vector<CanteraDouble> m_CMX_IJ_P;
 
     //! Intermediate storage of the activity coefficient itself. Vector index is
     //! the species index
-    mutable vector<double> m_gamma_tmp;
+    mutable vector<CanteraDouble> m_gamma_tmp;
 
     //! Logarithm of the molal activity coefficients. Normally these are all
     //! one. However, stability schemes will change that
-    mutable vector<double> IMS_lnActCoeffMolal_;
+    mutable vector<CanteraDouble> IMS_lnActCoeffMolal_;
 
     //! value of the solute mole fraction that centers the cutoff polynomials
     //! for the cutoff =1 process;
-    double IMS_X_o_cutoff_ = 0.2;
+    CanteraDouble IMS_X_o_cutoff_ = 0.2;
 
     //! Parameter in the polyExp cutoff treatment having to do with rate of exp decay
-    double IMS_cCut_ = 0.05;
+    CanteraDouble IMS_cCut_ = 0.05;
 
     //! Parameter in the polyExp cutoff treatment
     /*!
      *  This is the slope of the g function at the zero solvent point
      *  Default value is 0.0
      */
-    double IMS_slopegCut_ = 0.0;
+    CanteraDouble IMS_slopegCut_ = 0.0;
 
     //! @name Parameters in the polyExp cutoff treatment having to do with rate of exp decay
     //! @{
-    double IMS_dfCut_ = 0.0;
-    double IMS_efCut_ = 0.0;
-    double IMS_afCut_ = 0.0;
-    double IMS_bfCut_ = 0.0;
-    double IMS_dgCut_ = 0.0;
-    double IMS_egCut_ = 0.0;
-    double IMS_agCut_ = 0.0;
-    double IMS_bgCut_ = 0.0;
+    CanteraDouble IMS_dfCut_ = 0.0;
+    CanteraDouble IMS_efCut_ = 0.0;
+    CanteraDouble IMS_afCut_ = 0.0;
+    CanteraDouble IMS_bfCut_ = 0.0;
+    CanteraDouble IMS_dgCut_ = 0.0;
+    CanteraDouble IMS_egCut_ = 0.0;
+    CanteraDouble IMS_agCut_ = 0.0;
+    CanteraDouble IMS_bgCut_ = 0.0;
     //! @}
 
     //! value of the solvent mole fraction that centers the cutoff polynomials
     //! for the cutoff =1 process;
-    double MC_X_o_cutoff_ = 0.0;
+    CanteraDouble MC_X_o_cutoff_ = 0.0;
 
     //! @name Parameters in the Molality Exp cutoff treatment
     //! @{
-    double MC_dpCut_ = 0.0;
-    double MC_epCut_ = 0.0;
-    double MC_apCut_ = 0.0;
-    double MC_bpCut_ = 0.0;
-    double MC_cpCut_ = 0.0;
-    double CROP_ln_gamma_o_min;
-    double CROP_ln_gamma_o_max;
-    double CROP_ln_gamma_k_min;
-    double CROP_ln_gamma_k_max;
+    CanteraDouble MC_dpCut_ = 0.0;
+    CanteraDouble MC_epCut_ = 0.0;
+    CanteraDouble MC_apCut_ = 0.0;
+    CanteraDouble MC_bpCut_ = 0.0;
+    CanteraDouble MC_cpCut_ = 0.0;
+    CanteraDouble CROP_ln_gamma_o_min;
+    CanteraDouble CROP_ln_gamma_o_max;
+    CanteraDouble CROP_ln_gamma_k_min;
+    CanteraDouble CROP_ln_gamma_k_max;
 
     //! This is a boolean-type vector indicating whether
     //! a species's activity coefficient is in the cropped regime
@@ -1897,7 +1897,7 @@ private:
      * @param acMolality input/Output vector containing the molality based
      *                   activity coefficients. length: m_kk.
      */
-    void applyphScale(span<double> acMolality) const override;
+    void applyphScale(span<CanteraDouble> acMolality) const override;
 
 private:
     /**
@@ -1993,8 +1993,8 @@ private:
      *
      * @param is Ionic strength
      */
-    void calc_lambdas(double is) const;
-    mutable double m_last_is = -1.0;
+    void calc_lambdas(CanteraDouble is) const;
+    mutable CanteraDouble m_last_is = -1.0;
 
     /**
      * Calculate etheta and etheta_prime
@@ -2013,7 +2013,7 @@ private:
      *
      * This routine uses the internal variables, elambda[] and elambda1[].
      */
-    void calc_thetas(int z1, int z2, double& etheta, double& etheta_prime) const;
+    void calc_thetas(int z1, int z2, CanteraDouble& etheta, CanteraDouble& etheta_prime) const;
 
     //! Set up a counter variable for keeping track of symmetric binary
     //! interactions amongst the solute species.

@@ -43,7 +43,7 @@ public:
     //! Compute the undamped Newton step.  The residual function is evaluated
     //! at `x`, but the Jacobian is not recomputed.
     //! @since Starting in %Cantera 3.2, the Jacobian is accessed via the OneDim object.
-    void step(span<const double> x, span<double> step, SteadyStateSystem& r,
+    void step(span<const CanteraDouble> x, span<CanteraDouble> step, SteadyStateSystem& r,
               int loglevel);
 
     /**
@@ -51,7 +51,7 @@ public:
      * must be multiplied in order to keep all solution components in
      * all domains between their specified lower and upper bounds.
      */
-    double boundStep(span<const double> x0, span<const double> step0,
+    CanteraDouble boundStep(span<const CanteraDouble> x0, span<const CanteraDouble> step0,
                      const SteadyStateSystem& r, int loglevel);
 
     /**
@@ -121,8 +121,8 @@ public:
      * @since Starting in %Cantera 3.2, the Jacobian is accessed via the
      * SteadyStateSystem object.
      */
-    int dampStep(span<const double> x0, span<const double> step0,
-                 span<double> x1, span<double> step1, double& s1,
+    int dampStep(span<const CanteraDouble> x0, span<const CanteraDouble> step0,
+                 span<CanteraDouble> x1, span<CanteraDouble> step1, CanteraDouble& s1,
                  SteadyStateSystem& r, int loglevel, bool writetitle);
 
     /**
@@ -142,7 +142,7 @@ public:
      * @since Starting in %Cantera 3.2, the Jacobian is accessed via the
      * SteadyStateSystem object.
      */
-    int solve(span<const double> x0, span<double> x1, SteadyStateSystem& r,
+    int solve(span<const CanteraDouble> x0, span<CanteraDouble> x1, SteadyStateSystem& r,
               int loglevel);
 
     //! Set options.
@@ -157,19 +157,19 @@ public:
 
 protected:
     //! Work array holding the system state after the last successful step. Size #m_n.
-    vector<double> m_x;
+    vector<CanteraDouble> m_x;
 
     //! Work array holding the undamped Newton step or the system residual. Size #m_n.
-    vector<double> m_stp;
+    vector<CanteraDouble> m_stp;
 
     //! Work array holding the damped Newton step. Size #m_n.
-    vector<double> m_stp1;
+    vector<CanteraDouble> m_stp1;
 
     //! Maximum allowable Jacobian age before it is recomputed.
     int m_maxAge = 5;
 
     //! Factor by which the damping coefficient is reduced in each iteration
-    double m_dampFactor = sqrt(2.0);
+    CanteraDouble m_dampFactor = sqrt(2.0);
 
     //! Maximum number of damping iterations
     size_t m_maxDampIter = 7;
@@ -178,7 +178,7 @@ protected:
     size_t m_n;
 
     //! Elapsed CPU time spent computing the Jacobian.
-    double m_elapsed = 0.0;
+    CanteraDouble m_elapsed = 0.0;
 
     //! Number of Newton iterations taken in the last solve() call.
     int m_lastIterations = 0;

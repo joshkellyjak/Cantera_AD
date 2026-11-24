@@ -98,7 +98,7 @@ public:
      * The formula is written in terms of the partial molar internal energy.
      * @f$ \bar{u}_k(T, p, m_k) @f$.
      */
-    double intEnergy_mole() const override;
+    CanteraDouble intEnergy_mole() const override;
 
     //! @}
     //! @name Mechanical Equation of State Properties
@@ -121,7 +121,7 @@ public:
      * It's equal to zero for this model, since the molar volume doesn't change
      * with pressure or temperature.
      */
-    double isothermalCompressibility() const override;
+    CanteraDouble isothermalCompressibility() const override;
 
     //! The thermal expansion coefficient. Units: 1/K.
     /*!
@@ -134,8 +134,8 @@ public:
      * It's equal to zero for this model, since the molar volume doesn't change
      * with pressure or temperature.
      */
-    double thermalExpansionCoeff() const override;
-    double internalPressure() const override;
+    CanteraDouble thermalExpansionCoeff() const override;
+    CanteraDouble internalPressure() const override;
 
     //! @}
     //! @name Activities and Activity Concentrations
@@ -147,8 +147,8 @@ public:
     //! @{
 
     Units standardConcentrationUnits() const override;
-    void getActivityConcentrations(span<double> c) const override;
-    double standardConcentration(size_t k=0) const override;
+    void getActivityConcentrations(span<CanteraDouble> c) const override;
+    CanteraDouble standardConcentration(size_t k=0) const override;
 
     /**
      * Get the array of non-dimensional activities at the current solution
@@ -158,7 +158,7 @@ public:
      *
      * @param ac      Output activity coefficients. Length: m_kk.
      */
-    void getActivities(span<double> ac) const override;
+    void getActivities(span<CanteraDouble> ac) const override;
 
     /**
      * Get the array of non-dimensional molality-based activity coefficients at
@@ -170,7 +170,7 @@ public:
      * @param acMolality      Output Molality-based activity coefficients.
      *                        Length: m_kk.
      */
-    void getMolalityActivityCoefficients(span<double> acMolality) const override;
+    void getMolalityActivityCoefficients(span<CanteraDouble> acMolality) const override;
 
     //! @}
     //! @name  Partial Molar Properties of the Solution
@@ -198,7 +198,7 @@ public:
      *
      * @param mu     Output vector of species chemical potentials. Length: m_kk.
      */
-    void getChemPotentials(span<double> mu) const override;
+    void getChemPotentials(span<CanteraDouble> mu) const override;
 
     //! Returns an array of partial molar enthalpies for the species in the
     //! mixture.
@@ -217,7 +217,7 @@ public:
      * @param hbar   Output vector of partial molar enthalpies.
      *               Length: m_kk.
      */
-    void getPartialMolarEnthalpies(span<double> hbar) const override;
+    void getPartialMolarEnthalpies(span<CanteraDouble> hbar) const override;
 
     //! Returns an array of partial molar internal energies for the species in the
     //! mixture.
@@ -230,7 +230,7 @@ public:
      * @f]
      * @param hbar   Output vector of partial molar internal energies, length #m_kk
      */
-    void getPartialMolarIntEnergies(span<double> hbar) const override;
+    void getPartialMolarIntEnergies(span<CanteraDouble> hbar) const override;
 
     //! Returns an array of partial molar entropies of the species in the
     //! solution. Units: J/kmol.
@@ -260,7 +260,7 @@ public:
      * @param sbar Output vector of partial molar entropies.
      *             Length: m_kk.
      */
-    void getPartialMolarEntropies(span<double> sbar) const override;
+    void getPartialMolarEntropies(span<CanteraDouble> sbar) const override;
 
     // partial molar volumes of the species Units: m^3 kmol-1.
     /*!
@@ -270,7 +270,7 @@ public:
      * Units: m^3 kmol-1.
      *  @param vbar Output vector of partial molar volumes.
      */
-    void getPartialMolarVolumes(span<double> vbar) const override;
+    void getPartialMolarVolumes(span<CanteraDouble> vbar) const override;
 
     //! Partial molar heat capacity of the solution:. UnitsL J/kmol/K
     /*!
@@ -288,7 +288,7 @@ public:
      * @param cpbar  Output vector of partial molar heat capacities.
      *               Length: m_kk.
      */
-    void getPartialMolarCp(span<double> cpbar) const override;
+    void getPartialMolarCp(span<CanteraDouble> cpbar) const override;
 
     //! @}
 
@@ -322,7 +322,7 @@ public:
      *
      * @param k Species index.
      */
-    double speciesMolarVolume(int k) const;
+    CanteraDouble speciesMolarVolume(int k) const;
 
     /**
      * Fill in a return vector containing the species molar volumes
@@ -330,11 +330,11 @@ public:
      *
      * @param smv Output vector of species molar volumes.
      */
-    void getSpeciesMolarVolumes(span<double> smv) const;
+    void getSpeciesMolarVolumes(span<CanteraDouble> smv) const;
 
 protected:
     //! Species molar volume @f$ m^3 kmol^{-1} @f$
-    vector<double> m_speciesMolarVolume;
+    vector<CanteraDouble> m_speciesMolarVolume;
 
     /**
      * The standard concentrations can have one of three different forms:
@@ -351,37 +351,37 @@ private:
     /*!
      *   Normally these are all one. However, stability schemes will change that
      */
-    mutable vector<double> IMS_lnActCoeffMolal_;
+    mutable vector<CanteraDouble> IMS_lnActCoeffMolal_;
 public:
     //! value of the solute mole fraction that centers the cutoff polynomials
     //! for the cutoff =1 process;
-    double IMS_X_o_cutoff_;
+    CanteraDouble IMS_X_o_cutoff_;
 
     //! gamma_o value for the cutoff process at the zero solvent point
-    double IMS_gamma_o_min_;
+    CanteraDouble IMS_gamma_o_min_;
 
     //! gamma_k minimum for the cutoff process at the zero solvent point
-    double IMS_gamma_k_min_;
+    CanteraDouble IMS_gamma_k_min_;
 
     //! Parameter in the polyExp cutoff treatment. This is the slope of the f
     //! function at the zero solvent point. Default value is 0.6
-    double IMS_slopefCut_;
+    CanteraDouble IMS_slopefCut_;
 
     //! Parameter in the polyExp cutoff treatment. This is the slope of the g
     //! function at the zero solvent point. Default value is 0.0
-    double IMS_slopegCut_;
+    CanteraDouble IMS_slopegCut_;
 
     //! @name Parameters in the polyExp cutoff having to do with rate of exp decay
     //! @{
-    double IMS_cCut_;
-    double IMS_dfCut_ = 0.0;
-    double IMS_efCut_ = 0.0;
-    double IMS_afCut_ = 0.0;
-    double IMS_bfCut_ = 0.0;
-    double IMS_dgCut_ = 0.0;
-    double IMS_egCut_ = 0.0;
-    double IMS_agCut_ = 0.0;
-    double IMS_bgCut_ = 0.0;
+    CanteraDouble IMS_cCut_;
+    CanteraDouble IMS_dfCut_ = 0.0;
+    CanteraDouble IMS_efCut_ = 0.0;
+    CanteraDouble IMS_afCut_ = 0.0;
+    CanteraDouble IMS_bfCut_ = 0.0;
+    CanteraDouble IMS_dgCut_ = 0.0;
+    CanteraDouble IMS_egCut_ = 0.0;
+    CanteraDouble IMS_agCut_ = 0.0;
+    CanteraDouble IMS_bgCut_ = 0.0;
     //! @}
 
 private:

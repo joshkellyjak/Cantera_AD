@@ -10,33 +10,33 @@
 namespace Cantera
 {
 
-void MassFlowController::setMassFlowRate(double mdot)
+void MassFlowController::setMassFlowRate(CanteraDouble mdot)
 {
     m_tfunc.reset();
     m_coeff = mdot;
 }
 
-void MassFlowController::updateMassFlowRate(double time)
+void MassFlowController::updateMassFlowRate(CanteraDouble time)
 {
     if (!ready()) {
         throw CanteraError("MassFlowController::updateMassFlowRate",
                            "Device is not ready; some parameters have not been set.");
     }
-    double mdot = m_coeff;
+    CanteraDouble mdot = m_coeff;
     if (m_tfunc) {
         mdot *= m_tfunc->eval(time);
     }
     m_mdot = std::max(mdot, 0.0);
 }
 
-void PressureController::updateMassFlowRate(double time)
+void PressureController::updateMassFlowRate(CanteraDouble time)
 {
     if (!ready()) {
         throw CanteraError("PressureController::updateMassFlowRate",
                            "Device is not ready; some parameters have not been set.");
     }
-    double mdot = m_coeff;
-    double delta_P = in().pressure() - out().pressure();
+    CanteraDouble mdot = m_coeff;
+    CanteraDouble delta_P = in().pressure() - out().pressure();
     if (m_pfunc) {
         mdot *= m_pfunc->eval(delta_P);
     } else {
@@ -47,17 +47,17 @@ void PressureController::updateMassFlowRate(double time)
     m_mdot = std::max(mdot, 0.0);
 }
 
-double PressureController::massFlowRate_ddP() const
+CanteraDouble PressureController::massFlowRate_ddP() const
 {
     if (m_mdot <= 0.0) {
         return 0.0;
     }
-    double delta_P = in().pressure() - out().pressure();
+    CanteraDouble delta_P = in().pressure() - out().pressure();
     return m_coeff * pressureFunction_ddP(delta_P);
 }
 
 void PressureController::addMassFlowRateJacobian(
-    SparseTriplets& trips, size_t row, double coeff, bool includePressureSpecies)
+    SparseTriplets& trips, size_t row, CanteraDouble coeff, bool includePressureSpecies)
 {
     FlowDevice::addMassFlowRateJacobian(trips, row, coeff, includePressureSpecies);
     if (m_primary) {
@@ -76,17 +76,17 @@ void PressureController::setPrimary(shared_ptr<ConnectorNode> primary)
     m_primary = dev.get();
 }
 
-void Valve::updateMassFlowRate(double time)
+void Valve::updateMassFlowRate(CanteraDouble time)
 {
     if (!ready()) {
         throw CanteraError("Valve::updateMassFlowRate",
                            "Device is not ready; some parameters have not been set.");
     }
-    double mdot = m_coeff;
+    CanteraDouble mdot = m_coeff;
     if (m_tfunc) {
         mdot *= m_tfunc->eval(time);
     }
-    double delta_P = in().pressure() - out().pressure();
+    CanteraDouble delta_P = in().pressure() - out().pressure();
     if (m_pfunc) {
         mdot *= m_pfunc->eval(delta_P);
     } else {
@@ -95,16 +95,16 @@ void Valve::updateMassFlowRate(double time)
     m_mdot = std::max(mdot, 0.0);
 }
 
-double Valve::massFlowRate_ddP() const
+CanteraDouble Valve::massFlowRate_ddP() const
 {
     if (m_mdot <= 0.0) {
         return 0.0;
     }
-    double alpha = m_coeff;
+    CanteraDouble alpha = m_coeff;
     if (m_tfunc) {
         alpha *= m_tfunc->eval(m_time);
     }
-    double delta_P = in().pressure() - out().pressure();
+    CanteraDouble delta_P = in().pressure() - out().pressure();
     alpha *= pressureFunction_ddP(delta_P);
     return alpha;
 }

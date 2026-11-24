@@ -80,7 +80,7 @@ public:
      *  @param moles total number of moles of all species in this phase
      *  @since New in %Cantera 3.2.
      */
-    void addPhase(shared_ptr<ThermoPhase> p, double moles);
+    void addPhase(shared_ptr<ThermoPhase> p, CanteraDouble moles);
 
     //! Number of elements.
     size_t nElements() const {
@@ -130,7 +130,7 @@ public:
      * @param mGlob   global element index
      * @returns the number of atoms.
      */
-    double nAtoms(const size_t kGlob, const size_t mGlob) const;
+    CanteraDouble nAtoms(const size_t kGlob, const size_t mGlob) const;
 
     //! Returns the global Species mole fractions.
     /*!
@@ -140,7 +140,7 @@ public:
      *
      *    @param x  vector of mole fractions. Length = number of global species.
      */
-    void getMoleFractions(span<double> x) const;
+    void getMoleFractions(span<CanteraDouble> x) const;
 
     //! Process phases and build atomic composition array.
     /*!
@@ -172,14 +172,14 @@ public:
     /*!
      * @param n  Index of the phase.
      */
-    double phaseMoles(const size_t n) const;
+    CanteraDouble phaseMoles(const size_t n) const;
 
     //! Set the number of moles of phase with index n.
     /*!
      * @param n     Index of the phase
      * @param moles Number of moles in the phase (kmol)
      */
-    void setPhaseMoles(const size_t n, const double moles);
+    void setPhaseMoles(const size_t n, const CanteraDouble moles);
 
     //! Return a reference to phase n.
     /*!
@@ -195,7 +195,7 @@ public:
     /*!
      * @param kGlob   Global species index k
      */
-    double speciesMoles(size_t kGlob) const;
+    CanteraDouble speciesMoles(size_t kGlob) const;
 
     //! Return the global index of the species belonging to phase number @c p
     //! with local index @c k within the phase.
@@ -223,19 +223,19 @@ public:
     //! Minimum temperature for which all solution phases have valid thermo
     //! data. Stoichiometric phases are not considered, since they may have
     //! thermo data only valid for conditions for which they are stable.
-    double minTemp() const {
+    CanteraDouble minTemp() const {
         return m_Tmin;
     }
 
     //! Maximum temperature for which all solution phases have valid thermo
     //! data. Stoichiometric phases are not considered, since they may have
     //! thermo data only valid for conditions for which they are stable.
-    double maxTemp() const {
+    CanteraDouble maxTemp() const {
         return m_Tmax;
     }
 
     //! Total charge summed over all phases (Coulombs).
-    double charge() const;
+    CanteraDouble charge() const;
 
     //! Charge (Coulombs) of phase with index @e p.
     /*!
@@ -243,13 +243,13 @@ public:
      *  where the sum runs only over species in phase @e p.
      *  @param p index of the phase for which the charge is desired.
      */
-    double phaseCharge(size_t p) const;
+    CanteraDouble phaseCharge(size_t p) const;
 
     //! Total moles of global element @e m, summed over all phases.
     /*!
      * @param m   Index of the global element
      */
-    double elementMoles(size_t m) const;
+    CanteraDouble elementMoles(size_t m) const;
 
     //! Returns a vector of Chemical potentials.
     /*!
@@ -263,7 +263,7 @@ public:
      * @param mu Chemical potential vector. Length = num global species. Units
      *           = J/kmol.
      */
-    void getChemPotentials(span<double> mu) const;
+    void getChemPotentials(span<CanteraDouble> mu) const;
 
     //! Returns a vector of Valid chemical potentials.
     /*!
@@ -301,11 +301,11 @@ public:
      *                  potentials are returned instead of the composition-
      *                  dependent chemical potentials.
      */
-    void getValidChemPotentials(double not_mu, span<double> mu,
+    void getValidChemPotentials(CanteraDouble not_mu, span<CanteraDouble> mu,
                                 bool standard = false) const;
 
     //! Temperature [K].
-    double temperature() const {
+    CanteraDouble temperature() const {
         return m_temp;
     }
 
@@ -339,17 +339,17 @@ public:
      * @ingroup equilGroup
      */
     void equilibrate(const string& XY, const string& solver="auto",
-                     double rtol=1e-9, int max_steps=50000, int max_iter=100,
+                     CanteraDouble rtol=1e-9, int max_steps=50000, int max_iter=100,
                      int estimate_equil=0, int log_level=0);
 
     //! Set the temperature [K].
     /*!
      * @param T   value of the temperature (Kelvin)
      */
-    void setTemperature(const double T);
+    void setTemperature(const CanteraDouble T);
 
     //! Pressure [Pa].
-    double pressure() const {
+    CanteraDouble pressure() const {
         return m_press;
     }
 
@@ -358,32 +358,32 @@ public:
      * Returns the cumulative sum of the volumes of all the phases in the
      * mixture.
      */
-    double volume() const;
+    CanteraDouble volume() const;
 
     //! Set the pressure [Pa].
     /*!
      * @param P Set the pressure in the MultiPhase object (Pa)
      */
-    void setPressure(double P) {
+    void setPressure(CanteraDouble P) {
         m_press = P;
         updatePhases();
     }
 
     //! The enthalpy of the mixture [J].
-    double enthalpy() const;
+    CanteraDouble enthalpy() const;
 
     //! The internal energy of the mixture [J].
-    double IntEnergy() const;
+    CanteraDouble IntEnergy() const;
 
     //! The entropy of the mixture [J/K].
-    double entropy() const;
+    CanteraDouble entropy() const;
 
     //! The Gibbs function of the mixture [J].
-    double gibbs() const;
+    CanteraDouble gibbs() const;
 
     //! Heat capacity at constant pressure [J/K]. Note that this does not
     //! account for changes in composition of the mixture with temperature.
-    double cp() const;
+    CanteraDouble cp() const;
 
     //! Number of phases.
     size_t nPhases() const {
@@ -408,7 +408,7 @@ public:
     /*!
      * @param kGlob Index of the global species.
      */
-    double moleFraction(const size_t kGlob) const;
+    CanteraDouble moleFraction(const size_t kGlob) const;
 
     //! Set the Mole fractions of the nth phase
     /*!
@@ -418,7 +418,7 @@ public:
      * @param n    index of the phase
      * @param x    Vector of input mole fractions.
      */
-    void setPhaseMoleFractions(const size_t n, span<const double> x);
+    void setPhaseMoleFractions(const size_t n, span<const CanteraDouble> x);
 
     //! Set the number of moles of species in the mixture
     /*!
@@ -443,7 +443,7 @@ public:
      * @param[out] molNum Vector of doubles of length nSpecies() containing the
      *               global mole numbers (kmol).
      */
-    void getMoles(span<double> molNum) const;
+    void getMoles(span<CanteraDouble> molNum) const;
 
     //! Sets all of the global species mole numbers
     /*!
@@ -453,7 +453,7 @@ public:
      * @param n    Vector of doubles of length nSpecies() containing the global
      *             mole numbers (kmol).
      */
-    void setMoles(span<const double> n);
+    void setMoles(span<const CanteraDouble> n);
 
     //! Retrieves a vector of element abundances
     /*!
@@ -461,7 +461,7 @@ public:
      * Length = number of elements in the MultiPhase object.
      * Index is the global element index. Units is in kmol.
      */
-    void getElemAbundances(span<double> elemAbundances) const;
+    void getElemAbundances(span<CanteraDouble> elemAbundances) const;
 
     //! Return true if the phase @e p has valid thermo data for the current
     //! temperature.
@@ -515,14 +515,14 @@ private:
      *                fixed something other than (T,P).
      * @param loglevel Level of diagnostic output
      */
-    double equilibrate_MultiPhaseEquil(int XY, double err, int maxsteps,
+    CanteraDouble equilibrate_MultiPhaseEquil(int XY, CanteraDouble err, int maxsteps,
                                        int maxiter, int loglevel);
 
     //! Vector of the number of moles in each phase.
     /*!
      * Length = m_np, number of phases.
      */
-    vector<double> m_moles;
+    vector<CanteraDouble> m_moles;
 
     //! Vector of phase objects.
     vector<shared_ptr<ThermoPhase>> m_phase;
@@ -537,7 +537,7 @@ private:
 
     //! Locally stored vector of mole fractions of all species comprising the
     //! MultiPhase object.
-    vector<double> m_moleFractions;
+    vector<CanteraDouble> m_moleFractions;
 
     //! Mapping between the global species number and the phase ID
     /*!
@@ -572,10 +572,10 @@ private:
     map<string, size_t> m_enamemap;
 
     //! Current value of the temperature (kelvin)
-    double m_temp = 298.15;
+    CanteraDouble m_temp = 298.15;
 
     //! Current value of the pressure (Pa)
-    double m_press = OneBar;
+    CanteraDouble m_press = OneBar;
 
     //! Number of distinct elements in all of the phases
     size_t m_nel = 0;
@@ -599,18 +599,18 @@ private:
 
     //! Minimum temperature for which thermo parameterizations are valid.
     //! Stoichiometric phases are ignored in this determination. units Kelvin
-    double m_Tmin = 1.0;
+    CanteraDouble m_Tmin = 1.0;
 
     //! Minimum temperature for which thermo parameterizations are valid.
     //! Stoichiometric phases are ignored in this determination. units Kelvin
-    double m_Tmax = 100000.0;
+    CanteraDouble m_Tmax = 100000.0;
 
     //! Vector of element abundances
     /*!
      *  m_elemAbundances[mGlobal] = kmol of element mGlobal summed over all
      *      species in all phases.
      */
-    mutable vector<double> m_elemAbundances;
+    mutable vector<CanteraDouble> m_elemAbundances;
 };
 
 //! Function to output a MultiPhase description to a stream
@@ -656,7 +656,7 @@ std::ostream& operator<<(std::ostream& s, MultiPhase& x);
  */
 size_t BasisOptimize(bool& usedZeroedSpecies, bool doFormRxn, MultiPhase* mphase,
                      span<size_t> orderVectorSpecies, span<size_t> orderVectorElements,
-                     span<double> formRxnMatrix);
+                     span<CanteraDouble> formRxnMatrix);
 
 //! Handles the potential rearrangement of the constraint equations
 //! represented by the Formula Matrix.
@@ -696,7 +696,7 @@ size_t BasisOptimize(bool& usedZeroedSpecies, bool doFormRxn, MultiPhase* mphase
  *
  * @ingroup equilGroup
  */
-void ElemRearrange(size_t nComponents, span<const double> elementAbundances,
+void ElemRearrange(size_t nComponents, span<const CanteraDouble> elementAbundances,
                    MultiPhase* mphase, span<size_t> orderVectorSpecies,
                    span<size_t> orderVectorElements);
 

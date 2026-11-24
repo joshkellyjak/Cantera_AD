@@ -76,7 +76,7 @@ SolutionArray::SolutionArray(const shared_ptr<Solution>& sol,
     }
     m_stride = m_sol->thermo()->stateSize();
     m_sol->thermo()->addSpeciesLock();
-    m_data = make_shared<vector<double>>(m_dataSize * m_stride, 0.);
+    m_data = make_shared<vector<CanteraDouble>>(m_dataSize * m_stride, 0.);
     m_extra = make_shared<map<string, AnyValue>>();
     m_order = make_shared<map<int, string>>();
     for (size_t i = 0; i < m_dataSize; ++i) {
@@ -166,7 +166,7 @@ void setScalar(AnyValue& extra, const AnyValue& data, const vector<int>& slice);
 void SolutionArray::reset()
 {
     size_t nState = m_sol->thermo()->stateSize();
-    vector<double> state(nState);
+    vector<CanteraDouble> state(nState);
     m_sol->thermo()->saveState(state); // thermo contains current state
     for (size_t k = 0; k < m_size; ++k) {
         std::copy(state.begin(), state.end(), m_data->data() + m_active[k] * m_stride);
@@ -174,14 +174,14 @@ void SolutionArray::reset()
     for (auto& [key, extra] : *m_extra) {
         if (extra.is<void>()) {
             // cannot reset placeholder (uninitialized component)
-        } else if (extra.isVector<double>()) {
-            resetSingle<double>(extra, m_active);
+        } else if (extra.isVector<CanteraDouble>()) {
+            resetSingle<CanteraDouble>(extra, m_active);
         } else if (extra.isVector<long int>()) {
             resetSingle<long int>(extra, m_active);
         } else if (extra.isVector<string>()) {
             resetSingle<string>(extra, m_active);
-        } else if (extra.isVector<vector<double>>()) {
-            resetMulti<double>(extra, m_active);
+        } else if (extra.isVector<vector<CanteraDouble>>()) {
+            resetMulti<CanteraDouble>(extra, m_active);
         } else if (extra.isVector<vector<long int>>()) {
             resetMulti<long int>(extra, m_active);
         } else if (extra.isVector<vector<string>>()) {
@@ -246,11 +246,11 @@ void SolutionArray::_resize(size_t size)
 
 namespace { // restrict scope of helper functions to local translation unit
 
-vector<string> doubleColumn(string name, const vector<double>& comp,
+vector<string> doubleColumn(string name, const vector<CanteraDouble>& comp,
                             int rows, int width)
 {
     // extract data for processing
-    vector<double> data;
+    vector<CanteraDouble> data;
     vector<string> raw;
     string notation = fmt::format("{{:{}.{}g}}", width, (width - 1) / 2);
     int csize = static_cast<int>(comp.size());
@@ -446,8 +446,8 @@ vector<string> stringColumn(string name, const vector<string>& comp,
 
 vector<string> formatColumn(string name, const AnyValue& comp, int rows, int width)
 {
-    if (comp.isVector<double>()) {
-        return doubleColumn(name, comp.asVector<double>(), rows, width);
+    if (comp.isVector<CanteraDouble>()) {
+        return doubleColumn(name, comp.asVector<CanteraDouble>(), rows, width);
     }
     if (comp.isVector<long int>()) {
         return integerColumn(name, comp.asVector<long int>(), rows, width);
@@ -459,9 +459,9 @@ vector<string> formatColumn(string name, const AnyValue& comp, int rows, int wid
     // create alternative representation
     string repr;
     int size;
-    if (comp.isVector<vector<double>>()) {
+    if (comp.isVector<vector<CanteraDouble>>()) {
         repr = "[ <double> ]";
-        size = len(comp.asVector<vector<double>>());
+        size = len(comp.asVector<vector<CanteraDouble>>());
     } else if (comp.isVector<vector<long int>>()) {
         repr = "[ <long int> ]";
         size = len(comp.asVector<vector<long int>>());
@@ -719,14 +719,14 @@ AnyValue SolutionArray::getComponent(const string& name) const
         if (extra.isVector<long int>()) {
             return getSingle<long int>(extra, m_active);
         }
-        if (extra.isVector<double>()) {
-            return getSingle<double>(extra, m_active);
+        if (extra.isVector<CanteraDouble>()) {
+            return getSingle<CanteraDouble>(extra, m_active);
         }
         if (extra.isVector<string>()) {
             return getSingle<string>(extra, m_active);
         }
-        if (extra.isVector<vector<double>>()) {
-            return getMulti<double>(extra, m_active);
+        if (extra.isVector<vector<CanteraDouble>>()) {
+            return getMulti<CanteraDouble>(extra, m_active);
         }
         if (extra.isVector<vector<long int>>()) {
             return getMulti<long int>(extra, m_active);
@@ -740,7 +740,7 @@ AnyValue SolutionArray::getComponent(const string& name) const
     }
 
     // component is part of state information
-    vector<double> data(m_size);
+    vector<CanteraDouble> data(m_size);
     size_t ix = m_sol->thermo()->speciesIndex(_name, false);
     if (ix == npos) {
         // state other than species
@@ -757,9 +757,9 @@ AnyValue SolutionArray::getComponent(const string& name) const
 }
 
 bool isSimpleVector(const AnyValue& any) {
-    return any.isVector<double>() || any.isVector<long int>() ||
+    return any.isVector<CanteraDouble>() || any.isVector<long int>() ||
         any.isVector<string>() || any.isVector<bool>() ||
-        any.isVector<vector<double>>() || any.isVector<vector<long int>>() ||
+        any.isVector<vector<CanteraDouble>>() || any.isVector<vector<long int>>() ||
         any.isVector<vector<string>>() || any.isVector<vector<bool>>();
 }
 
@@ -786,7 +786,7 @@ void SolutionArray::setComponent(const string& name, const AnyValue& data)
             name, m_size, size);
     }
 
-    auto& vec = data.asVector<double>();
+    auto& vec = data.asVector<CanteraDouble>();
     size_t ix = m_sol->thermo()->speciesIndex(name, false);
     if (ix == npos) {
         ix = m_sol->thermo()->nativeState()[name];
@@ -813,7 +813,7 @@ void SolutionArray::setLoc(int loc, bool restore)
     if (restore) {
         size_t nState = m_sol->thermo()->stateSize();
         m_sol->thermo()->restoreState(
-            span<const double>(m_data->data() + m_loc * m_stride, nState));
+            span<const CanteraDouble>(m_data->data() + m_loc * m_stride, nState));
     }
 }
 
@@ -822,10 +822,10 @@ void SolutionArray::updateState(int loc)
     setLoc(loc, false);
     size_t nState = m_sol->thermo()->stateSize();
     m_sol->thermo()->saveState(
-        span<double>(m_data->data() + m_loc * m_stride, nState));
+        span<CanteraDouble>(m_data->data() + m_loc * m_stride, nState));
 }
 
-vector<double> SolutionArray::getState(int loc) const
+vector<CanteraDouble> SolutionArray::getState(int loc) const
 {
     // read-only access: resolve the data index directly without modifying m_loc or the
     // associated Solution object, so that the stored state is always returned
@@ -835,11 +835,11 @@ vector<double> SolutionArray::getState(int loc) const
     }
     size_t index = static_cast<size_t>(m_active[loc]);
     size_t nState = m_sol->thermo()->stateSize();
-    const double* data = m_data->data() + index * m_stride;
-    return vector<double>(data, data + nState);
+    const CanteraDouble* data = m_data->data() + index * m_stride;
+    return vector<CanteraDouble>(data, data + nState);
 }
 
-void SolutionArray::setState(int loc, const vector<double>& state)
+void SolutionArray::setState(int loc, const vector<CanteraDouble>& state)
 {
     size_t nState = m_sol->thermo()->stateSize();
     if (state.size() != nState) {
@@ -850,7 +850,7 @@ void SolutionArray::setState(int loc, const vector<double>& state)
     setLoc(loc, false);
     m_sol->thermo()->restoreState(state);
     m_sol->thermo()->saveState(
-        span<double>(m_data->data() + m_loc * m_stride, nState));
+        span<CanteraDouble>(m_data->data() + m_loc * m_stride, nState));
 }
 
 void SolutionArray::normalize() {
@@ -860,13 +860,13 @@ void SolutionArray::normalize() {
         return;
     }
     size_t nState = phase->stateSize();
-    vector<double> out(nState);
+    vector<CanteraDouble> out(nState);
     if (nativeState.count("Y")) {
         size_t offset = nativeState["Y"];
         for (int loc = 0; loc < static_cast<int>(m_size); loc++) {
             setLoc(loc, true); // set location and restore state
             auto* data = m_data->data() + m_loc * m_stride + offset;
-            phase->setMassFractions(span<const double>(data, phase->nSpecies()));
+            phase->setMassFractions(span<const CanteraDouble>(data, phase->nSpecies()));
             m_sol->thermo()->saveState(out);
             setState(loc, out);
         }
@@ -875,7 +875,7 @@ void SolutionArray::normalize() {
         for (int loc = 0; loc < static_cast<int>(m_size); loc++) {
             setLoc(loc, true); // set location and restore state
             auto* data = m_data->data() + m_loc * m_stride + offset;
-            phase->setMoleFractions(span<const double>(data, phase->nSpecies()));
+            phase->setMoleFractions(span<const CanteraDouble>(data, phase->nSpecies()));
             m_sol->thermo()->saveState(out);
             setState(loc, out);
         }
@@ -900,14 +900,14 @@ AnyMap SolutionArray::getAuxiliary(int loc) const
             out[key] = extra;
         } else if (extra.isVector<long int>()) {
             out[key] = extra.asVector<long int>()[index];
-        } else if (extra.isVector<double>()) {
-            out[key] = extra.asVector<double>()[index];
+        } else if (extra.isVector<CanteraDouble>()) {
+            out[key] = extra.asVector<CanteraDouble>()[index];
         } else if (extra.isVector<string>()) {
             out[key] = extra.asVector<string>()[index];
         } else if (extra.isVector<vector<long int>>()) {
             out[key] = extra.asVector<vector<long int>>()[index];
-        } else if (extra.isVector<vector<double>>()) {
-            out[key] = extra.asVector<vector<double>>()[index];
+        } else if (extra.isVector<vector<CanteraDouble>>()) {
+            out[key] = extra.asVector<vector<CanteraDouble>>()[index];
         } else if (extra.isVector<vector<string>>()) {
             out[key] = extra.asVector<vector<string>>()[index];
         } else {
@@ -940,14 +940,14 @@ void SolutionArray::setAuxiliary(int loc, const AnyMap& data)
         try {
             if (extra.isVector<long int>()) {
                 setAuxiliarySingle<long int>(m_loc, extra, value);
-            } else if (extra.isVector<double>()) {
-                setAuxiliarySingle<double>(m_loc, extra, value);
+            } else if (extra.isVector<CanteraDouble>()) {
+                setAuxiliarySingle<CanteraDouble>(m_loc, extra, value);
             } else if (extra.isVector<string>()) {
                 setAuxiliarySingle<string>(m_loc, extra, value);
             } else if (extra.isVector<vector<long int>>()) {
                 setAuxiliaryMulti<long int>(m_loc, extra, value);
-            } else if (extra.isVector<vector<double>>()) {
-                setAuxiliaryMulti<double>(m_loc, extra, value);
+            } else if (extra.isVector<vector<CanteraDouble>>()) {
+                setAuxiliaryMulti<CanteraDouble>(m_loc, extra, value);
             } else if (extra.isVector<vector<string>>()) {
                 setAuxiliaryMulti<string>(m_loc, extra, value);
             } else {
@@ -1071,7 +1071,7 @@ void SolutionArray::writeEntry(const string& fname, bool overwrite, const string
             isSpecies.push_back(false);
             components.emplace_back(getComponent(key));
             col = components.size() - 1;
-            if (!components[col].isVector<double>() &&
+            if (!components[col].isVector<CanteraDouble>() &&
                 !components[col].isVector<long int>() &&
                 !components[col].isVector<string>())
             {
@@ -1116,7 +1116,7 @@ void SolutionArray::writeEntry(const string& fname, bool overwrite, const string
     output << to_string(header) << std::endl;
 
     size_t maxLen = npos;
-    vector<double> buf(speciesNames.size(), 0.);
+    vector<CanteraDouble> buf(speciesNames.size(), 0.);
     for (int row = 0; row < static_cast<int>(m_size); row++) {
         fmt::memory_buffer line;
         if (maxLen != npos) {
@@ -1136,8 +1136,8 @@ void SolutionArray::writeEntry(const string& fname, bool overwrite, const string
                 fmt_append(line, "{:.9g}{}", buf[idx++], sep);
             } else {
                 auto& data = components[col];
-                if (data.isVector<double>()) {
-                    fmt_append(line, "{:.9g}{}", data.asVector<double>()[row], sep);
+                if (data.isVector<CanteraDouble>()) {
+                    fmt_append(line, "{:.9g}{}", data.asVector<CanteraDouble>()[row], sep);
                 } else if (data.isVector<long int>()) {
                     fmt_append(line, "{}{}", data.asVector<long int>()[row], sep);
                 } else if (data.isVector<bool>()) {
@@ -1214,7 +1214,7 @@ void SolutionArray::writeEntry(const string& fname, const string& name,
     size_t nSpecies = m_sol->thermo()->nSpecies();
     for (auto& [key, offset] : nativeState) {
         if (key == "X" || key == "Y") {
-            vector<vector<double>> prop;
+            vector<vector<CanteraDouble>> prop;
             for (size_t i = 0; i < m_size; i++) {
                 size_t first = offset + i * m_stride;
                 prop.emplace_back(m_data->begin() + first,
@@ -1290,7 +1290,7 @@ void SolutionArray::writeEntry(AnyMap& root, const string& name, const string& s
         data["pressure"] = phase->pressure();
         auto surf = std::dynamic_pointer_cast<SurfPhase>(phase);
         auto nSpecies = phase->nSpecies();
-        vector<double> values(nSpecies);
+        vector<CanteraDouble> values(nSpecies);
         if (surf) {
             surf->getCoverages(values);
         } else {
@@ -1333,7 +1333,7 @@ void SolutionArray::writeEntry(AnyMap& root, const string& name, const string& s
     }
 }
 
-void SolutionArray::append(const vector<double>& state, const AnyMap& extra)
+void SolutionArray::append(const vector<CanteraDouble>& state, const AnyMap& extra)
 {
     if (apiNdim() > 1) {
         throw NotImplementedError("SolutionArray::append",
@@ -1480,14 +1480,14 @@ void SolutionArray::_initExtra(const string& name, const AnyValue& value)
     try {
         if (value.is<long int>()) {
             extra = vector<long int>(m_dataSize, value.as<long int>());
-        } else if (value.is<double>()) {
-            extra = vector<double>(m_dataSize, value.as<double>());
+        } else if (value.is<CanteraDouble>()) {
+            extra = vector<CanteraDouble>(m_dataSize, value.as<CanteraDouble>());
         } else if (value.is<string>()) {
             extra = vector<string>(m_dataSize, value.as<string>());
         } else if (value.isVector<long int>()) {
             extra = vector<vector<long int>>(m_dataSize, value.asVector<long int>());
-        } else if (value.isVector<double>()) {
-            extra = vector<vector<double>>(m_dataSize, value.asVector<double>());
+        } else if (value.isVector<CanteraDouble>()) {
+            extra = vector<vector<CanteraDouble>>(m_dataSize, value.asVector<CanteraDouble>());
         } else if (value.isVector<string>()) {
             extra = vector<vector<string>>(m_dataSize, value.asVector<string>());
         } else if (value.is<void>()) {
@@ -1521,12 +1521,12 @@ void SolutionArray::_resizeExtra(const string& name, const AnyValue& value)
     try {
         if (extra.isVector<long int>()) {
             resizeSingle<long int>(extra, m_dataSize, value);
-        } else if (extra.isVector<double>()) {
-            resizeSingle<double>(extra, m_dataSize, value);
+        } else if (extra.isVector<CanteraDouble>()) {
+            resizeSingle<CanteraDouble>(extra, m_dataSize, value);
         } else if (extra.isVector<string>()) {
             resizeSingle<string>(extra, m_dataSize, value);
-        } else if (extra.isVector<vector<double>>()) {
-            resizeMulti<double>(extra, m_dataSize, value);
+        } else if (extra.isVector<vector<CanteraDouble>>()) {
+            resizeMulti<CanteraDouble>(extra, m_dataSize, value);
         } else if (extra.isVector<vector<long int>>()) {
             resizeMulti<long int>(extra, m_dataSize, value);
         } else if (extra.isVector<vector<string>>()) {
@@ -1586,20 +1586,20 @@ void SolutionArray::_setExtra(const string& name, const AnyValue& data)
 
     if (data.is<long int>()) {
         setScalar<long int>(extra, data, m_active);
-    } else if (data.is<double>()) {
-        setScalar<double>(extra, data, m_active);
+    } else if (data.is<CanteraDouble>()) {
+        setScalar<CanteraDouble>(extra, data, m_active);
     } else if (data.is<string>()) {
         setScalar<string>(extra, data, m_active);
     } else if (data.isVector<long int>()) {
         setSingle<long int>(extra, data, m_active);
-    } else if (data.isVector<double>()) {
-        setSingle<double>(extra, data, m_active);
+    } else if (data.isVector<CanteraDouble>()) {
+        setSingle<CanteraDouble>(extra, data, m_active);
     } else if (data.isVector<string>()) {
         setSingle<string>(extra, data, m_active);
     } else if (data.isVector<vector<long int>>()) {
         setMulti<long int>(extra, data, m_active);
-    } else if (data.isVector<vector<double>>()) {
-        setMulti<double>(extra, data, m_active);
+    } else if (data.isVector<vector<CanteraDouble>>()) {
+        setMulti<CanteraDouble>(extra, data, m_active);
     } else if (data.isVector<vector<string>>()) {
         setMulti<string>(extra, data, m_active);
     } else {
@@ -1761,7 +1761,7 @@ void SolutionArray::readEntry(const string& fname, const string& name,
             if (name == "X" || name == "Y") {
                 AnyValue data;
                 data = file.readData(path, name, m_size, nSpecies);
-                auto prop = data.asVector<vector<double>>();
+                auto prop = data.asVector<vector<CanteraDouble>>();
                 for (size_t i = 0; i < m_dataSize; i++) {
                     std::copy(prop[i].begin(), prop[i].end(),
                               m_data->data() + offset + i * m_stride);
@@ -1775,57 +1775,57 @@ void SolutionArray::readEntry(const string& fname, const string& name,
     } else if (mode == "TPX") {
         AnyValue data;
         data = file.readData(path, getName(names, "T"), m_dataSize, 0);
-        vector<double> T = std::move(data.asVector<double>());
+        vector<CanteraDouble> T = std::move(data.asVector<CanteraDouble>());
         data = file.readData(path, getName(names, "P"), m_dataSize, 0);
-        vector<double> P = std::move(data.asVector<double>());
+        vector<CanteraDouble> P = std::move(data.asVector<CanteraDouble>());
         data = file.readData(path, "X", m_dataSize, nSpecies);
-        vector<vector<double>> X = std::move(data.asVector<vector<double>>());
+        vector<vector<CanteraDouble>> X = std::move(data.asVector<vector<CanteraDouble>>());
         for (size_t i = 0; i < m_dataSize; i++) {
             m_sol->thermo()->setMoleFractions_NoNorm(X[i]);
             m_sol->thermo()->setState_TP(T[i], P[i]);
             m_sol->thermo()->saveState(
-                span<double>(m_data->data() + i * m_stride, nState));
+                span<CanteraDouble>(m_data->data() + i * m_stride, nState));
         }
     } else if (mode == "TDX") {
         AnyValue data;
         data = file.readData(path, getName(names, "T"), m_dataSize, 0);
-        vector<double> T = std::move(data.asVector<double>());
+        vector<CanteraDouble> T = std::move(data.asVector<CanteraDouble>());
         data = file.readData(path, getName(names, "D"), m_dataSize, 0);
-        vector<double> D = std::move(data.asVector<double>());
+        vector<CanteraDouble> D = std::move(data.asVector<CanteraDouble>());
         data = file.readData(path, "X", m_dataSize, nSpecies);
-        vector<vector<double>> X = std::move(data.asVector<vector<double>>());
+        vector<vector<CanteraDouble>> X = std::move(data.asVector<vector<CanteraDouble>>());
         for (size_t i = 0; i < m_dataSize; i++) {
             m_sol->thermo()->setMoleFractions_NoNorm(X[i]);
             m_sol->thermo()->setState_TD(T[i], D[i]);
             m_sol->thermo()->saveState(
-                span<double>(m_data->data() + i * m_stride, nState));
+                span<CanteraDouble>(m_data->data() + i * m_stride, nState));
         }
     } else if (mode == "TPY") {
         AnyValue data;
         data = file.readData(path, getName(names, "T"), m_dataSize, 0);
-        vector<double> T = std::move(data.asVector<double>());
+        vector<CanteraDouble> T = std::move(data.asVector<CanteraDouble>());
         data = file.readData(path, getName(names, "P"), m_dataSize, 0);
-        vector<double> P = std::move(data.asVector<double>());
+        vector<CanteraDouble> P = std::move(data.asVector<CanteraDouble>());
         data = file.readData(path, "Y", m_dataSize, nSpecies);
-        vector<vector<double>> Y = std::move(data.asVector<vector<double>>());
+        vector<vector<CanteraDouble>> Y = std::move(data.asVector<vector<CanteraDouble>>());
         for (size_t i = 0; i < m_dataSize; i++) {
             m_sol->thermo()->setMassFractions_NoNorm(Y[i]);
             m_sol->thermo()->setState_TP(T[i], P[i]);
             m_sol->thermo()->saveState(
-                span<double>(m_data->data() + i * m_stride, nState));
+                span<CanteraDouble>(m_data->data() + i * m_stride, nState));
         }
     } else if (mode == "legacySurf") {
         // erroneous TDX mode (should be TPX or TPY) - Sim1D (Cantera 2.5)
         AnyValue data;
         data = file.readData(path, getName(names, "T"), m_dataSize, 0);
-        vector<double> T = std::move(data.asVector<double>());
+        vector<CanteraDouble> T = std::move(data.asVector<CanteraDouble>());
         data = file.readData(path, "X", m_dataSize, nSpecies);
-        vector<vector<double>> X = std::move(data.asVector<vector<double>>());
+        vector<vector<CanteraDouble>> X = std::move(data.asVector<vector<CanteraDouble>>());
         for (size_t i = 0; i < m_dataSize; i++) {
             m_sol->thermo()->setMoleFractions_NoNorm(X[i]);
             m_sol->thermo()->setTemperature(T[i]);
             m_sol->thermo()->saveState(
-                span<double>(m_data->data() + i * m_stride, nState));
+                span<CanteraDouble>(m_data->data() + i * m_stride, nState));
         }
         warn_user("SolutionArray::readEntry",
             "Detected legacy HDF format with incomplete state information\nfor name "
@@ -1924,22 +1924,22 @@ void SolutionArray::readEntry(const AnyMap& root, const string& name, const stri
         // single data point
         string mode = _detectMode(names, false);
         if (mode == "TPY") {
-            double T = path[getName(names, "T")].asDouble();
-            double P = path[getName(names, "P")].asDouble();
-            auto Y = path["mass-fractions"].asMap<double>();
+            CanteraDouble T = path[getName(names, "T")].asDouble();
+            CanteraDouble P = path[getName(names, "P")].asDouble();
+            auto Y = path["mass-fractions"].asMap<CanteraDouble>();
             m_sol->thermo()->setState_TPY(T, P, Y);
         } else if (mode == "TPC") {
             auto surf = std::dynamic_pointer_cast<SurfPhase>(m_sol->thermo());
-            double T = path[getName(names, "T")].asDouble();
-            double P = path["pressure"].asDouble();
+            CanteraDouble T = path[getName(names, "T")].asDouble();
+            CanteraDouble P = path["pressure"].asDouble();
             m_sol->thermo()->setState_TP(T, P);
-            auto cov = path["coverages"].asMap<double>();
+            auto cov = path["coverages"].asMap<CanteraDouble>();
             surf->setCoveragesByName(cov);
         } else if (mode == "legacyInlet") {
             // missing property - Sim1D (Cantera 2.6)
             mode = "TPY";
-            double T = path[getName(names, "T")].asDouble();
-            auto Y = path["mass-fractions"].asMap<double>();
+            CanteraDouble T = path[getName(names, "T")].asDouble();
+            auto Y = path["mass-fractions"].asMap<CanteraDouble>();
             m_sol->thermo()->setState_TPY(T, m_sol->thermo()->pressure(), Y);
             warn_user("SolutionArray::readEntry",
                 "Detected legacy YAML format with incomplete state information\n"
@@ -1951,7 +1951,7 @@ void SolutionArray::readEntry(const AnyMap& root, const string& name, const stri
             throw NotImplementedError("SolutionArray::readEntry",
                 "Import of '{}' data is not supported.", mode);
         }
-        m_sol->thermo()->saveState(span<double>(m_data->data(), nState));
+        m_sol->thermo()->saveState(span<CanteraDouble>(m_data->data(), nState));
         auto props = _stateProperties(mode, true);
         exclude.insert(props.begin(), props.end());
     } else {
@@ -1975,8 +1975,8 @@ void SolutionArray::readEntry(const AnyMap& root, const string& name, const stri
         } else {
             // legacy YAML format does not provide for list of components
             for (const auto& [name, value] : path) {
-                if (value.isVector<double>()) {
-                    const vector<double>& data = value.asVector<double>();
+                if (value.isVector<CanteraDouble>()) {
+                    const vector<CanteraDouble>& data = value.asVector<CanteraDouble>();
                     if (data.size() == m_dataSize) {
                         auto _name = name;
                         if (!hasComponent(name, false)) {
@@ -2007,13 +2007,13 @@ void SolutionArray::readEntry(const AnyMap& root, const string& name, const stri
         set<string> TY = {"T", "Y"};
         if (props == TY && missingProps.count("D") && path.hasKey("pressure")) {
             // missing "D" - Sim1D (Cantera 2.6)
-            double P = path["pressure"].asDouble();
+            CanteraDouble P = path["pressure"].asDouble();
             const size_t offset_T = nativeState.find("T")->second;
             const size_t offset_D = nativeState.find("D")->second;
             const size_t offset_Y = nativeState.find("Y")->second;
             for (size_t i = 0; i < m_dataSize; i++) {
-                double T = (*m_data)[offset_T + i * m_stride];
-                span<double> Y(m_data->data() + offset_Y + i * m_stride,
+                CanteraDouble T = (*m_data)[offset_T + i * m_stride];
+                span<CanteraDouble> Y(m_data->data() + offset_Y + i * m_stride,
                                m_sol->thermo()->nSpecies());
                 m_sol->thermo()->setState_TPY(T, P, Y);
                 (*m_data)[offset_D + i * m_stride] = m_sol->thermo()->density();

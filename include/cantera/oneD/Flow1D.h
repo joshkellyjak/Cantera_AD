@@ -60,9 +60,9 @@ public:
     //! @name Problem Specification
     //! @{
 
-    void setupGrid(span<const double> z) override;
+    void setupGrid(span<const CanteraDouble> z) override;
 
-    void resetBadValues(span<double> x) override;
+    void resetBadValues(span<CanteraDouble> x) override;
 
     //! Access the phase object used to compute thermodynamic properties for points in
     //! this domain.
@@ -122,19 +122,19 @@ public:
 
     //! Set the pressure. Since the flow equations are for the limit of small
     //! Mach number, the pressure is very nearly constant throughout the flow.
-    void setPressure(double p) {
+    void setPressure(CanteraDouble p) {
         m_press = p;
     }
 
     //! The current pressure [Pa].
-    double pressure() const {
+    CanteraDouble pressure() const {
         return m_press;
     }
 
     //! Write the initial solution estimate into array x.
-    void _getInitialSoln(span<double> x) override;
+    void _getInitialSoln(span<CanteraDouble> x) override;
 
-    void _finalize(span<const double> x) override;
+    void _finalize(span<const CanteraDouble> x) override;
 
     /**
      * Set fixed temperature profile.
@@ -144,7 +144,7 @@ public:
      * @param zfixed  Vector containing locations where profile is specified.
      * @param tfixed  Vector containing specified temperatures.
      */
-    void setFixedTempProfile(span<const double> zfixed, span<const double> tfixed) {
+    void setFixedTempProfile(span<const CanteraDouble> zfixed, span<const CanteraDouble> tfixed) {
         m_zfix.assign(zfixed.begin(), zfixed.end());
         m_tfix.assign(tfixed.begin(), tfixed.end());
     }
@@ -153,13 +153,13 @@ public:
      * Set the temperature fixed point at grid point j, and disable the energy
      * equation so that the solution will be held to this value.
      */
-    void setTemperature(size_t j, double t) {
+    void setTemperature(size_t j, CanteraDouble t) {
         m_fixedtemp[j] = t;
         m_do_energy[j] = false;
     }
 
     //! The fixed temperature value at point j.
-    double T_fixed(size_t j) const {
+    CanteraDouble T_fixed(size_t j) const {
         return m_fixedtemp[j];
     }
 
@@ -175,14 +175,14 @@ public:
     virtual bool componentActive(size_t n) const;
 
     void updateState(size_t loc) override;
-    void show(span<const double> x) override;
+    void show(span<const CanteraDouble> x) override;
 
-    void getValues(const string& component, span<double> values) const override;
-    void setValues(const string& component, span<const double> values) override;
-    void getResiduals(const string& component, span<double> values) const override;
-    void setProfile(const string& component, span<const double> pos,
-                    span<const double> values) override;
-    void setFlatProfile(const string& component, double value) override;
+    void getValues(const string& component, span<CanteraDouble> values) const override;
+    void setValues(const string& component, span<const CanteraDouble> values) override;
+    void getResiduals(const string& component, span<CanteraDouble> values) const override;
+    void setProfile(const string& component, span<const CanteraDouble> pos,
+                    span<const CanteraDouble> values) override;
+    void setFlatProfile(const string& component, CanteraDouble value) override;
 
     shared_ptr<SolutionArray> toArray(bool normalize=false) override;
     void fromArray(const shared_ptr<SolutionArray>& arr) override;
@@ -271,7 +271,7 @@ public:
     }
 
     //! Return radiative heat loss at grid point j
-    double radiativeHeatLoss(size_t j) const {
+    CanteraDouble radiativeHeatLoss(size_t j) const {
         return m_qdotRadiation[j];
     }
 
@@ -281,15 +281,15 @@ public:
      * radiative term and writes them into the variables, which are used for the
      * calculation.
      */
-    void setBoundaryEmissivities(double e_left, double e_right);
+    void setBoundaryEmissivities(CanteraDouble e_left, CanteraDouble e_right);
 
     //! Return emissivity at left boundary
-    double leftEmissivity() const {
+    CanteraDouble leftEmissivity() const {
         return m_epsilon_left;
     }
 
     //! Return emissivity at right boundary
-    double rightEmissivity() const {
+    CanteraDouble rightEmissivity() const {
         return m_epsilon_right;
     }
 
@@ -324,28 +324,28 @@ public:
     //! @{
 
     //! Returns the temperature at the left control point
-    double leftControlPointTemperature() const;
+    CanteraDouble leftControlPointTemperature() const;
 
     //! Returns the z-coordinate of the left control point
-    double leftControlPointCoordinate() const;
+    CanteraDouble leftControlPointCoordinate() const;
 
     //! Sets the temperature of the left control point
-    void setLeftControlPointTemperature(double temperature);
+    void setLeftControlPointTemperature(CanteraDouble temperature);
 
     //! Sets the coordinate of the left control point
-    void setLeftControlPointCoordinate(double z_left);
+    void setLeftControlPointCoordinate(CanteraDouble z_left);
 
     //! Returns the temperature at the right control point
-    double rightControlPointTemperature() const;
+    CanteraDouble rightControlPointTemperature() const;
 
     //! Returns the z-coordinate of the right control point
-    double rightControlPointCoordinate() const;
+    CanteraDouble rightControlPointCoordinate() const;
 
     //! Sets the temperature of the right control point
-    void setRightControlPointTemperature(double temperature);
+    void setRightControlPointTemperature(CanteraDouble temperature);
 
     //! Sets the coordinate of the right control point
-    void setRightControlPointCoordinate(double z_right);
+    void setRightControlPointCoordinate(CanteraDouble z_right);
 
     //! Sets the status of the two-point control
     void enableTwoPointControl(bool twoPointControl);
@@ -366,14 +366,14 @@ public:
     void resize(size_t components, size_t points) override;
 
     //! Set the gas object state to be consistent with the solution at point j.
-    void setGas(span<const double> x, size_t j);
+    void setGas(span<const CanteraDouble> x, size_t j);
 
     //! Set the gas state to be consistent with the solution at the midpoint
     //! between j and j + 1.
-    void setGasAtMidpoint(span<const double> x, size_t j);
+    void setGasAtMidpoint(span<const CanteraDouble> x, size_t j);
 
     //! Get the density [kg/m³] at point `j`
-    double density(size_t j) const {
+    CanteraDouble density(size_t j) const {
         return m_rho[j];
     }
 
@@ -423,8 +423,8 @@ public:
      *      component has a time derivative (1) or not (0).
      *  @param[in] rdt  Reciprocal of the timestep (`rdt=0` implies steady-state.)
      */
-    void eval(size_t jGlobal, span<const double> xGlobal, span<double> rsdGlobal,
-              span<int> diagGlobal, double rdt) override;
+    void eval(size_t jGlobal, span<const CanteraDouble> xGlobal, span<CanteraDouble> rsdGlobal,
+              span<int> diagGlobal, CanteraDouble rdt) override;
 
     //! Index of the species on the left boundary with the largest mass fraction
     size_t leftExcessSpecies() const {
@@ -437,7 +437,7 @@ public:
     }
 
     bool hasAnalyticJacobian(size_t j, size_t n) const override;
-    void evalJacobianAnalytic(span<const double> xGlobal, SystemJacobian& jac) override;
+    void evalJacobianAnalytic(span<const CanteraDouble> xGlobal, SystemJacobian& jac) override;
     void checkAnalyticJacobian() const override;
 
 protected:
@@ -463,14 +463,14 @@ protected:
      * * #m_hk (species specific enthalpies)
      * * #m_wdot (species production rates)
      */
-    void updateThermo(span<const double> x, size_t j0, size_t j1) {
+    void updateThermo(span<const CanteraDouble> x, size_t j0, size_t j1) {
         for (size_t j = j0; j <= j1; j++) {
             setGas(x,j);
             m_rho[j] = m_thermo->density();
             m_wtm[j] = m_thermo->meanMolecularWeight();
             m_cp[j] = m_thermo->cp_mass();
-            m_thermo->getPartialMolarEnthalpies(span<double>(&m_hk(0, j), m_nsp));
-            m_kin->getNetProductionRates(span<double>(&m_wdot(0, j), m_nsp));
+            m_thermo->getPartialMolarEnthalpies(span<CanteraDouble>(&m_hk(0, j), m_nsp));
+            m_kin->getNetProductionRates(span<CanteraDouble>(&m_wdot(0, j), m_nsp));
         }
     }
 
@@ -481,15 +481,15 @@ protected:
      * the viscosity at element `j`  is the viscosity evaluated at the midpoint
      * between `j` and `j + 1`.
      */
-    virtual void updateTransport(span<const double> x, size_t j0, size_t j1);
+    virtual void updateTransport(span<const CanteraDouble> x, size_t j0, size_t j1);
 
     //! Update the diffusive mass fluxes.
-    virtual void updateDiffFluxes(span<const double> x, size_t j0, size_t j1);
+    virtual void updateDiffFluxes(span<const CanteraDouble> x, size_t j0, size_t j1);
 
     //! Update the properties (thermo, transport, and diffusion flux).
     //! This function is called in eval after the points which need
     //! to be updated are defined.
-    virtual void updateProperties(size_t jg, span<const double> x,
+    virtual void updateProperties(size_t jg, span<const CanteraDouble> x,
                                   size_t jmin, size_t jmax);
 
     /**
@@ -507,13 +507,13 @@ protected:
      * The coefficients for the polynomials are taken from
      * [TNF Workshop](https://tnfworkshop.org/radiation/) material.
      */
-    void computeRadiation(span<const double> x, size_t jmin, size_t jmax);
+    void computeRadiation(span<const CanteraDouble> x, size_t jmin, size_t jmax);
 
     //! Planck-mean absorption polynomial factor for radiating species @p s
     //! (0: CO2, 1: H2O) at grid point @p j. Returns
     //! @f$ k_{P,s} / (P \cdot X_s) @f$, that is, the polynomial value divided
     //! by the reference pressure (OneAtm).
-    double radiationPolyFactor(span<const double> x, size_t j, int s) const;
+    CanteraDouble radiationPolyFactor(span<const CanteraDouble> x, size_t j, int s) const;
 
     //! @}
 
@@ -555,8 +555,8 @@ protected:
      * @param[in] jmin  The index for the starting point in the local domain grid.
      * @param[in] jmax  The index for the ending point in the local domain grid.
      */
-    virtual void evalContinuity(span<const double> x, span<double> rsd, span<int> diag,
-                                double rdt, size_t jmin, size_t jmax);
+    virtual void evalContinuity(span<const CanteraDouble> x, span<CanteraDouble> rsd, span<int> diag,
+                                CanteraDouble rdt, size_t jmin, size_t jmax);
 
     /**
      * Evaluate the momentum equation residual.
@@ -573,8 +573,8 @@ protected:
      *
      * For argument explanation, see evalContinuity().
      */
-    virtual void evalMomentum(span<const double> x, span<double> rsd, span<int> diag,
-                              double rdt, size_t jmin, size_t jmax);
+    virtual void evalMomentum(span<const CanteraDouble> x, span<CanteraDouble> rsd, span<int> diag,
+                              CanteraDouble rdt, size_t jmin, size_t jmax);
 
     /**
      * Evaluate the radial pressure gradient equation residual.
@@ -592,8 +592,8 @@ protected:
      *
      * For argument explanation, see evalContinuity().
      */
-    virtual void evalLambda(span<const double> x, span<double> rsd, span<int> diag,
-                            double rdt, size_t jmin, size_t jmax);
+    virtual void evalLambda(span<const CanteraDouble> x, span<CanteraDouble> rsd, span<int> diag,
+                            CanteraDouble rdt, size_t jmin, size_t jmax);
 
     /**
      * Evaluate the energy equation residual.
@@ -612,8 +612,8 @@ protected:
      *
      * For argument explanation, see evalContinuity().
      */
-    virtual void evalEnergy(span<const double> x, span<double> rsd, span<int> diag,
-                            double rdt, size_t jmin, size_t jmax);
+    virtual void evalEnergy(span<const CanteraDouble> x, span<CanteraDouble> rsd, span<int> diag,
+                            CanteraDouble rdt, size_t jmin, size_t jmax);
 
     /**
      * Evaluate the species equations' residuals.
@@ -628,8 +628,8 @@ protected:
      *
      * For argument explanation, see evalContinuity().
      */
-    virtual void evalSpecies(span<const double> x, span<double> rsd, span<int> diag,
-                             double rdt, size_t jmin, size_t jmax);
+    virtual void evalSpecies(span<const CanteraDouble> x, span<CanteraDouble> rsd, span<int> diag,
+                             CanteraDouble rdt, size_t jmin, size_t jmax);
 
     /**
      * Evaluate the electric field equation residual to be zero everywhere.
@@ -640,8 +640,8 @@ protected:
      *
      * For argument explanation, see evalContinuity().
      */
-    virtual void evalElectricField(span<const double> x, span<double> rsd,
-                                   span<int> diag, double rdt, size_t jmin,
+    virtual void evalElectricField(span<const CanteraDouble> x, span<CanteraDouble> rsd,
+                                   span<int> diag, CanteraDouble rdt, size_t jmin,
                                    size_t jmax);
 
     //! @} End of Governing Equations
@@ -661,50 +661,50 @@ protected:
      *
      * For argument explanation, see evalContinuity().
      */
-    virtual void evalUo(span<const double> x, span<double> rsd, span<int> diag,
-                        double rdt, size_t jmin, size_t jmax);
+    virtual void evalUo(span<const CanteraDouble> x, span<CanteraDouble> rsd, span<int> diag,
+                        CanteraDouble rdt, size_t jmin, size_t jmax);
 
     //! @name Solution components
     //! @{
 
     //! Get the temperature at point `j` from the local state vector `x`.
-    double T(span<const double> x, size_t j) const {
+    CanteraDouble T(span<const CanteraDouble> x, size_t j) const {
         return x[index(c_offset_T, j)];
     }
     //! Get the temperature at point `j` from the local state vector `x`.
-    double& T(span<double> x, size_t j) {
+    CanteraDouble& T(span<CanteraDouble> x, size_t j) {
         return x[index(c_offset_T, j)];
     }
 
     //! Get the temperature at point `j` from the previous time step.
-    double T_prev(size_t j) const {
+    CanteraDouble T_prev(size_t j) const {
         return prevSoln(c_offset_T, j);
     }
 
     //! Get the axial mass flux [kg/m²/s] at point `j` from the local state vector `x`.
-    double rho_u(span<const double> x, size_t j) const {
+    CanteraDouble rho_u(span<const CanteraDouble> x, size_t j) const {
         return m_rho[j]*x[index(c_offset_U, j)];
     }
 
     //! Get the axial velocity [m/s] at point `j` from the local state vector `x`.
-    double u(span<const double> x, size_t j) const {
+    CanteraDouble u(span<const CanteraDouble> x, size_t j) const {
         return x[index(c_offset_U, j)];
     }
 
     //! Get the spread rate (tangential velocity gradient) [1/s] at point `j` from the
     //! local state vector `x`.
-    double V(span<const double> x, size_t j) const {
+    CanteraDouble V(span<const CanteraDouble> x, size_t j) const {
         return x[index(c_offset_V, j)];
     }
 
     //! Get the spread rate [1/s] at point `j` from the previous time step.
-    double V_prev(size_t j) const {
+    CanteraDouble V_prev(size_t j) const {
         return prevSoln(c_offset_V, j);
     }
 
     //! Get the radial pressure gradient [N/m⁴] at point `j` from the local state vector
     //! `x`
-    double Lambda(span<const double> x, size_t j) const {
+    CanteraDouble Lambda(span<const CanteraDouble> x, size_t j) const {
         return x[index(c_offset_L, j)];
     }
 
@@ -712,43 +712,43 @@ protected:
     //! vector `x`.
     //!
     //! @see evalUo()
-    double Uo(span<const double> x, size_t j) const {
+    CanteraDouble Uo(span<const CanteraDouble> x, size_t j) const {
         return x[index(c_offset_Uo, j)];
     }
 
     //! Get the mass fraction of species `k` at point `j` from the local state vector
     //! `x`.
-    double Y(span<const double> x, size_t k, size_t j) const {
+    CanteraDouble Y(span<const CanteraDouble> x, size_t k, size_t j) const {
         return x[index(c_offset_Y + k, j)];
     }
 
     //! Get the mass fraction of species `k` at point `j` from the local state vector
     //! `x`.
-    double& Y(span<double> x, size_t k, size_t j) {
+    CanteraDouble& Y(span<CanteraDouble> x, size_t k, size_t j) {
         return x[index(c_offset_Y + k, j)];
     }
 
     //! Get the array of mass fractions at point `j` from the local state vector `x`.
-    span<double> Y(span<double> x, size_t j) {
-        return span<double>(&x[index(c_offset_Y, j)], m_nsp);
+    span<CanteraDouble> Y(span<CanteraDouble> x, size_t j) {
+        return span<CanteraDouble>(&x[index(c_offset_Y, j)], m_nsp);
     }
-    span<const double> Y(span<const double> x, size_t j) {
-        return span<const double>(&x[index(c_offset_Y, j)], m_nsp);
+    span<const CanteraDouble> Y(span<const CanteraDouble> x, size_t j) {
+        return span<const CanteraDouble>(&x[index(c_offset_Y, j)], m_nsp);
     }
 
     //! Get the mass fraction of species `k` at point `j` from the previous time step.
-    double Y_prev(size_t k, size_t j) const {
+    CanteraDouble Y_prev(size_t k, size_t j) const {
         return prevSoln(c_offset_Y + k, j);
     }
 
     //! Get the mole fraction of species `k` at point `j` from the local state vector
     //! `x`.
-    double X(span<const double> x, size_t k, size_t j) const {
+    CanteraDouble X(span<const CanteraDouble> x, size_t k, size_t j) const {
         return m_wtm[j]*Y(x,k,j)/m_wt[k];
     }
 
     //! Get the diffusive mass flux [kg/m²/s] of species `k` at point `j`
-    double flux(size_t k, size_t j) const {
+    CanteraDouble flux(size_t k, size_t j) const {
         return m_flux(k, j);
     }
     //! @}
@@ -781,7 +781,7 @@ protected:
      * @param[in] x  The local domain state vector.
      * @param[in] j  The grid point index at which the derivative is computed.
      */
-    double dVdz(span<const double> x, size_t j) const {
+    CanteraDouble dVdz(span<const CanteraDouble> x, size_t j) const {
         size_t jloc = (u(x, j) > 0.0 ? j : j + 1);
         return (V(x, jloc) - V(x, jloc-1))/m_dz[jloc-1];
     }
@@ -796,7 +796,7 @@ protected:
      * @param[in] k  The species index.
      * @param[in] j  The grid point index at which the derivative is computed.
      */
-    double dYdz(span<const double> x, size_t k, size_t j) const {
+    CanteraDouble dYdz(span<const CanteraDouble> x, size_t k, size_t j) const {
         size_t jloc = (u(x, j) > 0.0 ? j : j + 1);
         return (Y(x, k, jloc) - Y(x, k, jloc-1))/m_dz[jloc-1];
     }
@@ -810,7 +810,7 @@ protected:
      * @param[in] x  The local domain state vector.
      * @param[in] j  The grid point index at which the derivative is computed.
      */
-    double dTdz(span<const double> x, size_t j) const {
+    CanteraDouble dTdz(span<const CanteraDouble> x, size_t j) const {
         size_t jloc = (u(x, j) > 0.0 ? j : j + 1);
         return (T(x, jloc) - T(x, jloc-1))/m_dz[jloc-1];
     }
@@ -838,9 +838,9 @@ protected:
      * @param[in] x  The local domain state vector.
      * @param[in] j  The grid point index at which the derivative is computed.
      */
-    double shear(span<const double> x, size_t j) const {
-        double A_left = m_visc[j-1]*(V(x, j) - V(x, j-1)) / (z(j) - z(j-1));
-        double A_right = m_visc[j]*(V(x, j+1) - V(x, j)) / (z(j+1) - z(j));
+    CanteraDouble shear(span<const CanteraDouble> x, size_t j) const {
+        CanteraDouble A_left = m_visc[j-1]*(V(x, j) - V(x, j-1)) / (z(j) - z(j-1));
+        CanteraDouble A_right = m_visc[j]*(V(x, j+1) - V(x, j)) / (z(j+1) - z(j));
         return 2.0*(A_right - A_left) / (z(j+1) - z(j-1));
     }
 
@@ -853,9 +853,9 @@ protected:
      * @param[in] x  The local domain state vector.
      * @param[in] j  The grid point index at which the derivative is computed.
      */
-    double conduction(span<const double> x, size_t j) const {
-        double A_left = m_tcon[j-1]*(T(x, j) - T(x, j-1)) / (z(j) - z(j-1));
-        double A_right = m_tcon[j]*(T(x, j+1) - T(x, j)) / (z(j+1) - z(j));
+    CanteraDouble conduction(span<const CanteraDouble> x, size_t j) const {
+        CanteraDouble A_left = m_tcon[j-1]*(T(x, j) - T(x, j-1)) / (z(j) - z(j-1));
+        CanteraDouble A_right = m_tcon[j]*(T(x, j+1) - T(x, j)) / (z(j+1) - z(j));
         return -2.0*(A_right - A_left) / (z(j+1) - z(j-1));
     }
 
@@ -881,24 +881,24 @@ protected:
      * @param[in] x  The local domain state vector.
      * @param[in] j  The index at which the derivative is computed.
      */
-    virtual void grad_hk(span<const double> x, size_t j);
+    virtual void grad_hk(span<const CanteraDouble> x, size_t j);
 
     //---------------------------------------------------------
     //             member data
     //---------------------------------------------------------
 
     //! Grid spacing. Element `j` holds the value of `z(j+1) - z(j)`.
-    vector<double> m_dz;
+    vector<CanteraDouble> m_dz;
 
     // mixture thermo properties
-    vector<double> m_rho; //!< Density at each grid point
-    vector<double> m_wtm; //!< Mean molecular weight at each grid point
-    vector<double> m_wt; //!< Molecular weight of each species
-    vector<double> m_cp; //!< Specific heat capacity at each grid point
+    vector<CanteraDouble> m_rho; //!< Density at each grid point
+    vector<CanteraDouble> m_wtm; //!< Mean molecular weight at each grid point
+    vector<CanteraDouble> m_wt; //!< Molecular weight of each species
+    vector<CanteraDouble> m_cp; //!< Specific heat capacity at each grid point
 
     // transport properties
-    vector<double> m_visc; //!< Dynamic viscosity at each grid point [Pa∙s]
-    vector<double> m_tcon; //!< Thermal conductivity at each grid point [W/m/K]
+    vector<CanteraDouble> m_visc; //!< Dynamic viscosity at each grid point [Pa∙s]
+    vector<CanteraDouble> m_tcon; //!< Thermal conductivity at each grid point [W/m/K]
 
     //! Coefficient used in diffusion calculations for each species at each grid point.
     //!
@@ -906,11 +906,11 @@ protected:
     //! versus mixture averaged) and flux gradient basis (mass or molar). Vector size is
     //! #m_nsp × #m_points, where `m_diff[k + j*m_nsp]` contains the value for species
     //! `k` at point `j`.
-    vector<double> m_diff;
+    vector<CanteraDouble> m_diff;
 
     //! Vector of size #m_nsp × #m_nsp × #m_points for saving multicomponent
     //! diffusion coefficients. Order of elements is defined by mindex().
-    vector<double> m_multidiff;
+    vector<CanteraDouble> m_multidiff;
 
     //! Array of size #m_nsp by #m_points for saving thermal diffusion coefficients
     Array2D m_dthermal;
@@ -937,17 +937,17 @@ protected:
 
     //! Sparse dwdot/dC (∂ω̇_k/∂C_m) at one point; pattern built on first fill and
     //! reused across points/calls by Kinetics::netProductionRates_ddCi(jac).
-    mutable Eigen::SparseMatrix<double> m_ddC;
-    vector<double> m_dwdY; //!< dense dwdot/dY at one point, column-major K×K
+    mutable Eigen::SparseMatrix<CanteraDouble> m_ddC;
+    vector<CanteraDouble> m_dwdY; //!< dense dwdot/dY at one point, column-major K×K
     //! d(F_k(p-1))/dY_m(p) and d(F_k(p))/dY_m(p), column-major K×K. When
     //! computing the Jacobian column for grid point p, only the derivatives of
     //! the two adjacent midpoint fluxes with respect to Y at p are needed.
-    vector<double> m_dFm_dYp;
-    vector<double> m_dF0_dYp;
-    vector<double> m_jacBlockWork; //!< per-(row, col-point) accumulation block (K×K)
-    vector<double> m_jacXwork; //!< mole fractions at two interval endpoints (2K)
-    vector<double> m_jacColWork; //!< concentrations / energy-row accumulator (K)
-    vector<double> m_jacCpWork; //!< species heat capacities (K)
+    vector<CanteraDouble> m_dFm_dYp;
+    vector<CanteraDouble> m_dF0_dYp;
+    vector<CanteraDouble> m_jacBlockWork; //!< per-(row, col-point) accumulation block (K×K)
+    vector<CanteraDouble> m_jacXwork; //!< mole fractions at two interval endpoints (2K)
+    vector<CanteraDouble> m_jacColWork; //!< concentrations / energy-row accumulator (K)
+    vector<CanteraDouble> m_jacCpWork; //!< species heat capacities (K)
 
     //! `true` if analytic Y-columns are active for this domain
     bool usingAnalyticJacobian() const;
@@ -977,16 +977,16 @@ protected:
     //! K×K column-major. Computes only the requested endpoint derivative,
     //! using frozen diffusion prefactors from m_diff.
     template <bool AtQ>
-    void fluxJacobian(span<const double> x, size_t q, span<double> out);
+    void fluxJacobian(span<const CanteraDouble> x, size_t q, span<CanteraDouble> out);
 
     //! Add species-row Jacobian entries for grid point p
-    void addSpeciesJacEntries(span<const double> x, size_t p, SystemJacobian& jac);
+    void addSpeciesJacEntries(span<const CanteraDouble> x, size_t p, SystemJacobian& jac);
 
     //! Add energy-row Jacobian entries for grid point p
-    void addEnergyJacEntries(span<const double> x, size_t p, SystemJacobian& jac);
+    void addEnergyJacEntries(span<const CanteraDouble> x, size_t p, SystemJacobian& jac);
 
     //! Add continuity- and momentum-row Jacobian entries for grid point p
-    void addFlowJacEntries(span<const double> x, size_t p, SystemJacobian& jac);
+    void addFlowJacEntries(span<const CanteraDouble> x, size_t p, SystemJacobian& jac);
 
     size_t m_nsp; //!< Number of species in the mechanism
 
@@ -1001,11 +1001,11 @@ protected:
 
     //! Emissivity of the surface to the left of the domain. Used for calculating
     //! radiative heat loss.
-    double m_epsilon_left = 0.0;
+    CanteraDouble m_epsilon_left = 0.0;
 
     //! Emissivity of the surface to the right of the domain. Used for calculating
     //! radiative heat loss.
-    double m_epsilon_right = 0.0;
+    CanteraDouble m_epsilon_right = 0.0;
 
     //! Indices within the ThermoPhase of the radiating species. First index is
     //! for CO2, second is for H2O.
@@ -1055,7 +1055,7 @@ protected:
     //! @}
 
     //! radiative heat loss vector
-    vector<double> m_qdotRadiation;
+    vector<CanteraDouble> m_qdotRadiation;
 
     // fixed T and Y values
     //! Fixed values of the temperature at each grid point that are used when solving
@@ -1063,18 +1063,18 @@ protected:
     //!
     //! Values are interpolated from profiles specified with the setFixedTempProfile
     //! method as part of _finalize().
-    vector<double> m_fixedtemp;
+    vector<CanteraDouble> m_fixedtemp;
 
     //! Relative coordinates used to specify a fixed temperature profile.
     //!
     //! 0 corresponds to the left edge of the domain and 1 corresponds to the right edge
     //! of the domain. Length is the same as the #m_tfix array.
     //! @see setFixedTempProfile, _finalize
-    vector<double> m_zfix;
+    vector<CanteraDouble> m_zfix;
 
     //! Fixed temperature values at the relative coordinates specified in #m_zfix.
     //! @see setFixedTempProfile, _finalize
-    vector<double> m_tfix;
+    vector<CanteraDouble> m_tfix;
 
     //! Index of species with a large mass fraction at the left boundary, for which the
     //! mass fraction may be calculated as 1 minus the sum of the other mass fractions
@@ -1085,29 +1085,29 @@ protected:
     size_t m_kExcessRight = 0;
 
     //! Location of the left control point when two-point control is enabled
-    double m_zLeft = Undef;
+    CanteraDouble m_zLeft = Undef;
 
     //! Temperature of the left control point when two-point control is enabled
-    double m_tLeft = Undef;
+    CanteraDouble m_tLeft = Undef;
 
     //! Location of the right control point when two-point control is enabled
-    double m_zRight = Undef;
+    CanteraDouble m_zRight = Undef;
 
     //! Temperature of the right control point when two-point control is enabled
-    double m_tRight = Undef;
+    CanteraDouble m_tRight = Undef;
 
 public:
     //! Location of the point where temperature is fixed
-    double m_zfixed = Undef;
+    CanteraDouble m_zfixed = Undef;
 
     //! Temperature at the point used to fix the flame location
-    double m_tfixed = -1.0;
+    CanteraDouble m_tfixed = -1.0;
 
 private:
     //! Holds the average of the species mass fractions between grid points j and j+1.
     //! Used when building a gas state at the grid midpoints for evaluating transport
     //! properties at the midpoints.
-    vector<double> m_ybar;
+    vector<CanteraDouble> m_ybar;
 };
 
 }

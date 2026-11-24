@@ -51,7 +51,7 @@ public:
         }
     }
 
-    void getStoichVector(size_t rxn, span<double> nu) {
+    void getStoichVector(size_t rxn, span<CanteraDouble> nu) {
         checkArraySize("MultiPhaseEquil::getStoichVector", nu.size(), m_nsp);
         fill(nu.begin(), nu.end(), 0.0);
         if (rxn > nFree()) {
@@ -66,9 +66,9 @@ public:
         return m_iter;
     }
 
-    double equilibrate(int XY, double err = 1.0e-9,
+    CanteraDouble equilibrate(int XY, CanteraDouble err = 1.0e-9,
                        int maxsteps = 1000, int loglevel=-99);
-    double error();
+    CanteraDouble error();
 
     string reactionString(size_t j) {
         return "";
@@ -84,7 +84,7 @@ public:
 
     void reportCSV(const string& reportFile);
 
-    double phaseMoles(size_t iph) const;
+    CanteraDouble phaseMoles(size_t iph) const;
 
 protected:
     //! This method finds a set of component species and a complete set of
@@ -121,16 +121,16 @@ protected:
 
     //! Take one step in composition, given the gradient of G at the starting
     //! point, and a vector of reaction steps dxi.
-    double stepComposition(int loglevel = 0);
+    CanteraDouble stepComposition(int loglevel = 0);
 
     //! Re-arrange a vector of species properties in sorted form
     //! (components first) into unsorted, sequential form.
-    void unsort(span<double> x);
+    void unsort(span<CanteraDouble> x);
 
-    void step(double omega, span<double> deltaN, int loglevel = 0);
+    void step(CanteraDouble omega, span<CanteraDouble> deltaN, int loglevel = 0);
 
     //! Compute the change in extent of reaction for each reaction.
-    double computeReactionSteps(span<double> dxi);
+    CanteraDouble computeReactionSteps(span<CanteraDouble> dxi);
 
     void updateMixMoles();
 
@@ -140,10 +140,10 @@ protected:
     void finish();
 
     // moles of the species with sorted index ns
-    double moles(size_t ns) const {
+    CanteraDouble moles(size_t ns) const {
         return m_moles[m_order[ns]];
     }
-    double& moles(size_t ns) {
+    CanteraDouble& moles(size_t ns) {
         return m_moles[m_order[ns]];
     }
     int solutionSpecies(size_t n) const {
@@ -152,7 +152,7 @@ protected:
     bool isStoichPhase(size_t n) const {
         return (m_dsoln[m_order[n]] == 0);
     }
-    double mu(size_t n) const {
+    CanteraDouble mu(size_t n) const {
         return m_mu[m_species[m_order[n]]];
     }
     string speciesName(size_t n) const {
@@ -171,12 +171,12 @@ protected:
     size_t m_eloc = 1000;
     int m_iter;
     MultiPhase* m_mix;
-    double m_press, m_temp;
+    CanteraDouble m_press, m_temp;
     vector<size_t> m_order;
     DenseMatrix m_N, m_A;
-    vector<double> m_work, m_work2, m_work3;
-    vector<double> m_moles, m_lastmoles, m_dxi;
-    vector<double> m_deltaG_RT, m_mu;
+    vector<CanteraDouble> m_work, m_work2, m_work3;
+    vector<CanteraDouble> m_moles, m_lastmoles, m_dxi;
+    vector<CanteraDouble> m_deltaG_RT, m_mu;
     vector<bool> m_majorsp;
     vector<size_t> m_sortindex;
     vector<int> m_lastsort;

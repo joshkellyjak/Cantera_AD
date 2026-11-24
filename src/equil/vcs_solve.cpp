@@ -21,10 +21,10 @@ namespace Cantera
 
 namespace {
 
-void printProgress(const vector<string>& spName, const vector<double>& soln,
-                   const vector<double>& ff)
+void printProgress(const vector<string>& spName, const vector<CanteraDouble>& soln,
+                   const vector<CanteraDouble>& ff)
 {
-    double sum = 0.0;
+    CanteraDouble sum = 0.0;
     plogf(" --- Summary of current progress:\n");
     plogf(" ---                   Name           Moles  -       SSGibbs \n");
     plogf(" -------------------------------------------------------------------------------------\n");
@@ -312,7 +312,7 @@ VCS_SOLVE::VCS_SOLVE(MultiPhase* mphase, int printLvl) :
             // SpecLnMnaught[iSolvent] = 0.0, and the loop below starts at 1,
             // not 0.
             size_t iSolvent = Vphase->spGlobalIndexVCS(0);
-            double mnaught = m_wtSpecies[iSolvent] / 1000.;
+            CanteraDouble mnaught = m_wtSpecies[iSolvent] / 1000.;
             for (size_t k = 1; k < Vphase->nSpecies(); k++) {
                 size_t kspec = Vphase->spGlobalIndexVCS(k);
                 m_actConventionSpecies[kspec] = Vphase->p_activityConvention;
@@ -354,9 +354,9 @@ bool VCS_SOLVE::vcs_popPhasePossible(const size_t iphasePop) const
             // component is consumed.
             for (size_t j = 0; j < m_numComponents; ++j) {
                 if (m_elType[j] == VCS_ELEM_TYPE_ABSPOS) {
-                    double stoicC = m_stoichCoeffRxnMatrix(j,irxn);
+                    CanteraDouble stoicC = m_stoichCoeffRxnMatrix(j,irxn);
                     if (stoicC != 0.0) {
-                        double negChangeComp = - stoicC;
+                        CanteraDouble negChangeComp = - stoicC;
                         if (negChangeComp > 0.0) {
                             // If there is no component to give, then the
                             // species can't be created
@@ -420,8 +420,8 @@ bool VCS_SOLVE::vcs_popPhasePossible(const size_t iphasePop) const
 size_t VCS_SOLVE::vcs_popPhaseID()
 {
     size_t iphasePop = npos;
-    double FephaseMax = -1.0E30;
-    double Fephase = -1.0E30;
+    CanteraDouble FephaseMax = -1.0E30;
+    CanteraDouble Fephase = -1.0E30;
 
     string note;
     if (m_debug_print_lvl >= 2) {
@@ -454,7 +454,7 @@ size_t VCS_SOLVE::vcs_popPhaseID()
                     throw CanteraError("VCS_SOLVE::vcs_popPhaseID",
                         "Index out of bounds due to logic error.");
                 }
-                double deltaGRxn = m_deltaGRxn_old[irxn];
+                CanteraDouble deltaGRxn = m_deltaGRxn_old[irxn];
                 Fephase = exp(-deltaGRxn) - 1.0;
                 if (Fephase > 0.0) {
                     note = "(ready to be birthed)";
@@ -520,7 +520,7 @@ int VCS_SOLVE::vcs_popPhaseRxnStepSizes(const size_t iphasePop)
     // Calculate the initial moles of the phase being born.
     //   Here we set it to 10x of the value which would cause the phase to be
     //   zeroed out within the algorithm.  We may later adjust the value.
-    double tPhaseMoles = 10. * m_totalMolNum * VCS_DELETE_PHASE_CUTOFF;
+    CanteraDouble tPhaseMoles = 10. * m_totalMolNum * VCS_DELETE_PHASE_CUTOFF;
 
     AssertThrowMsg(!Vphase->exists(), "VCS_SOLVE::vcs_popPhaseRxnStepSizes",
                    "called for a phase that exists!");
@@ -530,7 +530,7 @@ int VCS_SOLVE::vcs_popPhaseRxnStepSizes(const size_t iphasePop)
     }
     // Section for a single-species phase
     if (Vphase->m_singleSpecies) {
-        double s = 0.0;
+        CanteraDouble s = 0.0;
         for (size_t j = 0; j < m_numComponents; ++j) {
             if (!m_SSPhase[j] && m_molNumSpecies_old[j] > 0.0) {
                 s += pow(m_stoichCoeffRxnMatrix(j,irxn), 2) / m_molNumSpecies_old[j];
@@ -553,9 +553,9 @@ int VCS_SOLVE::vcs_popPhaseRxnStepSizes(const size_t iphasePop)
 
         // section to do damping of the m_deltaMolNumSpecies[]
         for (size_t j = 0; j < m_numComponents; ++j) {
-            double stoicC = m_stoichCoeffRxnMatrix(j,irxn);
+            CanteraDouble stoicC = m_stoichCoeffRxnMatrix(j,irxn);
             if (stoicC != 0.0 && m_elType[j] == VCS_ELEM_TYPE_ABSPOS) {
-                double negChangeComp = - stoicC * m_deltaMolNumSpecies[kspec];
+                CanteraDouble negChangeComp = - stoicC * m_deltaMolNumSpecies[kspec];
                 if (negChangeComp > m_molNumSpecies_old[j]) {
                     if (m_molNumSpecies_old[j] > 0.0) {
                         m_deltaMolNumSpecies[kspec] = - 0.5 * m_molNumSpecies_old[j] / stoicC;
@@ -571,12 +571,12 @@ int VCS_SOLVE::vcs_popPhaseRxnStepSizes(const size_t iphasePop)
             m_deltaMolNumSpecies[kspec] = -m_molNumSpecies_old[kspec];
         }
     } else {
-        vector<double> fracDelta(Vphase->nSpecies());
-        vector<double> X_est(Vphase->nSpecies());
+        vector<CanteraDouble> fracDelta(Vphase->nSpecies());
+        vector<CanteraDouble> X_est(Vphase->nSpecies());
         auto storedDelta = Vphase->creationMoleNumbers(creationGlobalRxnNumbers);
         copy(storedDelta.begin(), storedDelta.end(), fracDelta.begin());
 
-        double sumFrac = 0.0;
+        CanteraDouble sumFrac = 0.0;
         for (size_t k = 0; k < Vphase->nSpecies(); k++) {
             sumFrac += fracDelta[k];
         }
@@ -584,14 +584,14 @@ int VCS_SOLVE::vcs_popPhaseRxnStepSizes(const size_t iphasePop)
             X_est[k] = fracDelta[k] / sumFrac;
         }
 
-        double deltaMolNumPhase = tPhaseMoles;
-        double damp = 1.0;
+        CanteraDouble deltaMolNumPhase = tPhaseMoles;
+        CanteraDouble damp = 1.0;
         m_deltaGRxn_tmp = m_molNumSpecies_old;
-        double* molNumSpecies_tmp = m_deltaGRxn_tmp.data();
+        CanteraDouble* molNumSpecies_tmp = m_deltaGRxn_tmp.data();
 
         for (size_t k = 0; k < Vphase->nSpecies(); k++) {
             kspec = Vphase->spGlobalIndexVCS(k);
-            double delmol = deltaMolNumPhase * X_est[k];
+            CanteraDouble delmol = deltaMolNumPhase * X_est[k];
             if (kspec >= m_numComponents) {
                 irxn = kspec - m_numComponents;
                 if (irxn > m_stoichCoeffRxnMatrix.nColumns()) {
@@ -599,7 +599,7 @@ int VCS_SOLVE::vcs_popPhaseRxnStepSizes(const size_t iphasePop)
                         "Index out of bounds due to logic error.");
                 }
                 for (size_t j = 0; j < m_numComponents; ++j) {
-                    double stoicC = m_stoichCoeffRxnMatrix(j,irxn);
+                    CanteraDouble stoicC = m_stoichCoeffRxnMatrix(j,irxn);
                     if (stoicC != 0.0 && m_elType[j] == VCS_ELEM_TYPE_ABSPOS) {
                         molNumSpecies_tmp[j] += stoicC * delmol;
                     }
@@ -607,20 +607,20 @@ int VCS_SOLVE::vcs_popPhaseRxnStepSizes(const size_t iphasePop)
             }
         }
 
-        double ratioComp = 0.0;
+        CanteraDouble ratioComp = 0.0;
         for (size_t j = 0; j < m_numComponents; ++j) {
-            double deltaJ = m_molNumSpecies_old[j] - molNumSpecies_tmp[j];
+            CanteraDouble deltaJ = m_molNumSpecies_old[j] - molNumSpecies_tmp[j];
             if (molNumSpecies_tmp[j] < 0.0) {
                 ratioComp = 1.0;
                 if (deltaJ > 0.0) {
-                    double delta0 = m_molNumSpecies_old[j];
+                    CanteraDouble delta0 = m_molNumSpecies_old[j];
                     damp = std::min(damp, delta0 / deltaJ * 0.9);
                 }
             } else {
                 if (m_elType[j] == VCS_ELEM_TYPE_ABSPOS) {
                     size_t jph = m_phaseID[j];
                     if ((jph != iphasePop) && (!m_SSPhase[j])) {
-                        double fdeltaJ = fabs(deltaJ);
+                        CanteraDouble fdeltaJ = fabs(deltaJ);
                         if (m_molNumSpecies_old[j] > 0.0) {
                             ratioComp = std::max(ratioComp, fdeltaJ/ m_molNumSpecies_old[j]);
                         }
@@ -696,8 +696,8 @@ size_t VCS_SOLVE::vcs_RxnStepSizes(int& forceComponentCalc, size_t& kSpecial)
                     // First decide if this species is part of a multiphase that
                     // is nontrivial in size.
                     size_t iph = m_phaseID[kspec];
-                    double tphmoles = m_tPhaseMoles_old[iph];
-                    double trphmoles = tphmoles / m_totalMolNum;
+                    CanteraDouble tphmoles = m_tPhaseMoles_old[iph];
+                    CanteraDouble trphmoles = tphmoles / m_totalMolNum;
                     vcs_VolPhase* Vphase = m_VolPhaseList[iph].get();
                     if (Vphase->exists() && (trphmoles > VCS_DELETE_PHASE_CUTOFF)) {
                         m_deltaMolNumSpecies[kspec] = m_totalMolNum * VCS_SMALL_MULTIPHASE_SPECIES;
@@ -744,7 +744,7 @@ size_t VCS_SOLVE::vcs_RxnStepSizes(int& forceComponentCalc, size_t& kSpecial)
                 }
 
                 // Start of the regular processing
-                double s = (m_SSPhase[kspec]) ? 0.0 : 1.0 / m_molNumSpecies_old[kspec];
+                CanteraDouble s = (m_SSPhase[kspec]) ? 0.0 : 1.0 / m_molNumSpecies_old[kspec];
                 for (size_t j = 0; j < m_numComponents; ++j) {
                     if (!m_SSPhase[j] && m_molNumSpecies_old[j] > 0.0) {
                         s += pow(m_stoichCoeffRxnMatrix(j,irxn), 2) / m_molNumSpecies_old[j];
@@ -761,16 +761,16 @@ size_t VCS_SOLVE::vcs_RxnStepSizes(int& forceComponentCalc, size_t& kSpecial)
                     // coefficients with respect to the mole numbers, even in
                     // our diagonal approximation.
                     if (m_useActCoeffJac) {
-                        double s_old = s;
+                        CanteraDouble s_old = s;
                         s = vcs_Hessian_diag_adj(irxn, s_old);
                     }
 
                     m_deltaMolNumSpecies[kspec] = -m_deltaGRxn_new[irxn] / s;
                     // New section to do damping of the m_deltaMolNumSpecies[]
                     for (size_t j = 0; j < m_numComponents; ++j) {
-                        double stoicC = m_stoichCoeffRxnMatrix(j,irxn);
+                        CanteraDouble stoicC = m_stoichCoeffRxnMatrix(j,irxn);
                         if (stoicC != 0.0) {
-                            double negChangeComp = -stoicC * m_deltaMolNumSpecies[kspec];
+                            CanteraDouble negChangeComp = -stoicC * m_deltaMolNumSpecies[kspec];
                             if (negChangeComp > m_molNumSpecies_old[j]) {
                                 if (m_molNumSpecies_old[j] > 0.0) {
                                     m_deltaMolNumSpecies[kspec] = -m_molNumSpecies_old[j] / stoicC;
@@ -795,13 +795,13 @@ size_t VCS_SOLVE::vcs_RxnStepSizes(int& forceComponentCalc, size_t& kSpecial)
                     // Then, we need to follow the reaction to see which species
                     // will zero out first. The species to be zeroed out will be
                     // "k".
-                    double dss;
+                    CanteraDouble dss;
                     if (m_deltaGRxn_new[irxn] > 0.0) {
                         dss = m_molNumSpecies_old[kspec];
                         k = kspec;
                         for (size_t j = 0; j < m_numComponents; ++j) {
                             if (m_stoichCoeffRxnMatrix(j,irxn) > 0.0) {
-                                double xx = m_molNumSpecies_old[j] / m_stoichCoeffRxnMatrix(j,irxn);
+                                CanteraDouble xx = m_molNumSpecies_old[j] / m_stoichCoeffRxnMatrix(j,irxn);
                                 if (xx < dss) {
                                     dss = xx;
                                     k = j;
@@ -813,7 +813,7 @@ size_t VCS_SOLVE::vcs_RxnStepSizes(int& forceComponentCalc, size_t& kSpecial)
                         dss = 1.0e10;
                         for (size_t j = 0; j < m_numComponents; ++j) {
                             if (m_stoichCoeffRxnMatrix(j,irxn) < 0.0) {
-                                double xx = -m_molNumSpecies_old[j] / m_stoichCoeffRxnMatrix(j,irxn);
+                                CanteraDouble xx = -m_molNumSpecies_old[j] / m_stoichCoeffRxnMatrix(j,irxn);
                                 if (xx < dss) {
                                     dss = xx;
                                     k = j;
@@ -895,7 +895,7 @@ size_t VCS_SOLVE::vcs_RxnStepSizes(int& forceComponentCalc, size_t& kSpecial)
     return iphDel;
 }
 
-double VCS_SOLVE::vcs_phaseStabilityTest(const size_t iph)
+CanteraDouble VCS_SOLVE::vcs_phaseStabilityTest(const size_t iph)
 {
     // We will use the _new state calc here
     vcs_VolPhase* Vphase = m_VolPhaseList[iph].get();
@@ -907,22 +907,22 @@ double VCS_SOLVE::vcs_phaseStabilityTest(const size_t iph)
 
     // We will do a full Newton calculation later, but for now, ...
     bool doSuccessiveSubstitution = true;
-    double funcPhaseStability;
-    vector<double> X_est(nsp, 0.0);
-    vector<double> delFrac(nsp, 0.0);
-    vector<double> E_phi(nsp, 0.0);
-    vector<double> fracDelta_old(nsp, 0.0);
-    vector<double> fracDelta_raw(nsp, 0.0);
+    CanteraDouble funcPhaseStability;
+    vector<CanteraDouble> X_est(nsp, 0.0);
+    vector<CanteraDouble> delFrac(nsp, 0.0);
+    vector<CanteraDouble> E_phi(nsp, 0.0);
+    vector<CanteraDouble> fracDelta_old(nsp, 0.0);
+    vector<CanteraDouble> fracDelta_raw(nsp, 0.0);
     vector<size_t> creationGlobalRxnNumbers(nsp, npos);
     m_deltaGRxn_Deficient = m_deltaGRxn_old;
-    vector<double> feSpecies_Deficient = m_feSpecies_old;
+    vector<CanteraDouble> feSpecies_Deficient = m_feSpecies_old;
 
     // get the activity coefficients
     Vphase->sendToVCS_ActCoeff(VCS_STATECALC_OLD, m_actCoeffSpecies_new);
 
     // Get the stored estimate for the composition of the phase if
     // it gets created
-    vector<double> fracDelta_new(nsp, 0.0);
+    vector<CanteraDouble> fracDelta_new(nsp, 0.0);
     const auto& storedDelta = Vphase->creationMoleNumbers(creationGlobalRxnNumbers);
     copy(storedDelta.begin(), storedDelta.end(), fracDelta_new.begin());
 
@@ -934,8 +934,8 @@ double VCS_SOLVE::vcs_phaseStabilityTest(const size_t iph)
         }
     }
 
-    double normUpdate = 0.1 * vcs_l2norm(fracDelta_new);
-    double damp = 1.0E-2;
+    CanteraDouble normUpdate = 0.1 * vcs_l2norm(fracDelta_new);
+    CanteraDouble damp = 1.0E-2;
 
     if (doSuccessiveSubstitution) {
         int KP = 0;
@@ -955,12 +955,12 @@ double VCS_SOLVE::vcs_phaseStabilityTest(const size_t iph)
             }
         }
         bool converged = false;
-        double dirProd = 0.0;
+        CanteraDouble dirProd = 0.0;
         for (int its = 0; its < 200 && (!converged); its++) {
-            double dampOld = damp;
-            double normUpdateOld = normUpdate;
+            CanteraDouble dampOld = damp;
+            CanteraDouble normUpdateOld = normUpdate;
             fracDelta_old = fracDelta_new;
-            double dirProdOld = dirProd;
+            CanteraDouble dirProdOld = dirProd;
 
             // Given a set of fracDelta's, we calculate the fracDelta's
             // for the component species, if any
@@ -978,7 +978,7 @@ double VCS_SOLVE::vcs_phaseStabilityTest(const size_t iph)
             }
 
             // Now, calculate the predicted mole fractions, X_est[k]
-            double sumFrac = 0.0;
+            CanteraDouble sumFrac = 0.0;
             for (size_t k = 0; k < nsp; k++) {
                 sumFrac += fracDelta_old[k];
             }
@@ -987,7 +987,7 @@ double VCS_SOLVE::vcs_phaseStabilityTest(const size_t iph)
             if (sumFrac <= 0.0) {
                 sumFrac = 1.0;
             }
-            double sum_Xcomp = 0.0;
+            CanteraDouble sum_Xcomp = 0.0;
             for (size_t k = 0; k < nsp; k++) {
                 X_est[k] = fracDelta_old[k] / sumFrac;
                 if (Vphase->spGlobalIndexVCS(k) < m_numComponents) {
@@ -1007,7 +1007,7 @@ double VCS_SOLVE::vcs_phaseStabilityTest(const size_t iph)
             for (size_t i = 0; i < componentList.size(); i++) {
                 size_t kc = componentList[i];
                 size_t kc_spec = Vphase->spGlobalIndexVCS(kc);
-                double moleFrac = std::max(X_est[kc], VCS_DELETE_MINORSPECIES_CUTOFF);
+                CanteraDouble moleFrac = std::max(X_est[kc], VCS_DELETE_MINORSPECIES_CUTOFF);
                 feSpecies_Deficient[kc_spec] = m_feSpecies_old[kc_spec]
                     + log(m_actCoeffSpecies_new[kc_spec] * moleFrac);
             }
@@ -1030,13 +1030,13 @@ double VCS_SOLVE::vcs_phaseStabilityTest(const size_t iph)
             }
 
             // Calculate the E_phi's
-            double sum = 0.0;
+            CanteraDouble sum = 0.0;
             funcPhaseStability = sum_Xcomp - 1.0;
             for (size_t k = 0; k < nsp; k++) {
                 size_t kspec = Vphase->spGlobalIndexVCS(k);
                 if (kspec >= m_numComponents) {
                     size_t irxn = kspec - m_numComponents;
-                    double deltaGRxn = clip(m_deltaGRxn_Deficient[irxn], -50.0, 50.0);
+                    CanteraDouble deltaGRxn = clip(m_deltaGRxn_Deficient[irxn], -50.0, 50.0);
                     E_phi[k] = std::exp(-deltaGRxn) / m_actCoeffSpecies_new[kspec];
                     sum += E_phi[k];
                     funcPhaseStability += E_phi[k];
@@ -1048,7 +1048,7 @@ double VCS_SOLVE::vcs_phaseStabilityTest(const size_t iph)
             // Calculate the raw estimate of the new fracs
             for (size_t k = 0; k < nsp; k++) {
                 size_t kspec = Vphase->spGlobalIndexVCS(k);
-                double b = E_phi[k] / sum * (1.0 - sum_Xcomp);
+                CanteraDouble b = E_phi[k] / sum * (1.0 - sum_Xcomp);
                 if (kspec >= m_numComponents) {
                     fracDelta_raw[k] = b;
                 }
@@ -1156,7 +1156,7 @@ double VCS_SOLVE::vcs_phaseStabilityTest(const size_t iph)
     return funcPhaseStability;
 }
 
-int VCS_SOLVE::vcs_evalSS_TP(int ipr, int ip1, double Temp, double pres)
+int VCS_SOLVE::vcs_evalSS_TP(int ipr, int ip1, CanteraDouble Temp, CanteraDouble pres)
 {
     for (size_t iph = 0; iph < m_numPhases; iph++) {
         vcs_VolPhase* vph = m_VolPhaseList[iph].get();
@@ -1188,7 +1188,7 @@ void VCS_SOLVE::vcs_prep(int printLvl)
     }
 
     for (size_t kspec = 0; kspec < m_nsp; ++kspec) {
-        double sz = 0.0;
+        CanteraDouble sz = 0.0;
         for (size_t e = 0; e < m_nelem; e++) {
             sz += fabs(m_formulaMatrix(kspec, e));
         }
@@ -1209,10 +1209,10 @@ void VCS_SOLVE::vcs_prep(int printLvl)
     // ordering of the chemical potentials.
     //
     // For voltage unknowns, set these to zero for the moment.
-    double test = -1.0e-10;
+    CanteraDouble test = -1.0e-10;
     bool modifiedSoln = false;
     if (m_doEstimateEquil < 0) {
-        double sum = 0.0;
+        CanteraDouble sum = 0.0;
         for (size_t kspec = 0; kspec < m_nsp; ++kspec) {
             if (m_speciesUnknownType[kspec] == VCS_SPECIES_TYPE_MOLNUM) {
                 sum += fabs(m_molNumSpecies_old[kspec]);
@@ -1220,7 +1220,7 @@ void VCS_SOLVE::vcs_prep(int printLvl)
         }
         if (fabs(sum) < 1.0E-6) {
             modifiedSoln = true;
-            double pres = (m_pressurePA <= 0.0) ? 1.01325E5 : m_pressurePA;
+            CanteraDouble pres = (m_pressurePA <= 0.0) ? 1.01325E5 : m_pressurePA;
             vcs_evalSS_TP(0, 0, m_temperature, pres);
             for (size_t kspec = 0; kspec < m_nsp; ++kspec) {
                 if (m_speciesUnknownType[kspec] == VCS_SPECIES_TYPE_MOLNUM) {
@@ -1270,7 +1270,7 @@ void VCS_SOLVE::vcs_prep(int printLvl)
     vcs_tmoles();
 
     // Check to see if the current problem is well posed.
-    double sum = 0.0;
+    CanteraDouble sum = 0.0;
     for (size_t e = 0; e < m_mix->nElements(); e++) {
         sum += m_mix->elementMoles(e);
     }
@@ -1282,9 +1282,9 @@ void VCS_SOLVE::vcs_prep(int printLvl)
 
 void VCS_SOLVE::vcs_elem_rearrange()
 {
-    vector<double> awSpace(m_nsp + (m_nelem + 2)*(m_nelem), 0.0);
-    vector<double> aw(m_nelem), sa(m_nelem), ss(m_nelem);
-    vector<double> sm(m_nelem*m_nelem);
+    vector<CanteraDouble> awSpace(m_nsp + (m_nelem + 2)*(m_nelem), 0.0);
+    vector<CanteraDouble> aw(m_nelem), sa(m_nelem), ss(m_nelem);
+    vector<CanteraDouble> sm(m_nelem*m_nelem);
 
     size_t ncomponents = m_numComponents;
     if (m_debug_print_lvl >= 2) {
@@ -1298,7 +1298,7 @@ void VCS_SOLVE::vcs_elem_rearrange()
     // Use a temporary work array for the element numbers
     // Also make sure the value of test is unique.
     bool lindep = true;
-    double test = -1.0E10;
+    CanteraDouble test = -1.0E10;
     while (lindep) {
         lindep = false;
         for (size_t i = 0; i < m_nelem; ++i) {
@@ -1431,10 +1431,10 @@ void VCS_SOLVE::vcs_switch_elem_pos(size_t ipos, size_t jpos)
     std::swap(m_elementName[ipos], m_elementName[jpos]);
 }
 
-double VCS_SOLVE::vcs_Hessian_diag_adj(size_t irxn, double hessianDiag_Ideal)
+CanteraDouble VCS_SOLVE::vcs_Hessian_diag_adj(size_t irxn, CanteraDouble hessianDiag_Ideal)
 {
-    double diag = hessianDiag_Ideal;
-    double hessActCoef = vcs_Hessian_actCoeff_diag(irxn);
+    CanteraDouble diag = hessianDiag_Ideal;
+    CanteraDouble hessActCoef = vcs_Hessian_actCoeff_diag(irxn);
     if (hessianDiag_Ideal <= 0.0) {
         throw CanteraError("VCS_SOLVE::vcs_Hessian_diag_adj",
                            "We shouldn't be here");
@@ -1449,15 +1449,15 @@ double VCS_SOLVE::vcs_Hessian_diag_adj(size_t irxn, double hessianDiag_Ideal)
     return diag;
 }
 
-double VCS_SOLVE::vcs_Hessian_actCoeff_diag(size_t irxn)
+CanteraDouble VCS_SOLVE::vcs_Hessian_actCoeff_diag(size_t irxn)
 {
     size_t kspec = m_indexRxnToSpecies[irxn];
     size_t kph = m_phaseID[kspec];
-    double np_kspec = std::max(m_tPhaseMoles_old[kph], 1e-13);
+    CanteraDouble np_kspec = std::max(m_tPhaseMoles_old[kph], 1e-13);
     auto sc_irxn = m_stoichCoeffRxnMatrix.col(irxn);
 
     // First the diagonal term of the Jacobian
-    double s = m_np_dLnActCoeffdMolNum(kspec,kspec) / np_kspec;
+    CanteraDouble s = m_np_dLnActCoeffdMolNum(kspec,kspec) / np_kspec;
 
     // Next, the other terms. Note this only a loop over the components So, it's
     // not too expensive to calculate.
@@ -1465,7 +1465,7 @@ double VCS_SOLVE::vcs_Hessian_actCoeff_diag(size_t irxn)
         if (!m_SSPhase[j]) {
             for (size_t k = 0; k < m_numComponents; ++k) {
                 if (m_phaseID[k] == m_phaseID[j]) {
-                    double np = m_tPhaseMoles_old[m_phaseID[k]];
+                    CanteraDouble np = m_tPhaseMoles_old[m_phaseID[k]];
                     if (np > 0.0) {
                         s += sc_irxn[k] * sc_irxn[j] * m_np_dLnActCoeffdMolNum(j,k) / np;
                     }
@@ -1479,7 +1479,7 @@ double VCS_SOLVE::vcs_Hessian_actCoeff_diag(size_t irxn)
     return s;
 }
 
-void VCS_SOLVE::vcs_CalcLnActCoeffJac(span<const double> moleSpeciesVCS)
+void VCS_SOLVE::vcs_CalcLnActCoeffJac(span<const CanteraDouble> moleSpeciesVCS)
 {
     for (auto& Vphase : m_VolPhaseList) {
         // We don't need to call single species phases;
@@ -1497,7 +1497,7 @@ void VCS_SOLVE::vcs_CalcLnActCoeffJac(span<const double> moleSpeciesVCS)
 void VCS_SOLVE::vcs_report(int iconv)
 {
     // SORT DEPENDENT SPECIES IN DECREASING ORDER OF MOLES
-    vector<pair<double, size_t>> x_order;
+    vector<pair<CanteraDouble, size_t>> x_order;
     for (size_t i = 0; i < m_nsp; i++) {
         x_order.push_back({-m_molNumSpecies_old[i], i});
     }
@@ -1522,12 +1522,12 @@ void VCS_SOLVE::vcs_report(int iconv)
 
     // Calculate some quantities that may need updating
     vcs_tmoles();
-    double totalVolume = 0.0;
+    CanteraDouble totalVolume = 0.0;
     for (size_t iphase = 0; iphase < m_numPhases; iphase++) {
         vcs_VolPhase* Vphase = m_VolPhaseList[iphase].get();
         Vphase->setState_TP(m_temperature, m_pressurePA);
         Vphase->setMolesFromVCS(VCS_STATECALC_OLD, m_molNumSpecies_old);
-        double Volp = Vphase->sendToVCS_VolPM(m_PMVolumeSpecies);
+        CanteraDouble Volp = Vphase->sendToVCS_VolPM(m_PMVolumeSpecies);
         totalVolume += Volp;
     }
 
@@ -1620,10 +1620,10 @@ void VCS_SOLVE::vcs_report(int iconv)
     plogf("\n");
 
     // TABLE OF PHASE INFORMATION
-    vector<double> gaTPhase(m_nelem, 0.0);
-    double totalMoles = 0.0;
-    double gibbsPhase = 0.0;
-    double gibbsTotal = 0.0;
+    vector<CanteraDouble> gaTPhase(m_nelem, 0.0);
+    CanteraDouble totalMoles = 0.0;
+    CanteraDouble gibbsPhase = 0.0;
+    CanteraDouble gibbsTotal = 0.0;
     plogf("\n\n");
     plogf("\n");
     writeline('-', m_nelem*10 + 58);
@@ -1655,7 +1655,7 @@ void VCS_SOLVE::vcs_report(int iconv)
         }
         // Compute the elemental abundances for each element in this phase
         for (size_t j = 0; j < m_nelem; ++j) {
-            double abundance_j = 0.0;
+            CanteraDouble abundance_j = 0.0;
             for (size_t i = 0; i < m_nsp; ++i) {
                 if (m_speciesUnknownType[i] != VCS_SPECIES_TYPE_INTERFACIALVOLTAGE
                     && m_phaseID[i] == iphase)
@@ -1688,7 +1688,7 @@ void VCS_SOLVE::vcs_report(int iconv)
     // GLOBAL SATISFACTION INFORMATION
 
     // Calculate the total dimensionless Gibbs Free Energy.
-    double g = vcs_Total_Gibbs(m_molNumSpecies_old, m_feSpecies_old, m_tPhaseMoles_old);
+    CanteraDouble g = vcs_Total_Gibbs(m_molNumSpecies_old, m_feSpecies_old, m_tPhaseMoles_old);
     plogf("\n\tTotal Dimensionless Gibbs Free Energy = G/RT = %15.7E\n", g);
     plogf("\nElemental Abundances (kmol): ");
     plogf("         Actual                    Target         Type      ElActive\n");
@@ -1716,15 +1716,15 @@ void VCS_SOLVE::vcs_report(int iconv)
         plogf(" %14.7E ", m_molNumSpecies_old[j]);
         plogf("%14.7E  ", m_SSfeSpecies[j]);
         plogf("%14.7E  ", log(m_actCoeffSpecies_old[j]));
-        double tpmoles = m_tPhaseMoles_old[pid];
-        double phi = m_phasePhi[pid];
-        double eContrib = phi * m_chargeSpecies[j] * m_Faraday_dim;
-        double lx = 0.0;
+        CanteraDouble tpmoles = m_tPhaseMoles_old[pid];
+        CanteraDouble phi = m_phasePhi[pid];
+        CanteraDouble eContrib = phi * m_chargeSpecies[j] * m_Faraday_dim;
+        CanteraDouble lx = 0.0;
         if (m_speciesUnknownType[j] == VCS_SPECIES_TYPE_INTERFACIALVOLTAGE) {
             lx = 0.0;
         } else {
             if (tpmoles > 0.0 && m_molNumSpecies_old[j] > 0.0) {
-                double tmp = std::max(VCS_DELETE_MINORSPECIES_CUTOFF, m_molNumSpecies_old[j]);
+                CanteraDouble tmp = std::max(VCS_DELETE_MINORSPECIES_CUTOFF, m_molNumSpecies_old[j]);
                 lx = log(tmp) - log(tpmoles);
             } else {
                 lx = m_feSpecies_old[j] - m_SSfeSpecies[j]
@@ -1733,7 +1733,7 @@ void VCS_SOLVE::vcs_report(int iconv)
         }
         plogf("%14.7E  |", lx);
         plogf("%14.7E | ", eContrib);
-        double tmp = m_SSfeSpecies[j] + log(m_actCoeffSpecies_old[j])
+        CanteraDouble tmp = m_SSfeSpecies[j] + log(m_actCoeffSpecies_old[j])
                      + lx - m_lnMnaughtSpecies[j] + eContrib;
         if (fabs(m_feSpecies_old[j] - tmp) > 1.0E-7) {
             throw CanteraError("VCS_SOLVE::vcs_report",
@@ -1789,7 +1789,7 @@ bool VCS_SOLVE::vcs_elabcheck(int ibound)
                                    "Problem with charge neutrality condition");
             }
             if (m_elemAbundancesGoal[i] == 0.0 || (m_elType[i] == VCS_ELEM_TYPE_ELECTRONCHARGE)) {
-                double scale = VCS_DELETE_MINORSPECIES_CUTOFF;
+                CanteraDouble scale = VCS_DELETE_MINORSPECIES_CUTOFF;
 
                 // Find out if the constraint is a multisign constraint. If it
                 // is, then we have to worry about roundoff error in the
@@ -1797,7 +1797,7 @@ bool VCS_SOLVE::vcs_elabcheck(int ibound)
                 // arithmetic accuracy.
                 bool multisign = false;
                 for (size_t kspec = 0; kspec < m_nsp; kspec++) {
-                    double eval = m_formulaMatrix(kspec,i);
+                    CanteraDouble eval = m_formulaMatrix(kspec,i);
                     if (eval < 0.0) {
                         multisign = true;
                     }
@@ -1822,13 +1822,13 @@ bool VCS_SOLVE::vcs_elabcheck(int ibound)
     return true;
 }
 
-int VCS_SOLVE::vcs_elcorr(span<double> aa, span<double> x)
+int VCS_SOLVE::vcs_elcorr(span<CanteraDouble> aa, span<CanteraDouble> x)
 {
     checkArraySize("VCS_SOLVE::vcs_elcorr[x]", x.size(), m_nelem);
     checkArraySize("VCS_SOLVE::vcs_elcorr[aa]", aa.size(), m_nelem * m_nelem);
     int retn = 0;
 
-    vector<double> ga_save(m_elemAbundances);
+    vector<CanteraDouble> ga_save(m_elemAbundances);
     if (m_debug_print_lvl >= 2) {
         plogf("   --- vcsc_elcorr: Element abundances correction routine");
         if (m_nelem != m_numComponents) {
@@ -1840,7 +1840,7 @@ int VCS_SOLVE::vcs_elcorr(span<double> aa, span<double> x)
     for (size_t i = 0; i < m_nelem; ++i) {
         x[i] = m_elemAbundances[i] - m_elemAbundancesGoal[i];
     }
-    double l2before = 0.0;
+    CanteraDouble l2before = 0.0;
     for (size_t i = 0; i < m_nelem; ++i) {
         l2before += x[i] * x[i];
     }
@@ -1855,7 +1855,7 @@ int VCS_SOLVE::vcs_elcorr(span<double> aa, span<double> x)
         bool multisign = false;
         for (size_t kspec = 0; kspec < m_nsp; kspec++) {
             if (m_speciesUnknownType[kspec] != VCS_SPECIES_TYPE_INTERFACIALVOLTAGE) {
-                double eval = m_formulaMatrix(kspec,i);
+                CanteraDouble eval = m_formulaMatrix(kspec,i);
                 if (eval < 0.0) {
                     multisign = true;
                 }
@@ -1868,7 +1868,7 @@ int VCS_SOLVE::vcs_elcorr(span<double> aa, span<double> x)
             if (numNonZero < 2) {
                 for (size_t kspec = 0; kspec < m_nsp; kspec++) {
                     if (m_speciesUnknownType[kspec] != VCS_SPECIES_TYPE_INTERFACIALVOLTAGE) {
-                        double eval = m_formulaMatrix(kspec,i);
+                        CanteraDouble eval = m_formulaMatrix(kspec,i);
                         if (eval > 0.0) {
                             m_molNumSpecies_old[kspec] = m_elemAbundancesGoal[i] / eval;
                             changed = true;
@@ -1880,7 +1880,7 @@ int VCS_SOLVE::vcs_elcorr(span<double> aa, span<double> x)
                 size_t compID = npos;
                 for (size_t kspec = 0; kspec < m_numComponents; kspec++) {
                     if (m_speciesUnknownType[kspec] != VCS_SPECIES_TYPE_INTERFACIALVOLTAGE) {
-                        double eval = m_formulaMatrix(kspec,i);
+                        CanteraDouble eval = m_formulaMatrix(kspec,i);
                         if (eval > 0.0) {
                             compID = kspec;
                             numCompNonZero++;
@@ -1888,10 +1888,10 @@ int VCS_SOLVE::vcs_elcorr(span<double> aa, span<double> x)
                     }
                 }
                 if (numCompNonZero == 1) {
-                    double diff = m_elemAbundancesGoal[i];
+                    CanteraDouble diff = m_elemAbundancesGoal[i];
                     for (size_t kspec = m_numComponents; kspec < m_nsp; kspec++) {
                         if (m_speciesUnknownType[kspec] != VCS_SPECIES_TYPE_INTERFACIALVOLTAGE) {
-                            double eval = m_formulaMatrix(kspec,i);
+                            CanteraDouble eval = m_formulaMatrix(kspec,i);
                             diff -= eval * m_molNumSpecies_old[kspec];
                         }
                         m_molNumSpecies_old[compID] = std::max(0.0,diff/m_formulaMatrix(compID,i));
@@ -1918,9 +1918,9 @@ int VCS_SOLVE::vcs_elcorr(span<double> aa, span<double> x)
         if (elType == VCS_ELEM_TYPE_ABSPOS) {
             for (size_t kspec = 0; kspec < m_nsp; kspec++) {
                 if (m_speciesUnknownType[kspec] != VCS_SPECIES_TYPE_INTERFACIALVOLTAGE) {
-                    double atomComp = m_formulaMatrix(kspec,i);
+                    CanteraDouble atomComp = m_formulaMatrix(kspec,i);
                     if (atomComp > 0.0) {
-                        double maxPermissible = m_elemAbundancesGoal[i] / atomComp;
+                        CanteraDouble maxPermissible = m_elemAbundancesGoal[i] / atomComp;
                         if (m_molNumSpecies_old[kspec] > maxPermissible) {
                             if (m_debug_print_lvl >= 3) {
                                 plogf("  ---  vcs_elcorr: Reduced species %s from %g to %g "
@@ -1971,7 +1971,7 @@ int VCS_SOLVE::vcs_elcorr(span<double> aa, span<double> x)
     solve(A, x.first(m_nelem), 1, m_nelem);
 
     // Now apply the new direction without creating negative species.
-    double par = 0.5;
+    CanteraDouble par = 0.5;
     for (size_t i = 0; i < m_numComponents; ++i) {
         if (m_molNumSpecies_old[i] > 0.0) {
             par = std::max(par, -x[i] / m_molNumSpecies_old[i]);
@@ -1986,7 +1986,7 @@ int VCS_SOLVE::vcs_elcorr(span<double> aa, span<double> x)
         par = 1.0;
     }
     for (size_t i = 0; i < m_numComponents; ++i) {
-        double tmp = m_molNumSpecies_old[i] + par * x[i];
+        CanteraDouble tmp = m_molNumSpecies_old[i] + par * x[i];
         if (tmp > 0.0) {
             m_molNumSpecies_old[i] = tmp;
         } else if (m_SSPhase[i]) {
@@ -2005,7 +2005,7 @@ int VCS_SOLVE::vcs_elcorr(span<double> aa, span<double> x)
     // cleanup/logging function to be called before returning
     auto finalize = [&]() {
         vcs_tmoles();
-        double l2after = 0.0;
+        CanteraDouble l2after = 0.0;
         for (size_t i = 0; i < m_nelem; ++i) {
             l2after += pow(m_elemAbundances[i] - m_elemAbundancesGoal[i], 2);
         }
@@ -2030,10 +2030,10 @@ int VCS_SOLVE::vcs_elcorr(span<double> aa, span<double> x)
             if (m_speciesUnknownType[kspec] == VCS_SPECIES_TYPE_INTERFACIALVOLTAGE) {
                 continue;
             }
-            double saveDir = 0.0;
+            CanteraDouble saveDir = 0.0;
             bool goodSpec = true;
             for (size_t i = 0; i < m_numComponents; ++i) {
-                double dir = m_formulaMatrix(kspec,i) * (m_elemAbundancesGoal[i] - m_elemAbundances[i]);
+                CanteraDouble dir = m_formulaMatrix(kspec,i) * (m_elemAbundancesGoal[i] - m_elemAbundances[i]);
                 if (fabs(dir) > 1.0E-10) {
                     if (dir > 0.0) {
                         if (saveDir < 0.0) {
@@ -2052,7 +2052,7 @@ int VCS_SOLVE::vcs_elcorr(span<double> aa, span<double> x)
             }
             if (goodSpec) {
                 int its = 0;
-                double xx = 0.0;
+                CanteraDouble xx = 0.0;
                 for (size_t i = 0; i < m_numComponents; ++i) {
                     if (m_formulaMatrix(kspec,i) != 0.0) {
                         xx += (m_elemAbundancesGoal[i] - m_elemAbundances[i]) / m_formulaMatrix(kspec,i);
@@ -2110,7 +2110,7 @@ int VCS_SOLVE::vcs_elcorr(span<double> aa, span<double> x)
     // For electron charges element types, we try positive deltas in the species
     // concentrations to match the desired electron charge exactly.
     for (size_t i = 0; i < m_nelem; ++i) {
-        double dev = m_elemAbundancesGoal[i] - m_elemAbundances[i];
+        CanteraDouble dev = m_elemAbundancesGoal[i] - m_elemAbundances[i];
         if (m_elType[i] == VCS_ELEM_TYPE_ELECTRONCHARGE && (fabs(dev) > 1.0E-300)) {
             bool useZeroed = true;
             for (size_t kspec = 0; kspec < m_numSpeciesRdc; kspec++) {
@@ -2127,14 +2127,14 @@ int VCS_SOLVE::vcs_elcorr(span<double> aa, span<double> x)
             for (size_t kspec = 0; kspec < m_numSpeciesRdc; kspec++) {
                 if (m_molNumSpecies_old[kspec] > 0.0 || useZeroed) {
                     if (dev < 0.0 && m_formulaMatrix(kspec,i) < 0.0) {
-                        double delta = dev / m_formulaMatrix(kspec,i);
+                        CanteraDouble delta = dev / m_formulaMatrix(kspec,i);
                         m_molNumSpecies_old[kspec] += delta;
                         m_molNumSpecies_old[kspec] = std::max(m_molNumSpecies_old[kspec], 0.0);
                         vcs_elab();
                         break;
                     }
                     if (dev > 0.0 && m_formulaMatrix(kspec,i) > 0.0) {
-                        double delta = dev / m_formulaMatrix(kspec,i);
+                        CanteraDouble delta = dev / m_formulaMatrix(kspec,i);
                         m_molNumSpecies_old[kspec] += delta;
                         m_molNumSpecies_old[kspec] = std::max(m_molNumSpecies_old[kspec], 0.0);
                         vcs_elab();
@@ -2153,7 +2153,7 @@ int VCS_SOLVE::vcs_elcorr(span<double> aa, span<double> x)
 
 int VCS_SOLVE::vcs_setMolesLinProg()
 {
-    double test = -1.0E-10;
+    CanteraDouble test = -1.0E-10;
 
     if (m_debug_print_lvl >= 2) {
         plogf("   --- call setInitialMoles\n");
@@ -2161,11 +2161,11 @@ int VCS_SOLVE::vcs_setMolesLinProg()
 
     int iter = 0;
     bool abundancesOK = true;
-    vector<double> sm(m_nelem * m_nelem, 0.0);
-    vector<double> ss(m_nelem, 0.0);
-    vector<double> sa(m_nelem, 0.0);
-    vector<double> wx(m_nelem, 0.0);
-    vector<double> aw(m_nsp, 0.0);
+    vector<CanteraDouble> sm(m_nelem * m_nelem, 0.0);
+    vector<CanteraDouble> ss(m_nelem, 0.0);
+    vector<CanteraDouble> sa(m_nelem, 0.0);
+    vector<CanteraDouble> wx(m_nelem, 0.0);
+    vector<CanteraDouble> aw(m_nsp, 0.0);
 
     for (size_t ik = 0; ik < m_nsp; ik++) {
         if (m_speciesUnknownType[ik] != VCS_SPECIES_INTERFACIALVOLTAGE) {
@@ -2208,8 +2208,8 @@ int VCS_SOLVE::vcs_setMolesLinProg()
         for (size_t irxn = 0; irxn < m_numRxnTot; irxn++) {
             // dg_rt is the Delta_G / RT value for the reaction
             size_t ik = m_numComponents + irxn;
-            double dg_rt = m_SSfeSpecies[ik];
-            double dxi_min = 1.0e10;
+            CanteraDouble dg_rt = m_SSfeSpecies[ik];
+            CanteraDouble dxi_min = 1.0e10;
             auto sc_irxn = m_stoichCoeffRxnMatrix.col(irxn);
             for (size_t jcomp = 0; jcomp < m_nelem; jcomp++) {
                 dg_rt += m_SSfeSpecies[jcomp] * sc_irxn[jcomp];
@@ -2223,11 +2223,11 @@ int VCS_SOLVE::vcs_setMolesLinProg()
             }
 
             for (size_t jcomp = 0; jcomp < m_numComponents; jcomp++) {
-                double nu = sc_irxn[jcomp];
+                CanteraDouble nu = sc_irxn[jcomp];
                 // set max change in progress variable by
                 // non-negativity requirement
                 if (nu*idir < 0) {
-                    double delta_xi = fabs(m_molNumSpecies_old[jcomp]/nu);
+                    CanteraDouble delta_xi = fabs(m_molNumSpecies_old[jcomp]/nu);
                     // if a component has nearly zero moles, redo
                     // with a new set of components
                     if (!redo && delta_xi < 1.0e-10 && (m_molNumSpecies_old[ik] >= 1.0E-10)) {
@@ -2243,7 +2243,7 @@ int VCS_SOLVE::vcs_setMolesLinProg()
             // step the composition by dxi_min, check against zero, since
             // we are zeroing components and species on every step.
             // Redo the iteration, if a component went from positive to zero on this step.
-            double dsLocal = idir*dxi_min;
+            CanteraDouble dsLocal = idir*dxi_min;
             m_molNumSpecies_old[ik] += dsLocal;
             m_molNumSpecies_old[ik] = max(0.0, m_molNumSpecies_old[ik]);
             for (size_t jcomp = 0; jcomp < m_numComponents; jcomp++) {
@@ -2276,11 +2276,11 @@ int VCS_SOLVE::vcs_setMolesLinProg()
     return 0;
 }
 
-double VCS_SOLVE::vcs_Total_Gibbs(span<const double> molesSp,
-                                  span<const double> chemPot,
-                                  span<const double> tPhMoles)
+CanteraDouble VCS_SOLVE::vcs_Total_Gibbs(span<const CanteraDouble> molesSp,
+                                  span<const CanteraDouble> chemPot,
+                                  span<const CanteraDouble> tPhMoles)
 {
-    double g = 0.0;
+    CanteraDouble g = 0.0;
 
     for (size_t kspec = 0; kspec < m_numSpeciesRdc; ++kspec) {
         if (m_speciesUnknownType[kspec] != VCS_SPECIES_TYPE_INTERFACIALVOLTAGE) {
@@ -2389,17 +2389,17 @@ void VCS_SOLVE::vcs_inest()
     }
 
     // temporary space for usage in this routine and in subroutines
-    vector<double> sm(m_nelem*m_nelem, 0.0);
-    vector<double> ss(m_nelem, 0.0);
-    vector<double> sa(m_nelem, 0.0);
-    vector<double> aw(m_nsp + m_nelem, 0.0);
+    vector<CanteraDouble> sm(m_nelem*m_nelem, 0.0);
+    vector<CanteraDouble> ss(m_nelem, 0.0);
+    vector<CanteraDouble> sa(m_nelem, 0.0);
+    vector<CanteraDouble> aw(m_nsp + m_nelem, 0.0);
 
     // Go get the estimate of the solution
     if (m_debug_print_lvl >= 2) {
         plogf("%sGo find an initial estimate for the equilibrium problem\n",
               pprefix);
     }
-    double test = -1.0E20;
+    CanteraDouble test = -1.0E20;
     size_t nrxn = m_numRxnTot;
 
     // CALL ROUTINE TO SOLVE MAX(CC*molNum) SUCH THAT AX*molNum = BB AND
@@ -2420,7 +2420,7 @@ void VCS_SOLVE::vcs_inest()
         plogf("%s     Element           Goal         Actual\n", pprefix);
         for (size_t j = 0; j < m_nelem; j++) {
             if (m_elementActive[j]) {
-                double tmp = 0.0;
+                CanteraDouble tmp = 0.0;
                 for (size_t kspec = 0; kspec < m_nsp; ++kspec) {
                     tmp += m_formulaMatrix(kspec,j) * m_molNumSpecies_old[kspec];
                 }
@@ -2463,7 +2463,7 @@ void VCS_SOLVE::vcs_inest()
             m_tPhaseMoles_new[m_phaseID[kspec]] += m_molNumSpecies_old[kspec];
         }
     }
-    double TMolesMultiphase = 0.0;
+    CanteraDouble TMolesMultiphase = 0.0;
     for (size_t iph = 0; iph < m_numPhases; iph++) {
         if (! m_VolPhaseList[iph]->m_singleSpecies) {
             TMolesMultiphase += m_tPhaseMoles_new[iph];
@@ -2503,8 +2503,8 @@ void VCS_SOLVE::vcs_inest()
     }
 
     // ESTIMATE REACTION ADJUSTMENTS
-    vector<double>& xtphMax = m_TmpPhase;
-    vector<double>& xtphMin = m_TmpPhase2;
+    vector<CanteraDouble>& xtphMax = m_TmpPhase;
+    vector<CanteraDouble>& xtphMin = m_TmpPhase2;
     m_deltaPhaseMoles.assign(m_deltaPhaseMoles.size(), 0.0);
     for (size_t iph = 0; iph < m_numPhases; iph++) {
         xtphMax[iph] = log(m_tPhaseMoles_new[iph] * 1.0E32);
@@ -2562,7 +2562,7 @@ void VCS_SOLVE::vcs_inest()
     }
 
     // KEEP COMPONENT SPECIES POSITIVE
-    double par = 0.5;
+    CanteraDouble par = 0.5;
     for (size_t kspec = 0; kspec < m_numComponents; ++kspec) {
         if (m_speciesUnknownType[kspec] != VCS_SPECIES_TYPE_INTERFACIALVOLTAGE &&
             par < -m_deltaMolNumSpecies[kspec] / m_molNumSpecies_new[kspec]) {
@@ -2579,7 +2579,7 @@ void VCS_SOLVE::vcs_inest()
     // CALCULATE NEW MOLE NUMBERS
     size_t lt = 0;
     size_t ikl = 0;
-    double s1 = 0.0;
+    CanteraDouble s1 = 0.0;
     while (true) {
         for (size_t kspec = 0; kspec < m_numComponents; ++kspec) {
             if (m_speciesUnknownType[kspec] != VCS_SPECIES_TYPE_INTERFACIALVOLTAGE) {
@@ -2605,7 +2605,7 @@ void VCS_SOLVE::vcs_inest()
         // CONVERGENCE FORCING SECTION
         vcs_setFlagsVolPhases(false, VCS_STATECALC_OLD);
         vcs_dfe(VCS_STATECALC_OLD, 0, 0, m_nsp);
-        double s = 0.0;
+        CanteraDouble s = 0.0;
         for (size_t kspec = 0; kspec < m_nsp; ++kspec) {
             s += m_deltaMolNumSpecies[kspec] * m_feSpecies_old[kspec];
         }
@@ -2625,7 +2625,7 @@ void VCS_SOLVE::vcs_inest()
         }
 
         // FIT PARABOLA THROUGH HALF AND FULL STEPS
-        double xl = (1.0 - s / (s1 - s)) * 0.5;
+        CanteraDouble xl = (1.0 - s / (s1 - s)) * 0.5;
         if (xl < 0.0) {
             // POOR DIRECTION, REDUCE STEP SIZE TO 0.2
             par *= 0.2;
@@ -2764,7 +2764,7 @@ void VCS_SOLVE::prob_report(int print_lvl)
         plogf("\n");
         plogf("\tSolve a constant T, P problem:\n");
         plogf("\t\tT    = %g K\n", m_temperature);
-        double pres_atm = m_pressurePA / 1.01325E5;
+        CanteraDouble pres_atm = m_pressurePA / 1.01325E5;
 
         plogf("\t\tPres = %g atm\n", pres_atm);
         plogf("\n");

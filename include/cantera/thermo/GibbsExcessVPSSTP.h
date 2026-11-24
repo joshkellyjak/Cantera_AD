@@ -101,7 +101,7 @@ public:
     //! @{
 
     Units standardConcentrationUnits() const override;
-    void getActivityConcentrations(span<double> c) const override;
+    void getActivityConcentrations(span<CanteraDouble> c) const override;
 
     /**
      * The standard concentration @f$ C^0_k @f$ used to normalize the
@@ -118,8 +118,8 @@ public:
      *
      * @param k species index. Defaults to zero.
      */
-    double standardConcentration(size_t k=0) const override;
-    double logStandardConc(size_t k=0) const override;
+    CanteraDouble standardConcentration(size_t k=0) const override;
+    CanteraDouble logStandardConc(size_t k=0) const override;
 
     //! Get the array of non-dimensional molar-based activities at the current
     //! solution temperature, pressure, and composition.
@@ -133,9 +133,9 @@ public:
      *
      * @param ac     Output vector of molar-based activities. Length: m_kk.
      */
-    void getActivities(span<double> ac) const override;
+    void getActivities(span<CanteraDouble> ac) const override;
 
-    void getActivityCoefficients(span<double> ac) const override;
+    void getActivityCoefficients(span<CanteraDouble> ac) const override;
 
     //! Get the array of temperature derivatives of the log activity coefficients
     /*!
@@ -145,12 +145,12 @@ public:
      * @param dlnActCoeffdT    Output vector of temperature derivatives of the
      *                         log Activity Coefficients. length = m_kk
      */
-    virtual void getdlnActCoeffdT(span<double> dlnActCoeffdT) const {
+    virtual void getdlnActCoeffdT(span<CanteraDouble> dlnActCoeffdT) const {
         throw NotImplementedError("GibbsExcessVPSSTP::getdlnActCoeffdT");
     }
 
     void getdlnActCoeffdlnN(const size_t ld,
-                            span<double> const dlnActCoeffdlnN) override {
+                            span<CanteraDouble> const dlnActCoeffdlnN) override {
         throw NotImplementedError("GibbsExcessVPSSTP::getdlnActCoeffdlnN: "
                                   "nonzero and nonimplemented");
     }
@@ -171,7 +171,7 @@ public:
      * @param dlnActCoeffdlnX    Output vector of derivatives of the
      *                         log Activity Coefficients. length = m_kk
      */
-    virtual void getdlnActCoeffdlnX(span<double> dlnActCoeffdlnX) const {
+    virtual void getdlnActCoeffdlnX(span<CanteraDouble> dlnActCoeffdlnX) const {
         throw NotImplementedError("GibbsExcessVPSSTP::getdlnActCoeffdlnX");
     }
 
@@ -189,7 +189,7 @@ public:
      *  @param vbar   Output vector of species partial molar volumes.
      *                Length = m_kk. units are m^3/kmol.
      */
-    void getPartialMolarVolumes(span<double> vbar) const override;
+    void getPartialMolarVolumes(span<CanteraDouble> vbar) const override;
     //! @}
 
     bool addSpecies(shared_ptr<Species> spec) override;
@@ -205,25 +205,25 @@ protected:
      * Note in order to do this, the setState functions are redefined to always
      * keep this vector current.
      */
-    mutable vector<double> moleFractions_;
+    mutable vector<CanteraDouble> moleFractions_;
 
     //! Storage for the current values of the activity coefficients of the
     //! species
-    mutable vector<double> lnActCoeff_Scaled_;
+    mutable vector<CanteraDouble> lnActCoeff_Scaled_;
 
     //! Storage for the current derivative values of the gradients with respect
     //! to temperature of the log of the activity coefficients of the species
-    mutable vector<double> dlnActCoeffdT_Scaled_;
+    mutable vector<CanteraDouble> dlnActCoeffdT_Scaled_;
 
     //! Storage for the current derivative values of the gradients with respect
     //! to logarithm of the mole fraction of the log of the activity
     //! coefficients of the species
-    mutable vector<double> dlnActCoeffdlnN_diag_;
+    mutable vector<CanteraDouble> dlnActCoeffdlnN_diag_;
 
     //! Storage for the current derivative values of the gradients with respect
     //! to logarithm of the mole fraction of the log of the activity
     //! coefficients of the species
-    mutable vector<double> dlnActCoeffdlnX_diag_;
+    mutable vector<CanteraDouble> dlnActCoeffdlnX_diag_;
 
     //! Storage for the current derivative values of the gradients with respect
     //! to logarithm of the species mole number of the log of the activity

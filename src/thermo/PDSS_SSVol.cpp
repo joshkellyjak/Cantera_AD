@@ -18,7 +18,7 @@ PDSS_SSVol::PDSS_SSVol()
 {
 }
 
-void PDSS_SSVol::setVolumePolynomial(span<const double> coeffs) {
+void PDSS_SSVol::setVolumePolynomial(span<const CanteraDouble> coeffs) {
     checkArraySize("PDSS_SSVol::setVolumePolynomial", coeffs.size(), 4);
     for (size_t i = 0; i < 4; i++) {
         TCoeff_[i] = coeffs[i];
@@ -26,7 +26,7 @@ void PDSS_SSVol::setVolumePolynomial(span<const double> coeffs) {
     volumeModel_ = SSVolume_Model::tpoly;
 }
 
-void PDSS_SSVol::setDensityPolynomial(span<const double> coeffs) {
+void PDSS_SSVol::setDensityPolynomial(span<const CanteraDouble> coeffs) {
     checkArraySize("PDSS_SSVol::setDensityPolynomial", coeffs.size(), 4);
     for (size_t i = 0; i < 4; i++) {
         TCoeff_[i] = coeffs[i];
@@ -83,23 +83,23 @@ void PDSS_SSVol::initThermo()
     m_p0 = m_spthermo->refPressure();
 }
 
-double PDSS_SSVol::intEnergy_mole() const
+CanteraDouble PDSS_SSVol::intEnergy_mole() const
 {
-    double pV = m_pres * m_Vss;
+    CanteraDouble pV = m_pres * m_Vss;
     return m_h0_RT * GasConstant * m_temp - pV;
 }
 
-double PDSS_SSVol::cv_mole() const
+CanteraDouble PDSS_SSVol::cv_mole() const
 {
     return cp_mole();
 }
 
-double PDSS_SSVol::dVdT() const
+CanteraDouble PDSS_SSVol::dVdT() const
 {
     return dVdT_;
 }
 
-double PDSS_SSVol::dVdP() const
+CanteraDouble PDSS_SSVol::dVdP() const
 {
     return 0.0;
 }
@@ -112,12 +112,12 @@ void PDSS_SSVol::calcMolarVolume()
         dVdT_ = TCoeff_[1] + 2.0 * m_temp * TCoeff_[2] + 3.0 * m_temp * m_temp * TCoeff_[3];
         d2VdT2_ = 2.0 * TCoeff_[2] + 6.0 * m_temp * TCoeff_[3];
     } else if (volumeModel_ == SSVolume_Model::density_tpoly) {
-        double dens = TCoeff_[0] + m_temp * (TCoeff_[1] + m_temp * (TCoeff_[2] + m_temp * TCoeff_[3]));
+        CanteraDouble dens = TCoeff_[0] + m_temp * (TCoeff_[1] + m_temp * (TCoeff_[2] + m_temp * TCoeff_[3]));
         m_Vss = m_mw / dens;
         m_V0 = m_Vss;
-        double dens2 = dens * dens;
-        double ddensdT = TCoeff_[1] + 2.0 * m_temp * TCoeff_[2] + 3.0 * m_temp * m_temp * TCoeff_[3];
-        double d2densdT2 = 2.0 * TCoeff_[2] + 6.0 * m_temp * TCoeff_[3];
+        CanteraDouble dens2 = dens * dens;
+        CanteraDouble ddensdT = TCoeff_[1] + 2.0 * m_temp * TCoeff_[2] + 3.0 * m_temp * m_temp * TCoeff_[3];
+        CanteraDouble d2densdT2 = 2.0 * TCoeff_[2] + 6.0 * m_temp * TCoeff_[3];
         dVdT_ = - m_mw / dens2 * ddensdT;
         d2VdT2_ = 2.0 * m_mw / (dens2 * dens) * ddensdT * ddensdT - m_mw / dens2 * d2densdT2;
     } else {
@@ -125,18 +125,18 @@ void PDSS_SSVol::calcMolarVolume()
     }
 }
 
-void PDSS_SSVol::setPressure(double p)
+void PDSS_SSVol::setPressure(CanteraDouble p)
 {
     m_pres = p;
-    double deltaP = m_pres - m_p0;
+    CanteraDouble deltaP = m_pres - m_p0;
     if (fabs(deltaP) < 1.0E-10) {
         m_hss_RT = m_h0_RT;
         m_sss_R = m_s0_R;
         m_gss_RT = m_hss_RT - m_sss_R;
         m_cpss_R = m_cp0_R;
     } else {
-        double del_pRT = deltaP / (GasConstant * m_temp);
-        double sV_term = - deltaP / GasConstant * dVdT_;
+        CanteraDouble del_pRT = deltaP / (GasConstant * m_temp);
+        CanteraDouble sV_term = - deltaP / GasConstant * dVdT_;
         m_hss_RT = m_h0_RT + sV_term + del_pRT * m_Vss;
         m_sss_R = m_s0_R + sV_term;
         m_gss_RT = m_hss_RT - m_sss_R;
@@ -144,21 +144,21 @@ void PDSS_SSVol::setPressure(double p)
     }
 }
 
-void PDSS_SSVol::setTemperature(double temp)
+void PDSS_SSVol::setTemperature(CanteraDouble temp)
 {
     m_temp = temp;
     m_spthermo->updatePropertiesTemp(temp, m_cp0_R, m_h0_RT, m_s0_R);
     calcMolarVolume();
     m_g0_RT = m_h0_RT - m_s0_R;
-    double deltaP = m_pres - m_p0;
+    CanteraDouble deltaP = m_pres - m_p0;
     if (fabs(deltaP) < 1.0E-10) {
         m_hss_RT = m_h0_RT;
         m_sss_R = m_s0_R;
         m_gss_RT = m_hss_RT - m_sss_R;
         m_cpss_R = m_cp0_R;
     } else {
-        double del_pRT = deltaP / (GasConstant * m_temp);
-        double sV_term = - deltaP / GasConstant * dVdT_;
+        CanteraDouble del_pRT = deltaP / (GasConstant * m_temp);
+        CanteraDouble sV_term = - deltaP / GasConstant * dVdT_;
         m_hss_RT = m_h0_RT + sV_term + del_pRT * m_Vss;
         m_sss_R = m_s0_R + sV_term;
         m_gss_RT = m_hss_RT - m_sss_R;
@@ -166,13 +166,13 @@ void PDSS_SSVol::setTemperature(double temp)
     }
 }
 
-void PDSS_SSVol::setState_TP(double temp, double pres)
+void PDSS_SSVol::setState_TP(CanteraDouble temp, CanteraDouble pres)
 {
     m_pres = pres;
     setTemperature(temp);
 }
 
-double PDSS_SSVol::satPressure(double t)
+CanteraDouble PDSS_SSVol::satPressure(CanteraDouble t)
 {
     return 1.0E-200;
 }

@@ -54,7 +54,7 @@ public:
     clockWC();
 
     //! Resets the internal counters and returns the wall clock time in seconds
-    double start();
+    CanteraDouble start();
 
     //! Returns the wall clock time in seconds since the last reset.
     /*!
@@ -65,7 +65,7 @@ public:
      * which have rolled over is made also. However, it only works if this
      * function is called fairly regularly during the solution procedure.
      */
-    double secondsWC();
+    CanteraDouble secondsWC();
 
 private:
     //! Counters the value of the number of ticks from the last call.
@@ -84,10 +84,10 @@ private:
     clock_t start_ticks;
 
     //! internal constant containing clock ticks per second
-    const double inv_clocks_per_sec;
+    const CanteraDouble inv_clocks_per_sec;
 
     //! internal constant containing the total number of ticks per rollover.
-    const double clock_width;
+    const CanteraDouble clock_width;
 };
 }
 #endif

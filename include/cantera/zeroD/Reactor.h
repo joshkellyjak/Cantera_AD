@@ -60,7 +60,7 @@ public:
         return true;
     }
 
-    void setInitialVolume(double vol) override {
+    void setInitialVolume(CanteraDouble vol) override {
         m_vol = vol;
     }
 
@@ -80,12 +80,12 @@ public:
         return m_energy;
     }
 
-    void getState(span<double> y) override;
-    void initialize(double t0=0.0) override;
-    void eval(double t, span<double> LHS, span<double> RHS) override;
-    void evalSteady(double t, span<double> LHS, span<double> RHS) override;
+    void getState(span<CanteraDouble> y) override;
+    void initialize(CanteraDouble t0=0.0) override;
+    void eval(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS) override;
+    void evalSteady(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS) override;
     vector<size_t> initializeSteady() override;
-    void updateState(span<const double> y) override;
+    void updateState(span<const CanteraDouble> y) override;
     void addSensitivityReaction(size_t rxn) override;
     void addSensitivitySpeciesEnthalpy(size_t k) override;
 
@@ -95,13 +95,13 @@ public:
     //! surface species.
     size_t componentIndex(const string& nm) const override;
     string componentName(size_t k) override;
-    double upperBound(size_t k) const override;
-    double lowerBound(size_t k) const override;
-    void resetBadValues(span<double> y) override;
+    CanteraDouble upperBound(size_t k) const override;
+    CanteraDouble lowerBound(size_t k) const override;
+    void resetBadValues(span<CanteraDouble> y) override;
 
     //! Set absolute step size limits during advance
     //! @param limits array of step size limits with length neq
-    void setAdvanceLimits(span<const double> limits);
+    void setAdvanceLimits(span<const CanteraDouble> limits);
 
     //! Check whether Reactor object uses advance limits
     //! @returns           True if at least one limit is set, False otherwise
@@ -112,12 +112,12 @@ public:
     //! Retrieve absolute step size limits during advance
     //! @param[out] limits array of step size limits with length neq
     //! @returns           True if at least one limit is set, False otherwise
-    bool getAdvanceLimits(span<double> limits) const;
+    bool getAdvanceLimits(span<CanteraDouble> limits) const;
 
     //! Set individual step size limit for component name *nm*
     //! @param nm component name
     //! @param limit value for step size limit
-    void setAdvanceLimit(const string& nm, const double limit);
+    void setAdvanceLimit(const string& nm, const CanteraDouble limit);
 
     //! Calculate the reactor-specific Jacobian using a finite difference method.
     //!
@@ -126,7 +126,7 @@ public:
     //!
     //! @warning  This method is an experimental part of the %Cantera
     //! API and may be changed or removed without notice.
-    Eigen::SparseMatrix<double> finiteDifferenceJacobian();
+    Eigen::SparseMatrix<CanteraDouble> finiteDifferenceJacobian();
 
     //! Control terms included when calculating sparse Jacobian approximations
     //!
@@ -149,8 +149,8 @@ public:
     //!
     void setDerivativeSettings(AnyMap& settings) override;
 
-    void applySensitivity(span<const double> params) override;
-    void resetSensitivity(span<const double> params) override;
+    void applySensitivity(span<const CanteraDouble> params) override;
+    void resetSensitivity(span<const CanteraDouble> params) override;
 
 protected:
     //! Update #m_sdot to reflect current production rates of bulk phase species due to
@@ -160,18 +160,18 @@ protected:
     //! Evaluate terms related to Walls. Calculates #m_vdot and #m_Qdot based on
     //! wall movement and heat transfer.
     //! @param t     the current time
-    void evalWalls(double t) override;
+    void evalWalls(CanteraDouble t) override;
 
     //! Pointer to the homogeneous Kinetics object that handles the reactions
     Kinetics* m_kin = nullptr;
 
-    double m_vdot = 0.0; //!< net rate of volume change from moving walls [m^3/s]
-    double m_Qdot = 0.0; //!< net heat transfer into the reactor, through walls [W]
-    vector<double> m_wdot; //!< Species net molar production rates
-    vector<double> m_uk; //!< Species molar internal energies
+    CanteraDouble m_vdot = 0.0; //!< net rate of volume change from moving walls [m^3/s]
+    CanteraDouble m_Qdot = 0.0; //!< net heat transfer into the reactor, through walls [W]
+    vector<CanteraDouble> m_wdot; //!< Species net molar production rates
+    vector<CanteraDouble> m_uk; //!< Species molar internal energies
 
     //! Total production rate of bulk phase species on surfaces [kmol/s]
-    vector<double> m_sdot;
+    vector<CanteraDouble> m_sdot;
 
     bool m_chem = false;
     bool m_energy = true;
@@ -188,10 +188,10 @@ protected:
     //! Omit species terms in pressure derivatives, which can add fill-in
     bool m_jac_skip_connector_pressure_composition_dependence = false;
 
-    vector<double> m_advancelimits; //!< Advance step limit
+    vector<CanteraDouble> m_advancelimits; //!< Advance step limit
 
     //! Initial volume [m³]; used for steady-state calculations
-    double m_initialVolume;
+    CanteraDouble m_initialVolume;
 };
 }
 

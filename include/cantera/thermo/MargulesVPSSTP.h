@@ -151,7 +151,7 @@ public:
     //! thermodynamic identity @f$ c_v = c_p - T v \beta^2 / \kappa_T @f$ is used.
     //! If @f$ \kappa_T = 0 @f$ (all species have pressure-independent standard state
     //! volumes), then @f$ c_v = c_p @f$.
-    double cv_mole() const override;
+    CanteraDouble cv_mole() const override;
 
     //! Isothermal compressibility of the mixture.
     /*!
@@ -162,7 +162,7 @@ public:
      * The Margules excess volume has no pressure dependence, so only the standard
      * state PDSS derivatives contribute.
      */
-    double isothermalCompressibility() const override;
+    CanteraDouble isothermalCompressibility() const override;
 
     //! Thermal expansion coefficient of the mixture.
     /*!
@@ -176,7 +176,7 @@ public:
      * where the excess volume T-derivative is computed analytically from the
      * Margules excess-volume-entropy interaction parameters.
      */
-    double thermalExpansionCoeff() const override;
+    CanteraDouble thermalExpansionCoeff() const override;
 
     //! @}
     //! @name Activities, Standard States, and Activity Concentrations
@@ -187,13 +187,13 @@ public:
     //! which depends only on temperature and pressure.
     //! @{
 
-    void getLnActivityCoefficients(span<double> lnac) const override;
+    void getLnActivityCoefficients(span<CanteraDouble> lnac) const override;
 
     //! @}
     //! @name  Partial Molar Properties of the Solution
     //! @{
 
-    void getChemPotentials(span<double> mu) const override;
+    void getChemPotentials(span<CanteraDouble> mu) const override;
 
     //! Returns an array of partial molar enthalpies for the species in the
     //! mixture.
@@ -211,7 +211,7 @@ public:
      * @param hbar  Vector of returned partial molar enthalpies
      *              (length m_kk, units = J/kmol)
      */
-    void getPartialMolarEnthalpies(span<double> hbar) const override;
+    void getPartialMolarEnthalpies(span<CanteraDouble> hbar) const override;
 
     //! Returns an array of partial molar entropies for the species in the
     //! mixture.
@@ -230,7 +230,7 @@ public:
      * @param sbar  Vector of returned partial molar entropies
      *              (length m_kk, units = J/kmol/K)
      */
-    void getPartialMolarEntropies(span<double> sbar) const override;
+    void getPartialMolarEntropies(span<CanteraDouble> sbar) const override;
 
     //! Returns an array of partial molar heat capacities [J/kmol/K] for the species in
     //! the mixture.
@@ -246,11 +246,11 @@ public:
      * @param cpbar  Vector of returned partial molar heat capacities
      *              (length m_kk, units = J/kmol/K)
      */
-    void getPartialMolarCp(span<double> cpbar) const override;
+    void getPartialMolarCp(span<CanteraDouble> cpbar) const override;
 
-    void getPartialMolarVolumes(span<double> vbar) const override;
+    void getPartialMolarVolumes(span<CanteraDouble> vbar) const override;
 
-    void getdlnActCoeffdT(span<double> dlnActCoeffdT) const override;
+    void getdlnActCoeffdT(span<CanteraDouble> dlnActCoeffdT) const override;
 
     //! @}
     //! @name Initialization
@@ -278,19 +278,19 @@ public:
      * @param vs1        second entropy coefficient for excess volume [m^3/kmol/K]
      */
     void addBinaryInteraction(const string& speciesA,
-        const string& speciesB, double h0, double h1, double s0, double s1,
-        double vh0, double vh1, double vs0, double vs1);
+        const string& speciesB, CanteraDouble h0, CanteraDouble h1, CanteraDouble s0, CanteraDouble s1,
+        CanteraDouble vh0, CanteraDouble vh1, CanteraDouble vs0, CanteraDouble vs1);
 
     //! @}
     //! @name  Derivatives of Thermodynamic Variables needed for Applications
     //! @{
 
-    void getdlnActCoeffds(const double dTds, span<const double> dXds,
-                          span<double> dlnActCoeffds) const override;
-    void getdlnActCoeffdlnX_diag(span<double> dlnActCoeffdlnX_diag) const override;
-    void getdlnActCoeffdlnN_diag(span<double> dlnActCoeffdlnN_diag) const override;
+    void getdlnActCoeffds(const CanteraDouble dTds, span<const CanteraDouble> dXds,
+                          span<CanteraDouble> dlnActCoeffds) const override;
+    void getdlnActCoeffdlnX_diag(span<CanteraDouble> dlnActCoeffdlnX_diag) const override;
+    void getdlnActCoeffdlnN_diag(span<CanteraDouble> dlnActCoeffdlnN_diag) const override;
     void getdlnActCoeffdlnN(const size_t ld,
-                            span<double> const dlnActCoeffdlnN) override;
+                            span<CanteraDouble> const dlnActCoeffdlnN) override;
 
     //! @}
 
@@ -346,35 +346,35 @@ protected:
 
     //! Enthalpy term for the binary mole fraction interaction of the
     //! excess Gibbs free energy expression
-    mutable vector<double> m_HE_b_ij;
+    mutable vector<CanteraDouble> m_HE_b_ij;
 
     //! Enthalpy term for the ternary mole fraction interaction of the
     //! excess Gibbs free energy expression
-    mutable vector<double> m_HE_c_ij;
+    mutable vector<CanteraDouble> m_HE_c_ij;
 
     //! Entropy term for the binary mole fraction interaction of the
     //! excess Gibbs free energy expression
-    mutable vector<double> m_SE_b_ij;
+    mutable vector<CanteraDouble> m_SE_b_ij;
 
     //! Entropy term for the ternary mole fraction interaction of the
     //! excess Gibbs free energy expression
-    mutable vector<double> m_SE_c_ij;
+    mutable vector<CanteraDouble> m_SE_c_ij;
 
     //! Enthalpy term for the binary mole fraction interaction of the
     //! excess Gibbs free energy expression
-    mutable vector<double> m_VHE_b_ij;
+    mutable vector<CanteraDouble> m_VHE_b_ij;
 
     //! Enthalpy term for the ternary mole fraction interaction of the
     //! excess Gibbs free energy expression
-    mutable vector<double> m_VHE_c_ij;
+    mutable vector<CanteraDouble> m_VHE_c_ij;
 
     //! Entropy term for the binary mole fraction interaction of the
     //! excess Gibbs free energy expression
-    mutable vector<double> m_VSE_b_ij;
+    mutable vector<CanteraDouble> m_VSE_b_ij;
 
     //! Entropy term for the ternary mole fraction interaction of the
     //! excess Gibbs free energy expression
-    mutable vector<double> m_VSE_c_ij;
+    mutable vector<CanteraDouble> m_VSE_c_ij;
 
     //! vector of species indices representing species A in the interaction
     /*!

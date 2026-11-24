@@ -25,7 +25,7 @@ namespace Cantera
  * @param fmt   Format to be used (printf style) for each element
  * @param sep   Separator
  */
-string vec2str(const vector<double>& v, const string& fmt="%g", const string& sep=", ");
+string vec2str(const vector<CanteraDouble>& v, const string& fmt="%g", const string& sep=", ");
 
 //! Strip non-printing characters wherever they are
 /*!
@@ -67,7 +67,7 @@ Composition parseCompString(const string& ss,
  * @param val   String value of the double
  * @returns     a double
  */
-double fpValue(const string& val);
+CanteraDouble fpValue(const string& val);
 
 //! Translate a string into one double value, with error checking
 /*!
@@ -90,7 +90,7 @@ double fpValue(const string& val);
  * @param val   String representation of the number
  * @returns     a double
  */
-double fpValueCheck(const string& val);
+CanteraDouble fpValueCheck(const string& val);
 
 //! This function separates a string up into tokens according to the location of
 //! white space.

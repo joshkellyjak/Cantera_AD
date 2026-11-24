@@ -18,7 +18,7 @@
 namespace Cantera {
 
 namespace {
-    const double gamma = sqrt(2 * ElectronCharge / ElectronMass);
+    const CanteraDouble gamma = sqrt(2 * ElectronCharge / ElectronMass);
 }
 
 PlasmaPhase::PlasmaPhase(const string& inputFile, const string& id_)
@@ -27,7 +27,7 @@ PlasmaPhase::PlasmaPhase(const string& inputFile, const string& id_)
     // input so that isotropic/discretized EEDF setters have a valid grid.
     m_eedfSolver = make_unique<EEDFTwoTermApproximation>(this);
 
-    double kTe_max = 60;
+    CanteraDouble kTe_max = 60;
     size_t nGridCells = 301;
     m_nPoints = nGridCells + 1;
     m_eedfSolver->setLinearGrid(kTe_max, nGridCells);
@@ -71,8 +71,8 @@ void PlasmaPhase::updateThermo() const
     IdealGasPhase::updateThermo();
     static const int cacheId = m_cache.getId();
     CachedScalar cached = m_cache.getScalar(cacheId);
-    double tempNow = temperature();
-    double electronTempNow = electronTemperature();
+    CanteraDouble tempNow = temperature();
+    CanteraDouble electronTempNow = electronTemperature();
     size_t k = m_electronSpeciesIndex;
     // If the electron temperature has changed since the last time these
     // properties were computed, recompute them.
@@ -141,14 +141,14 @@ void PlasmaPhase::getParameters(AnyMap& phaseNode) const
     }
     AnyMap eedf;
     eedf["type"] = m_distributionType;
-    vector<double> levels(m_nPoints);
+    vector<CanteraDouble> levels(m_nPoints);
     Eigen::Map<Eigen::ArrayXd>(levels.data(), m_nPoints) = m_electronEnergyLevels;
     eedf["energy-levels"] = levels;
     if (m_distributionType == "isotropic") {
         eedf["shape-factor"] = m_isotropicShapeFactor;
         eedf["mean-electron-energy"].setQuantity(meanElectronEnergy(), "eV");
     } else if (m_distributionType == "discretized") {
-        vector<double> dist(m_nPoints);
+        vector<CanteraDouble> dist(m_nPoints);
         Eigen::Map<Eigen::ArrayXd>(dist.data(), m_nPoints) = m_electronEnergyDist;
         eedf["distribution"] = dist;
         eedf["normalize"] = m_do_normalizeElectronEnergyDist;
@@ -173,14 +173,14 @@ void PlasmaPhase::setElectronEnergyDistributionParameters(const AnyMap& eedf)
                 "isotropic type requires shape-factor key.");
         }
         if (eedf.hasKey("mean-electron-energy")) {
-            double energy = eedf.convert("mean-electron-energy", "eV");
+            CanteraDouble energy = eedf.convert("mean-electron-energy", "eV");
             setMeanElectronEnergy(energy);
         } else {
             throw InputFileError(routineName, eedf,
                 "isotropic type requires mean-electron-energy key.");
         }
         if (eedf.hasKey("energy-levels")) {
-            auto levels = eedf["energy-levels"].asVector<double>();
+            auto levels = eedf["energy-levels"].asVector<CanteraDouble>();
             setElectronEnergyLevels(levels);
         }
         setIsotropicElectronEnergyDistribution();
@@ -196,12 +196,12 @@ void PlasmaPhase::setElectronEnergyDistributionParameters(const AnyMap& eedf)
         if (eedf.hasKey("normalize")) {
             enableNormalizeElectronEnergyDist(eedf["normalize"].asBool());
         }
-        auto levels = eedf["energy-levels"].asVector<double>();
-        auto distribution = eedf["distribution"].asVector<double>(levels.size());
+        auto levels = eedf["energy-levels"].asVector<CanteraDouble>();
+        auto distribution = eedf["distribution"].asVector<CanteraDouble>(levels.size());
         setDiscretizedElectronEnergyDist(levels, distribution);
     } else if (m_distributionType == "Boltzmann-two-term") {
         if (eedf.hasKey("energy-levels")) {
-            auto levels = eedf["energy-levels"].asVector<double>();
+            auto levels = eedf["energy-levels"].asVector<CanteraDouble>();
             m_eedfSolver->setCustomGrid(levels);
             m_eedfSolver->enableGridAdaptation(false);
             m_nPoints = levels.size();
@@ -218,7 +218,7 @@ void PlasmaPhase::setElectronEnergyDistributionParameters(const AnyMap& eedf)
                     "or 'grid-cell-count'.");
             }
 
-            double initialMaxEnergy = eedf["initial-max-energy-level"].asDouble();
+            CanteraDouble initialMaxEnergy = eedf["initial-max-energy-level"].asDouble();
             size_t nGridCells = static_cast<size_t>(eedf["grid-cell-count"].asInt());
 
             if (!std::isfinite(initialMaxEnergy) || initialMaxEnergy <= 0.0) {
@@ -243,7 +243,7 @@ void PlasmaPhase::setElectronEnergyDistributionParameters(const AnyMap& eedf)
                 m_eedfSolver->setQuadraticGrid(initialMaxEnergy, nGridCells);
             } else if (energyLevelsDistribution == "geometric") {
                 if (eedf.hasKey("geometric-grid-ratio")) {
-                    double ratio = eedf["geometric-grid-ratio"].asDouble();
+                    CanteraDouble ratio = eedf["geometric-grid-ratio"].asDouble();
                     if (!std::isfinite(ratio) || ratio <= 1.0) {
                         throw InputFileError(routineName, eedf,
                             "geometric-grid-ratio must be finite and greater than 1.0.");
@@ -261,9 +261,9 @@ void PlasmaPhase::setElectronEnergyDistributionParameters(const AnyMap& eedf)
                 const AnyMap adapt = eedf["energy-grid-adaptation"].as<AnyMap>();
                 bool enabled = adapt.getBool("enabled", true);
                 bool maxwellianReset = adapt.getBool("Maxwellian-reset", true);
-                double minDecayDecades = adapt.getDouble("min-decay-decades", 10.0);
-                double maxDecayDecades = adapt.getDouble("max-decay-decades", 12.0);
-                double updateFactor = adapt.getDouble("update-factor", 0.1);
+                CanteraDouble minDecayDecades = adapt.getDouble("min-decay-decades", 10.0);
+                CanteraDouble maxDecayDecades = adapt.getDouble("max-decay-decades", 12.0);
+                CanteraDouble updateFactor = adapt.getDouble("update-factor", 0.1);
                 size_t maxIterations = adapt.getInt("max-iterations", 1000);
                 m_eedfSolver->enableGridAdaptation(enabled);
                 m_eedfSolver->setGridAdaptationParameters(
@@ -277,7 +277,7 @@ void PlasmaPhase::setElectronEnergyDistributionParameters(const AnyMap& eedf)
         }
 
         if (eedf.hasKey("reduced-field-threshold-before-Maxwellian")) {
-            double maxwellianThreshold =
+            CanteraDouble maxwellianThreshold =
                 eedf.convert("reduced-field-threshold-before-Maxwellian", "Td");
             if (!std::isfinite(maxwellianThreshold) || maxwellianThreshold < 0.0) {
                 throw InputFileError(routineName, eedf,
@@ -373,7 +373,7 @@ void PlasmaPhase::updateElectronEnergyDistribution()
 
 void PlasmaPhase::normalizeElectronEnergyDistribution() {
     Eigen::ArrayXd eps32 = m_electronEnergyLevels.pow(3./2.);
-    double norm = 2./3. * numericalQuadrature(m_quadratureMethod,
+    CanteraDouble norm = 2./3. * numericalQuadrature(m_quadratureMethod,
                                               m_electronEnergyDist, eps32);
     if (norm < 0.0) {
         throw CanteraError("PlasmaPhase::normalizeElectronEnergyDistribution",
@@ -398,11 +398,11 @@ void PlasmaPhase::setElectronEnergyDistributionType(const string& type)
 void PlasmaPhase::setIsotropicElectronEnergyDistribution()
 {
     m_electronEnergyDist.resize(m_nPoints);
-    double x = m_isotropicShapeFactor;
-    double gamma1 = boost::math::tgamma(3.0 / 2.0 / x);
-    double gamma2 = boost::math::tgamma(5.0 / 2.0 / x);
-    double c1 = x * std::pow(gamma2, 1.5) / std::pow(gamma1, 2.5);
-    double c2 = std::pow(gamma2 / gamma1, x);
+    CanteraDouble x = m_isotropicShapeFactor;
+    CanteraDouble gamma1 = boost::math::tgamma(3.0 / 2.0 / x);
+    CanteraDouble gamma2 = boost::math::tgamma(5.0 / 2.0 / x);
+    CanteraDouble c1 = x * std::pow(gamma2, 1.5) / std::pow(gamma1, 2.5);
+    CanteraDouble c2 = std::pow(gamma2 / gamma1, x);
     m_electronEnergyDist =
         c1  / std::pow(meanElectronEnergy(), 1.5) *
         (-c2 * (m_electronEnergyLevels /
@@ -410,7 +410,7 @@ void PlasmaPhase::setIsotropicElectronEnergyDistribution()
     checkElectronEnergyDistribution();
 }
 
-void PlasmaPhase::setElectronTemperature(const double Te) {
+void PlasmaPhase::setElectronTemperature(const CanteraDouble Te) {
     if (Te < 0.0) {
         throw CanteraError("PlasmaPhase::setElectronTemperature",
             "Electron temperature cannot be negative.");
@@ -442,11 +442,11 @@ void PlasmaPhase::endEquilibrate()
     ThermoPhase::endEquilibrate();
 }
 
-void PlasmaPhase::setMeanElectronEnergy(double energy) {
+void PlasmaPhase::setMeanElectronEnergy(CanteraDouble energy) {
     setElectronTemperature(2.0 / 3.0 * energy * ElectronCharge / Boltzmann);
 }
 
-void PlasmaPhase::setElectronEnergyLevels(span<const double> levels)
+void PlasmaPhase::setElectronEnergyLevels(span<const CanteraDouble> levels)
 {
     m_nPoints = levels.size();
     m_electronEnergyLevels = Eigen::Map<const Eigen::ArrayXd>(levels.data(), m_nPoints);
@@ -501,8 +501,8 @@ void PlasmaPhase::checkElectronEnergyDistribution() const
     }
 }
 
-void PlasmaPhase::setDiscretizedElectronEnergyDist(span<const double> levels,
-                                                  span<const double> dist)
+void PlasmaPhase::setDiscretizedElectronEnergyDist(span<const CanteraDouble> levels,
+                                                  span<const CanteraDouble> dist)
 {
     m_distributionType = "discretized";
     m_nPoints = levels.size();
@@ -523,7 +523,7 @@ void PlasmaPhase::updateElectronTemperatureFromEnergyDist()
 {
     // calculate mean electron energy and electron temperature
     Eigen::ArrayXd eps52 = m_electronEnergyLevels.pow(5./2.);
-    double epsilon_m = 2.0 / 5.0 * numericalQuadrature(m_quadratureMethod,
+    CanteraDouble epsilon_m = 2.0 / 5.0 * numericalQuadrature(m_quadratureMethod,
                                                        m_electronEnergyDist, eps52);
     if (epsilon_m < 0.0 && m_quadratureMethod == "simpson") {
         // try trapezoidal method
@@ -539,7 +539,7 @@ void PlasmaPhase::updateElectronTemperatureFromEnergyDist()
     m_electronTemp = 2.0 / 3.0 * epsilon_m * ElectronCharge / Boltzmann;
 }
 
-void PlasmaPhase::setIsotropicShapeFactor(double x) {
+void PlasmaPhase::setIsotropicShapeFactor(CanteraDouble x) {
     m_isotropicShapeFactor = x;
     updateElectronEnergyDistribution();
 }
@@ -645,7 +645,7 @@ bool PlasmaPhase::updateInterpolatedCrossSection(size_t i)
     if (m_interp_cs_ready[i]) {
         return false;
     }
-    vector<double> levels(m_nPoints);
+    vector<CanteraDouble> levels(m_nPoints);
     Eigen::Map<Eigen::ArrayXd>(levels.data(), m_nPoints) = m_electronEnergyLevels;
     m_collisionRates[i]->updateInterpolatedCrossSection(levels);
     m_interp_cs_ready[i] = true;
@@ -662,8 +662,8 @@ void PlasmaPhase::updateElectronEnergyDistDifference()
 
     // Central difference for the middle points
     for (size_t i = 1; i < m_nPoints - 1; i++) {
-        double h1 = m_electronEnergyLevels[i+1] - m_electronEnergyLevels[i];
-        double h0 = m_electronEnergyLevels[i] - m_electronEnergyLevels[i-1];
+        CanteraDouble h1 = m_electronEnergyLevels[i+1] - m_electronEnergyLevels[i];
+        CanteraDouble h0 = m_electronEnergyLevels[i] - m_electronEnergyLevels[i-1];
         m_electronEnergyDistDiff[i] = (h0 * h0 * m_electronEnergyDist[i+1] +
                 (h1 * h1 - h0 * h0) * m_electronEnergyDist[i] -
                 h1 * h1 * m_electronEnergyDist[i-1]) /
@@ -721,7 +721,7 @@ void PlasmaPhase::updateElasticElectronEnergyLossCoefficient(size_t i)
     );
 
     // Mass ratio calculation
-    double mass_ratio = ElectronMass / molecularWeight(k) * Avogadro;
+    CanteraDouble mass_ratio = ElectronMass / molecularWeight(k) * Avogadro;
 
     // Calculate the rate using Simpson's rule or trapezoidal rule
     Eigen::ArrayXd f0_plus = m_electronEnergyDist + Boltzmann * temperature() /
@@ -732,7 +732,7 @@ void PlasmaPhase::updateElasticElectronEnergyLossCoefficient(size_t i)
             m_electronEnergyLevels.pow(3.0));
 }
 
-double PlasmaPhase::elasticPowerLoss()
+CanteraDouble PlasmaPhase::elasticPowerLoss()
 {
     if (m_electronEnergyDist.size() != m_nPoints
         || m_electronEnergyDistDiff.size() != m_nPoints) {
@@ -743,12 +743,12 @@ double PlasmaPhase::elasticPowerLoss()
     updateElasticElectronEnergyLossCoefficients();
     // The elastic power loss includes the contributions from inelastic
     // collisions (inelastic recoil effects).
-    double rate = 0.0;
+    CanteraDouble rate = 0.0;
     for (size_t i = 0; i < nCollisions(); i++) {
         rate += concentration(m_targetSpeciesIndices[i]) *
                 m_elasticElectronEnergyLossCoefficients[i];
     }
-    const double q_elastic = Avogadro * Avogadro * ElectronCharge *
+    const CanteraDouble q_elastic = Avogadro * Avogadro * ElectronCharge *
                 concentration(m_electronSpeciesIndex) * rate;
 
     if (!std::isfinite(q_elastic)) {
@@ -759,7 +759,7 @@ double PlasmaPhase::elasticPowerLoss()
     return q_elastic;
 }
 
-double PlasmaPhase::electronMobility() const
+CanteraDouble PlasmaPhase::electronMobility() const
 {
     // Only implemented when using the Boltzmann two-term EEDF
     if (m_distributionType == "Boltzmann-two-term") {
@@ -775,44 +775,44 @@ double PlasmaPhase::electronMobility() const
 //           Molar Thermodynamic Properties of the Solution          //
 // ================================================================= //
 
-double PlasmaPhase::enthalpy_mole() const
+CanteraDouble PlasmaPhase::enthalpy_mole() const
 {
     m_work.resize(m_kk);
     getPartialMolarEnthalpies(m_work);
-    double h = 0.0;
+    CanteraDouble h = 0.0;
     for (size_t k = 0; k < m_kk; ++k) {
         h += moleFraction(k) * m_work[k];
     }
     return h;
 }
 
-double PlasmaPhase::intEnergy_mole() const
+CanteraDouble PlasmaPhase::intEnergy_mole() const
 {
     m_work.resize(m_kk);
     getPartialMolarIntEnergies(m_work);
-    double u = 0.0;
+    CanteraDouble u = 0.0;
     for (size_t k = 0; k < m_kk; ++k) {
         u += moleFraction(k) * m_work[k];
     }
     return u;
 }
 
-double PlasmaPhase::entropy_mole() const
+CanteraDouble PlasmaPhase::entropy_mole() const
 {
     m_work.resize(m_kk);
     getPartialMolarEntropies(m_work);
-    double s = 0.0;
+    CanteraDouble s = 0.0;
     for (size_t k = 0; k < m_kk; ++k) {
         s += moleFraction(k) * m_work[k];
     }
     return s;
 }
 
-double PlasmaPhase::gibbs_mole() const
+CanteraDouble PlasmaPhase::gibbs_mole() const
 {
     m_work.resize(m_kk);
     getChemPotentials(m_work);
-    double g = 0.0;
+    CanteraDouble g = 0.0;
     for (size_t k = 0; k < m_kk; ++k) {
         g += moleFraction(k) * m_work[k];
     }
@@ -823,15 +823,15 @@ double PlasmaPhase::gibbs_mole() const
 //                     Mechanical Equation of State                  //
 // ================================================================= //
 
-double PlasmaPhase::meanTemperature() const
+CanteraDouble PlasmaPhase::meanTemperature() const
 {
-    double T_g = temperature();
-    double T_e = electronTemperature();
-    double X_e = moleFraction(m_electronSpeciesIndex);
+    CanteraDouble T_g = temperature();
+    CanteraDouble T_e = electronTemperature();
+    CanteraDouble X_e = moleFraction(m_electronSpeciesIndex);
     return T_g + X_e * (T_e - T_g);
 }
 
-double PlasmaPhase::pressure() const {
+CanteraDouble PlasmaPhase::pressure() const {
     return GasConstant * meanTemperature() * density() / meanMolecularWeight();
 }
 
@@ -840,23 +840,23 @@ double PlasmaPhase::pressure() const {
 //                Chemical Potentials and Activities                 //
 // ================================================================= //
 
-double PlasmaPhase::standardConcentration(size_t k) const
+CanteraDouble PlasmaPhase::standardConcentration(size_t k) const
 {
     return pressure() / (GasConstant * temperature());
 }
 
-void PlasmaPhase::getActivities(span<double> a) const
+void PlasmaPhase::getActivities(span<CanteraDouble> a) const
 {
-    double tmp = temperature() / meanTemperature();
+    CanteraDouble tmp = temperature() / meanTemperature();
     for (size_t k = 0; k < nSpecies(); k++) {
         a[k] = tmp * moleFraction(k);
     }
 }
 
-void PlasmaPhase::getActivityCoefficients(span<double> ac) const
+void PlasmaPhase::getActivityCoefficients(span<CanteraDouble> ac) const
 {
     checkArraySize("PlasmaPhase::getActivityCoefficients", ac.size(), m_kk);
-    double tmp = temperature() / meanTemperature();
+    CanteraDouble tmp = temperature() / meanTemperature();
     for (size_t k = 0; k < m_kk; k++) {
         ac[k] = tmp;
     }
@@ -867,15 +867,15 @@ void PlasmaPhase::getActivityCoefficients(span<double> ac) const
 //              Partial Molar Properties of the Solution             //
 // ================================================================= //
 
-void PlasmaPhase::getChemPotentials(span<double> mu) const
+void PlasmaPhase::getChemPotentials(span<CanteraDouble> mu) const
 {
     IdealGasPhase::getChemPotentials(mu);
     size_t k = m_electronSpeciesIndex;
-    double xx = std::max(SmallNumber, moleFraction(k));
+    CanteraDouble xx = std::max(SmallNumber, moleFraction(k));
     mu[k] += (RTe() - RT()) * log(xx);
 }
 
-void PlasmaPhase::getPartialMolarEnthalpies(span<double> hbar) const
+void PlasmaPhase::getPartialMolarEnthalpies(span<CanteraDouble> hbar) const
 {
     // Since the `updateThermo` is overriden in `PlasmaPhase`,
     // `enthalpy_RT_ref` returns \tilde{h}_k(T_k) / (R * T_k).
@@ -887,7 +887,7 @@ void PlasmaPhase::getPartialMolarEnthalpies(span<double> hbar) const
     hbar[m_electronSpeciesIndex] *= electronTemperature() / temperature();
 }
 
-void PlasmaPhase::getPartialMolarEntropies(span<double> sbar) const
+void PlasmaPhase::getPartialMolarEntropies(span<CanteraDouble> sbar) const
 {
     // Since the `updateThermo` is overriden in `PlasmaPhase`,
     // `entropy_R_ref` returns s^\text{ref}_k(T_k)/R.
@@ -897,7 +897,7 @@ void PlasmaPhase::getPartialMolarEntropies(span<double> sbar) const
     IdealGasPhase::getPartialMolarEntropies(sbar);
 }
 
-void PlasmaPhase::getPartialMolarIntEnergies(span<double> ubar) const
+void PlasmaPhase::getPartialMolarIntEnergies(span<CanteraDouble> ubar) const
 {
     checkArraySize("PlasmaPhase::getPartialMolarIntEnergies", ubar.size(), m_kk);
     auto _h = enthalpy_RT_ref();
@@ -909,9 +909,9 @@ void PlasmaPhase::getPartialMolarIntEnergies(span<double> ubar) const
     ubar[k] = RTe() * (_h[k] - 1.0);
 }
 
-void PlasmaPhase::getPartialMolarVolumes(span<double> vbar) const
+void PlasmaPhase::getPartialMolarVolumes(span<CanteraDouble> vbar) const
 {
-    double vol = RT() / pressure();
+    CanteraDouble vol = RT() / pressure();
     for (size_t k = 0; k < m_kk; k++) {
         vbar[k] = vol;
     }
@@ -922,7 +922,7 @@ void PlasmaPhase::getPartialMolarVolumes(span<double> vbar) const
 //  Properties of the Standard State of the Species in the Solution  //
 // ================================================================= //
 
-void PlasmaPhase::getStandardChemPotentials(span<double> muStar) const
+void PlasmaPhase::getStandardChemPotentials(span<CanteraDouble> muStar) const
 {
     // After calling PlasmaPhase::getGibbs_ref, muStar = mu^\text{ref}_k(T_k)(T_k).
     // mu^\text{ref} is evaluated at T for heavy species and at Te for electrons.
@@ -930,7 +930,7 @@ void PlasmaPhase::getStandardChemPotentials(span<double> muStar) const
 
     // Then, we need to add R*T_k*ln(P/Pref) to mu^\text{ref}.
     // .. For heavy species, mu_star = mu^\text{ref}(T) + R*T*ln(P/Pref)
-    double tmp = log(pressure() / refPressure()) * RT();
+    CanteraDouble tmp = log(pressure() / refPressure()) * RT();
     for (size_t k = 0; k < m_kk; k++) {
         muStar[k] += tmp;
     }
@@ -940,9 +940,9 @@ void PlasmaPhase::getStandardChemPotentials(span<double> muStar) const
     muStar[k] += log(pressure() / refPressure()) * RTe();
 }
 
-void PlasmaPhase::getStandardVolumes(span<double> vol) const
+void PlasmaPhase::getStandardVolumes(span<CanteraDouble> vol) const
 {
-    double tmp = RT() / pressure();
+    CanteraDouble tmp = RT() / pressure();
     for (size_t k = 0; k < m_kk; k++) {
         vol[k] = tmp;
     }
@@ -953,7 +953,7 @@ void PlasmaPhase::getStandardVolumes(span<double> vol) const
 //       Thermodynamic Values for the Species Reference States       //
 // ================================================================= //
 
-void PlasmaPhase::getGibbs_ref(span<double> g) const
+void PlasmaPhase::getGibbs_ref(span<CanteraDouble> g) const
 {
     // Since the `updateThermo` is overriden in `PlasmaPhase`,
     // `gibbs_RT_ref` returns \mu^\text{ref}_k(T_k) / (R * T_k).
@@ -965,7 +965,7 @@ void PlasmaPhase::getGibbs_ref(span<double> g) const
     g[m_electronSpeciesIndex] *= electronTemperature() / temperature();
 }
 
-void PlasmaPhase::getStandardVolumes_ref(span<double> vol) const
+void PlasmaPhase::getStandardVolumes_ref(span<CanteraDouble> vol) const
 {
     IdealGasPhase::getStandardVolumes_ref(vol);
     vol[m_electronSpeciesIndex] *= electronTemperature() / temperature();
@@ -1000,29 +1000,29 @@ void PlasmaPhase::setState(const AnyMap& input_state)
     IdealGasPhase::setState(state);
 }
 
-double PlasmaPhase::jouleHeatingPower() const
+CanteraDouble PlasmaPhase::jouleHeatingPower() const
 {
     // sigma = e * n_e * mu_e   [S/m];   q_J = sigma * E^2   [W/m^3]
-    const double mu_e = electronMobility();    // m^2 / (V·s)
+    const CanteraDouble mu_e = electronMobility();    // m^2 / (V·s)
     if (mu_e <= 0.0) {
         return 0.0;
     }
-    const double ne = concentration(m_electronSpeciesIndex) * Avogadro; // m^-3
+    const CanteraDouble ne = concentration(m_electronSpeciesIndex) * Avogadro; // m^-3
     if (ne <= 0.0) {
         return 0.0;
     }
-    const double E  = electricField(); // V/m
+    const CanteraDouble E  = electricField(); // V/m
     if (E <= 0.0) {
         return 0.0;
     }
-    const double sigma = ElectronCharge * ne * mu_e; // S/m
+    const CanteraDouble sigma = ElectronCharge * ne * mu_e; // S/m
     return sigma * E * E; // W/m^3
 }
 
-double PlasmaPhase::intrinsicHeating()
+CanteraDouble PlasmaPhase::intrinsicHeating()
 {
     // Joule heating: sigma * E^2 [W/m^3]
-    const double qJ = jouleHeatingPower();
+    const CanteraDouble qJ = jouleHeatingPower();
     checkFinite(qJ);
 
     // set the check here to be updated at runtime
@@ -1072,7 +1072,7 @@ void PlasmaPhase::checkVibrationalReservoirMoleFractions()
         updateVibrationalReservoirSpecies();
     }
 
-    const double resetThreshold = 0.5 * m_vibrationalMoleFractionThreshold;
+    const CanteraDouble resetThreshold = 0.5 * m_vibrationalMoleFractionThreshold;
 
     for (auto& reservoir : m_vibrationalReservoirSpecies) {
         const size_t kReservoir = reservoir.reservoirIndex;
@@ -1080,10 +1080,10 @@ void PlasmaPhase::checkVibrationalReservoirMoleFractions()
 
         // Mole fractions of the vibrational reservoir species and of the base
         // species it is associated with
-        const double Xv = moleFraction(kReservoir);
-        const double Xb = moleFraction(kBase);
+        const CanteraDouble Xv = moleFraction(kReservoir);
+        const CanteraDouble Xb = moleFraction(kBase);
 
-        const double pool = Xv + Xb;
+        const CanteraDouble pool = Xv + Xb;
 
         // Ignore species pools that are too diluted to meaningfully affect chemistry.
         if (pool <= m_vibrationalAbsoluteMoleFractionThreshold) {
@@ -1095,7 +1095,7 @@ void PlasmaPhase::checkVibrationalReservoirMoleFractions()
         // with respect to its base species. Should this fraction be too high, there
         // is a risk for the phase chemistry to be altered by the reservoir:
         // the code raises a warning to the user.
-        const double reservoirFraction = Xv / pool;
+        const CanteraDouble reservoirFraction = Xv / pool;
 
         // Re-arm the warning only after the reservoir fraction has
         // dropped sufficiently below the warning threshold.

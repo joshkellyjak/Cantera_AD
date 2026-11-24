@@ -274,7 +274,7 @@ class HeaderGenerator:
             ret_type = self._config.ret_type_crosswalk[ret_key]
             if what.startswith("const "):
                 # retain const unless it is a primitive
-                if what[6:] not in {"bool", "size_t", "int", "double"}:
+                if what[6:] not in {"bool", "size_t", "int", "double", "CanteraDouble"}:
                     ret_type = f"const {ret_type}"
             if ret_type == "void":
                 returns = Param(

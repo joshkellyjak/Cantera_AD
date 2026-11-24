@@ -19,11 +19,17 @@ ret_type_crosswalk:
   size_t: int32_t
   shared_ptr<T>: int32_t
   double: double
+  CanteraDouble: double
   double*: double*
+  CanteraDouble*: double*
   const double: double*
+  const CanteraDouble: double*
   vector<double>: double*
+  vector<CanteraDouble>: double*
   span<double>: double*
+  span<CanteraDouble>: double*
   span<const double>: const double*
+  span<const CanteraDouble>: const double*
   span<const int>: const int32_t*
   string: char*
 
@@ -38,10 +44,15 @@ par_type_crosswalk:
   vector<shared_ptr<T>>: int32_t*
   span<shared_ptr<T>>: int32_t*
   double: double
+  CanteraDouble: double
   double*: double*
+  CanteraDouble*: double*
   vector<double>: double*
+  vector<CanteraDouble>: double*
   span<double>: double*
+  span<CanteraDouble>: double*
   span<const double>: const double*
+  span<const CanteraDouble>: const double*
   span<const int>: const int32_t*
   string: char*
 

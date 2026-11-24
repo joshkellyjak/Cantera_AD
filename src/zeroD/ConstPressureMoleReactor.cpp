@@ -28,7 +28,7 @@ ConstPressureMoleReactor::ConstPressureMoleReactor(shared_ptr<Solution> sol, boo
     m_nv = 1 + m_nsp; // enthalpy and moles of each species
 }
 
-void ConstPressureMoleReactor::getState(span<double> y)
+void ConstPressureMoleReactor::getState(span<CanteraDouble> y)
 {
     // set mass to be used in getMoles function
     m_mass = m_thermo->density() * m_vol;
@@ -38,7 +38,7 @@ void ConstPressureMoleReactor::getState(span<double> y)
     getMoles(y.subspan(m_sidx));
 }
 
-void ConstPressureMoleReactor::updateState(span<const double> y)
+void ConstPressureMoleReactor::updateState(span<const CanteraDouble> y)
 {
     // the components of y are: [0] the enthalpy, [1...K+1) are the
     // moles of each species, and [K+1...] are the moles of surface
@@ -54,7 +54,7 @@ void ConstPressureMoleReactor::updateState(span<const double> y)
     updateConnected(false);
 }
 
-void ConstPressureMoleReactor::eval(double time, span<double> LHS, span<double> RHS)
+void ConstPressureMoleReactor::eval(CanteraDouble time, span<CanteraDouble> LHS, span<CanteraDouble> RHS)
 {
     auto dndt = RHS.subspan(m_sidx); // kmol per s
 
@@ -68,7 +68,7 @@ void ConstPressureMoleReactor::eval(double time, span<double> LHS, span<double> 
     }
 
     // external heat transfer
-    double dHdt = m_Qdot;
+    CanteraDouble dHdt = m_Qdot;
 
     if (m_energy) {
         dHdt += m_thermo->intrinsicHeating() * m_vol;
@@ -106,7 +106,7 @@ void ConstPressureMoleReactor::eval(double time, span<double> LHS, span<double> 
     }
 }
 
-void ConstPressureMoleReactor::evalSteady(double t, span<double> LHS, span<double> RHS)
+void ConstPressureMoleReactor::evalSteady(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS)
 {
     eval(t, LHS, RHS);
     RHS[1] = m_mass - m_initialMass;
@@ -142,12 +142,12 @@ string ConstPressureMoleReactor::componentName(size_t k) {
     }
 }
 
-double ConstPressureMoleReactor::upperBound(size_t k) const {
+CanteraDouble ConstPressureMoleReactor::upperBound(size_t k) const {
     // Component is either enthalpy or moles of a bulk or surface species
     return BigNumber;
 }
 
-double ConstPressureMoleReactor::lowerBound(size_t k) const {
+CanteraDouble ConstPressureMoleReactor::lowerBound(size_t k) const {
     if (k == 0) {
         return -BigNumber; // enthalpy
     } else if (k >= 1 && k < m_nv) {
@@ -157,7 +157,7 @@ double ConstPressureMoleReactor::lowerBound(size_t k) const {
     }
 }
 
-void ConstPressureMoleReactor::resetBadValues(span<double> y) {
+void ConstPressureMoleReactor::resetBadValues(span<CanteraDouble> y) {
     for (size_t k = m_sidx; k < m_nv; k++) {
         y[k] = std::max(y[k], 0.0);
     }

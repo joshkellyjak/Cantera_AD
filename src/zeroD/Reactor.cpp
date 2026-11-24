@@ -59,7 +59,7 @@ void Reactor::setDerivativeSettings(AnyMap& settings)
     }
 }
 
-void Reactor::getState(span<double> y)
+void Reactor::getState(span<CanteraDouble> y)
 {
     // set the first component to the total mass
     m_mass = m_thermo->density() * m_vol;
@@ -75,7 +75,7 @@ void Reactor::getState(span<double> y)
     m_thermo->getMassFractions(y.subspan(3, m_nsp));
 }
 
-void Reactor::initialize(double t0)
+void Reactor::initialize(CanteraDouble t0)
 {
     if (!m_thermo || (m_chem && !m_kin)) {
         throw CanteraError("Reactor::initialize", "Reactor contents not set"
@@ -89,7 +89,7 @@ void Reactor::initialize(double t0)
     }
 }
 
-void Reactor::updateState(span<const double> y)
+void Reactor::updateState(span<const CanteraDouble> y)
 {
     // The components of y are [0] the total mass, [1] the total volume,
     // [2] the total internal energy, [3...K+3] are the mass fractions of each
@@ -99,25 +99,25 @@ void Reactor::updateState(span<const double> y)
     m_thermo->setMassFractions_NoNorm(y.subspan(3, m_nsp));
 
     if (m_energy) {
-        double U = y[2];
+        CanteraDouble U = y[2];
         // Residual function: error in internal energy as a function of T
-        auto u_err = [this, U](double T) {
+        auto u_err = [this, U](CanteraDouble T) {
             m_thermo->setState_TD(T, m_mass / m_vol);
             return m_thermo->intEnergy_mass() * m_mass - U;
         };
 
-        double T = m_thermo->temperature();
+        CanteraDouble T = m_thermo->temperature();
         boost::uintmax_t maxiter = 100;
-        pair<double, double> TT;
+        pair<CanteraDouble, CanteraDouble> TT;
         try {
             TT = bmt::bracket_and_solve_root(
-                u_err, T, 1.2, true, bmt::eps_tolerance<double>(48), maxiter);
+                u_err, T, 1.2, true, bmt::eps_tolerance<CanteraDouble>(48), maxiter);
         } catch (std::exception&) {
             // Try full-range bisection if bracketing fails (for example, near
             // temperature limits for the phase's equation of state)
             try {
                 TT = bmt::bisect(u_err, m_thermo->minTemp(), m_thermo->maxTemp(),
-                    bmt::eps_tolerance<double>(48), maxiter);
+                    bmt::eps_tolerance<CanteraDouble>(48), maxiter);
             } catch (std::exception& err2) {
                 // Set m_thermo back to a reasonable state if root finding fails
                 m_thermo->setState_TD(T, m_mass / m_vol);
@@ -136,9 +136,9 @@ void Reactor::updateState(span<const double> y)
     updateConnected(true);
 }
 
-void Reactor::eval(double time, span<double> LHS, span<double> RHS)
+void Reactor::eval(CanteraDouble time, span<CanteraDouble> LHS, span<CanteraDouble> RHS)
 {
-    double& dmdt = RHS[0];
+    CanteraDouble& dmdt = RHS[0];
     auto mdYdt = RHS.subspan(3); // mass * dY/dt
 
     evalWalls(time);
@@ -147,7 +147,7 @@ void Reactor::eval(double time, span<double> LHS, span<double> RHS)
     auto Y = m_thermo->massFractions();
 
     // mass added to gas phase from surface reactions
-    double mdot_surf = dot(m_sdot.begin(), m_sdot.end(), mw.begin());
+    CanteraDouble mdot_surf = dot(m_sdot.begin(), m_sdot.end(), mw.begin());
     dmdt = mdot_surf;
 
     // volume equation
@@ -178,7 +178,7 @@ void Reactor::eval(double time, span<double> LHS, span<double> RHS)
 
     // add terms for outlets
     for (auto outlet : m_outlet) {
-        double mdot = outlet->massFlowRate();
+        CanteraDouble mdot = outlet->massFlowRate();
         dmdt -= mdot; // mass flow out of system
         if (m_energy) {
             RHS[2] -= mdot * m_enthalpy;
@@ -187,10 +187,10 @@ void Reactor::eval(double time, span<double> LHS, span<double> RHS)
 
     // add terms for inlets
     for (auto inlet : m_inlet) {
-        double mdot = inlet->massFlowRate();
+        CanteraDouble mdot = inlet->massFlowRate();
         dmdt += mdot; // mass flow into system
         for (size_t n = 0; n < m_nsp; n++) {
-            double mdot_spec = inlet->outletSpeciesMassFlowRate(n);
+            CanteraDouble mdot_spec = inlet->outletSpeciesMassFlowRate(n);
             // flow of species into system and dilution by other species
             mdYdt[n] += (mdot_spec - mdot * Y[n]);
         }
@@ -200,13 +200,13 @@ void Reactor::eval(double time, span<double> LHS, span<double> RHS)
     }
 }
 
-void Reactor::evalSteady(double time, span<double> LHS, span<double> RHS)
+void Reactor::evalSteady(CanteraDouble time, span<CanteraDouble> LHS, span<CanteraDouble> RHS)
 {
     eval(time, LHS, RHS);
     RHS[1] = m_vol - m_initialVolume;
 }
 
-void Reactor::evalWalls(double t)
+void Reactor::evalWalls(CanteraDouble t)
 {
     // time is currently unused
     m_vdot = 0.0;
@@ -230,12 +230,12 @@ vector<size_t> Reactor::initializeSteady()
     return {1}; // volume
 }
 
-Eigen::SparseMatrix<double> Reactor::finiteDifferenceJacobian()
+Eigen::SparseMatrix<CanteraDouble> Reactor::finiteDifferenceJacobian()
 {
-    vector<Eigen::Triplet<double>> trips;
+    vector<Eigen::Triplet<CanteraDouble>> trips;
     Eigen::ArrayXd yCurrent(m_nv);
     getState(asSpan(yCurrent));
-    double time = (m_net != nullptr) ? m_net->time() : 0.0;
+    CanteraDouble time = (m_net != nullptr) ? m_net->time() : 0.0;
 
     Eigen::ArrayXd yPerturbed = yCurrent;
     Eigen::ArrayXd lhsPerturbed(m_nv), lhsCurrent(m_nv);
@@ -245,12 +245,12 @@ Eigen::SparseMatrix<double> Reactor::finiteDifferenceJacobian()
     updateState(asSpan(yCurrent));
     eval(time, asSpan(lhsCurrent), asSpan(rhsCurrent));
 
-    double rel_perturb = std::sqrt(std::numeric_limits<double>::epsilon());
-    double atol = (m_net != nullptr) ? m_net->atol() : 1e-15;
+    CanteraDouble rel_perturb = std::sqrt(std::numeric_limits<CanteraDouble>::epsilon());
+    CanteraDouble atol = (m_net != nullptr) ? m_net->atol() : 1e-15;
 
     for (size_t j = 0; j < m_nv; j++) {
         yPerturbed = yCurrent;
-        double delta_y = std::max(std::abs(yCurrent[j]), 1000 * atol) * rel_perturb;
+        CanteraDouble delta_y = std::max(std::abs(yCurrent[j]), 1000 * atol) * rel_perturb;
         yPerturbed[j] += delta_y;
 
         updateState(asSpan(yPerturbed));
@@ -260,8 +260,8 @@ Eigen::SparseMatrix<double> Reactor::finiteDifferenceJacobian()
 
         // d ydot_i/dy_j
         for (size_t i = 0; i < m_nv; i++) {
-            double ydotPerturbed = rhsPerturbed[i] / lhsPerturbed[i];
-            double ydotCurrent = rhsCurrent[i] / lhsCurrent[i];
+            CanteraDouble ydotPerturbed = rhsPerturbed[i] / lhsPerturbed[i];
+            CanteraDouble ydotCurrent = rhsCurrent[i] / lhsCurrent[i];
             if (ydotCurrent != ydotPerturbed) {
                 trips.emplace_back(static_cast<int>(i), static_cast<int>(j),
                                    (ydotPerturbed - ydotCurrent) / delta_y);
@@ -270,7 +270,7 @@ Eigen::SparseMatrix<double> Reactor::finiteDifferenceJacobian()
     }
     updateState(asSpan(yCurrent));
 
-    Eigen::SparseMatrix<double> jac(m_nv, m_nv);
+    Eigen::SparseMatrix<CanteraDouble> jac(m_nv, m_nv);
     jac.setFromTriplets(trips.begin(), trips.end());
     return jac;
 }
@@ -347,7 +347,7 @@ string Reactor::componentName(size_t k) {
     throw IndexError("Reactor::componentName", "component", k, m_nv);
 }
 
-double Reactor::upperBound(size_t k) const {
+CanteraDouble Reactor::upperBound(size_t k) const {
     if (k == 0) {
         return BigNumber; // mass
     } else if (k == 1) {
@@ -361,7 +361,7 @@ double Reactor::upperBound(size_t k) const {
     }
 }
 
-double Reactor::lowerBound(size_t k) const {
+CanteraDouble Reactor::lowerBound(size_t k) const {
     if (k == 0) {
         return 0; // mass
     } else if (k == 1) {
@@ -375,13 +375,13 @@ double Reactor::lowerBound(size_t k) const {
     }
 }
 
-void Reactor::resetBadValues(span<double> y) {
+void Reactor::resetBadValues(span<CanteraDouble> y) {
     for (size_t k = 3; k < m_nv; k++) {
         y[k] = std::max(y[k], 0.0);
     }
 }
 
-void Reactor::applySensitivity(span<const double> params)
+void Reactor::applySensitivity(span<const CanteraDouble> params)
 {
     if (params.empty()) {
         return;
@@ -400,7 +400,7 @@ void Reactor::applySensitivity(span<const double> params)
     }
 }
 
-void Reactor::resetSensitivity(span<const double> params)
+void Reactor::resetSensitivity(span<const CanteraDouble> params)
 {
     if (params.empty()) {
         return;
@@ -418,18 +418,18 @@ void Reactor::resetSensitivity(span<const double> params)
     }
 }
 
-void Reactor::setAdvanceLimits(span<const double> limits)
+void Reactor::setAdvanceLimits(span<const CanteraDouble> limits)
 {
     m_advancelimits.assign(limits.begin(), limits.end());
 
     // resize to zero length if no limits are set
     if (std::none_of(m_advancelimits.begin(), m_advancelimits.end(),
-                     [](double val){return val>0;})) {
+                     [](CanteraDouble val){return val>0;})) {
         m_advancelimits.resize(0);
     }
 }
 
-bool Reactor::getAdvanceLimits(span<double> limits) const
+bool Reactor::getAdvanceLimits(span<CanteraDouble> limits) const
 {
     bool has_limit = hasAdvanceLimits();
     if (has_limit) {
@@ -440,7 +440,7 @@ bool Reactor::getAdvanceLimits(span<double> limits) const
     return has_limit;
 }
 
-void Reactor::setAdvanceLimit(const string& nm, const double limit)
+void Reactor::setAdvanceLimit(const string& nm, const CanteraDouble limit)
 {
     size_t k = componentIndex(nm);
     m_advancelimits.resize(m_nv, -1.0);
@@ -448,7 +448,7 @@ void Reactor::setAdvanceLimit(const string& nm, const double limit)
 
     // resize to zero length if no limits are set
     if (std::none_of(m_advancelimits.begin(), m_advancelimits.end(),
-                     [](double val){return val>0;})) {
+                     [](CanteraDouble val){return val>0;})) {
         m_advancelimits.resize(0);
     }
 }

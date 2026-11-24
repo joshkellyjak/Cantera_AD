@@ -172,7 +172,7 @@ public:
     //! Used in conjunction with MultiRateBase::evalSingle / ReactionRate::eval.
     //! This method allows for testing of a reaction rate expression outside of
     //! Kinetics reaction rate evaluators.
-    double eval(double T) {
+    CanteraDouble eval(CanteraDouble T) {
         _evaluator().update(T);
         return _evaluator().evalSingle(*this);
     }
@@ -185,7 +185,7 @@ public:
     //! Used in conjunction with MultiRateBase::evalSingle / ReactionRate::eval.
     //! This method allows for testing of a reaction rate expression outside of
     //! Kinetics reaction rate evaluators.
-    double eval(double T, double extra) {
+    CanteraDouble eval(CanteraDouble T, CanteraDouble extra) {
         _evaluator().update(T, extra);
         return _evaluator().evalSingle(*this);
     }
@@ -200,7 +200,7 @@ public:
     //! Kinetics reaction rate evaluators.
     //! @warning  This method is an experimental part of the %Cantera API and
     //!     may be changed or removed without notice.
-    double eval(double T, span<const double> extra) {
+    CanteraDouble eval(CanteraDouble T, span<const CanteraDouble> extra) {
         _evaluator().update(T, extra);
         return _evaluator().evalSingle(*this);
     }

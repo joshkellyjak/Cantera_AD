@@ -14,13 +14,13 @@
 namespace Cantera
 {
 
-void InterfaceData::update(double T)
+void InterfaceData::update(CanteraDouble T)
 {
     throw CanteraError("InterfaceData::update",
         "Missing state information: 'InterfaceData' requires species coverages.");
 }
 
-void InterfaceData::update(double T, span<const double> values)
+void InterfaceData::update(CanteraDouble T, span<const CanteraDouble> values)
 {
     warn_user("InterfaceData::update",
         "This method does not update the site density.");
@@ -48,10 +48,10 @@ bool InterfaceData::update(const ThermoPhase& phase, const Kinetics& kin)
         mf += kin.thermo(n).stateMFNumber();
     }
 
-    double T = phase.temperature();
+    CanteraDouble T = phase.temperature();
     bool changed = false;
     const auto& surf = dynamic_cast<const SurfPhase&>(kin.thermo(0));
-    double site_density = surf.siteDensity();
+    CanteraDouble site_density = surf.siteDensity();
     if (density != site_density) {
         density = surf.siteDensity();
         changed = true;
@@ -71,9 +71,9 @@ bool InterfaceData::update(const ThermoPhase& phase, const Kinetics& kin)
             const auto& ph = kin.thermo(n);
             electricPotentials[n] = ph.electricPotential();
             ph.getPartialMolarEnthalpies(
-                span<double>(partialMolarEnthalpies).subspan(start, ph.nSpecies()));
+                span<CanteraDouble>(partialMolarEnthalpies).subspan(start, ph.nSpecies()));
             ph.getStandardChemPotentials(
-                span<double>(standardChemPotentials).subspan(start, ph.nSpecies()));
+                span<CanteraDouble>(standardChemPotentials).subspan(start, ph.nSpecies()));
             size_t nsp = ph.nSpecies();
             for (size_t k = 0; k < nsp; k++) {
                 // only used for exchange current density formulation
@@ -86,7 +86,7 @@ bool InterfaceData::update(const ThermoPhase& phase, const Kinetics& kin)
     return changed;
 }
 
-void InterfaceData::perturbTemperature(double deltaT)
+void InterfaceData::perturbTemperature(CanteraDouble deltaT)
 {
     throw NotImplementedError("InterfaceData::perturbTemperature");
 }
@@ -154,8 +154,8 @@ void InterfaceRateBase::setCoverageDependencies(const AnyMap& dependencies,
     m_mc.clear();
     m_lindep.clear();
     for (const auto& [species, coeffs] : dependencies) {
-        double a, m;
-        vector<double> E(5, 0.0);
+        CanteraDouble a, m;
+        vector<CanteraDouble> E(5, 0.0);
         if (coeffs.is<AnyMap>()) {
             auto& cov_map = coeffs.as<AnyMap>();
             a = cov_map["a"].asDouble();
@@ -208,8 +208,8 @@ void InterfaceRateBase::getCoverageDependencies(AnyMap& dependencies) const
     }
 }
 
-void InterfaceRateBase::addCoverageDependence(const string& sp, double a, double m,
-                                              span<const double> e)
+void InterfaceRateBase::addCoverageDependence(const string& sp, CanteraDouble a, CanteraDouble m,
+                                              span<const CanteraDouble> e)
 {
     if (std::find(m_cov.begin(), m_cov.end(), sp) == m_cov.end()) {
         m_cov.push_back(sp);
@@ -309,7 +309,7 @@ void InterfaceRateBase::setContext(const Reaction& rxn, const Kinetics& kin)
     for (const auto& [k, stoich] : m_stoichCoeffs) {
         size_t n = kin.speciesPhaseIndex(k);
         size_t start = kin.kineticsSpeciesIndex(0, n);
-        double charge = kin.thermo(n).charge(k - start);
+        CanteraDouble charge = kin.thermo(n).charge(k - start);
         m_netCharges.emplace_back(n, Faraday * charge * stoich);
     }
 }
@@ -388,8 +388,8 @@ void StickingCoverage::setContext(const Reaction& rxn, const Kinetics& kin)
     }
     m_stickingSpecies = sticking_species;
 
-    double surface_order = 0.0;
-    double multiplier = 1.0;
+    CanteraDouble surface_order = 0.0;
+    CanteraDouble multiplier = 1.0;
     // Adjust the A-factor
     for (const auto& [name, stoich] : rxn.reactants) {
         size_t iPhase = kin.speciesPhaseIndex(kin.kineticsSpeciesIndex(name));
@@ -404,7 +404,7 @@ void StickingCoverage::setContext(const Reaction& rxn, const Kinetics& kin)
             // the dependence on the site density is incorporated when the
             // rate constant is evaluated, since we don't assume that the
             // site density is known at this time.
-            double order = getValue(rxn.orders, name, stoich);
+            CanteraDouble order = getValue(rxn.orders, name, stoich);
             if (&p == &surf) {
                 multiplier *= pow(surf.size(k), order);
                 surface_order += order;

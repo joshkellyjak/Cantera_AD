@@ -53,7 +53,7 @@ public:
     //! @f$ n @f$ in domain @f$ d @f$. @f$ N @f$ is the total number of state variables
     //! across all domains and @f$ J_d @f$ is the number of grid points in domain
     //! @f$ d @f$.
-    double weightedNorm(span<const double> step) const override;
+    CanteraDouble weightedNorm(span<const CanteraDouble> step) const override;
 
     //! Number of domains.
     size_t nDomains() const {
@@ -124,8 +124,8 @@ public:
     string componentName(size_t i) const override;
     pair<string, string> componentTableHeader() const override;
     string componentTableLabel(size_t i) const override;
-    double upperBound(size_t i) const override;
-    double lowerBound(size_t i) const override;
+    CanteraDouble upperBound(size_t i) const override;
+    CanteraDouble lowerBound(size_t i) const override;
 
     /**
      * Initialize all domains. On the first call, this methods calls the init
@@ -139,7 +139,7 @@ public:
         return m_pts;
     }
 
-    void initTimeInteg(double dt, span<const double> x) override;
+    void initTimeInteg(CanteraDouble dt, span<const CanteraDouble> x) override;
     void setSteadyMode() override;
 
     /**
@@ -153,16 +153,16 @@ public:
      *                  the default value is used.
      * @param count   Set to zero to omit this call from the statistics
      */
-    void eval(size_t j, span<const double> x, span<double> r,
-              double rdt=-1.0, int count=1);
+    void eval(size_t j, span<const CanteraDouble> x, span<CanteraDouble> r,
+              CanteraDouble rdt=-1.0, int count=1);
 
-    void eval(span<const double> x, span<double> r,
-              double rdt=-1.0, int count=1) override
+    void eval(span<const CanteraDouble> x, span<CanteraDouble> r,
+              CanteraDouble rdt=-1.0, int count=1) override
     {
         return eval(npos, x, r, rdt, count);
     }
 
-    void evalJacobian(span<const double> x0) override;
+    void evalJacobian(span<const CanteraDouble> x0) override;
 
     //! Return a pointer to the domain global point *i* belongs to.
     /*!
@@ -172,7 +172,7 @@ public:
     Domain1D* pointDomain(size_t i);
 
     void resize() override;
-    void resetBadValues(span<double> x) override;
+    void resetBadValues(span<CanteraDouble> x) override;
 
     //! Write statistics about the number of iterations and Jacobians at each
     //! grid level
@@ -195,21 +195,21 @@ public:
 
     //! Return wall-clock time spent evaluating Jacobians in each call to solve()
     //! @deprecated To be removed after %Cantera 4.0. Use solverStats() instead.
-    vector<double> jacobianTimeStats() {
+    vector<CanteraDouble> jacobianTimeStats() {
         warn_deprecated("OneDim::jacobianTimeStats",
             "To be removed after Cantera 4.0. Use solverStats() instead.");
         saveStats();
-        return m_stats["jacobian_time"].asVector<double>();
+        return m_stats["jacobian_time"].asVector<CanteraDouble>();
     }
 
     //! Return wall-clock time spent on non-Jacobian function evaluations in each
     //! call to solve()
     //! @deprecated To be removed after %Cantera 4.0. Use solverStats() instead.
-    vector<double> evalTimeStats() {
+    vector<CanteraDouble> evalTimeStats() {
         warn_deprecated("OneDim::evalTimeStats",
             "To be removed after Cantera 4.0. Use solverStats() instead.");
         saveStats();
-        return m_stats["residual_time"].asVector<double>();
+        return m_stats["residual_time"].asVector<CanteraDouble>();
     }
 
     //! Return number of Jacobian evaluations made in each call to solve()
@@ -244,7 +244,7 @@ public:
     }
 
     //! Access internal work array.
-    const vector<double>& _workVector() const {
+    const vector<CanteraDouble>& _workVector() const {
         return m_xnew;
     }
 

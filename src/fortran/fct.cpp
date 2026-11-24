@@ -133,7 +133,7 @@ extern "C" {
         }
     }
 
-    double phase_temperature_(const integer* n)
+    CanteraDouble phase_temperature_(const integer* n)
     {
         try {
             return _fph(n)->temperature();
@@ -142,7 +142,7 @@ extern "C" {
         }
     }
 
-    status_t phase_settemperature_(const integer* n, double* t)
+    status_t phase_settemperature_(const integer* n, CanteraDouble* t)
     {
         try {
             _fph(n)->setTemperature(*t);
@@ -152,7 +152,7 @@ extern "C" {
         return 0;
     }
 
-    double phase_density_(const integer* n)
+    CanteraDouble phase_density_(const integer* n)
     {
         try {
             return _fph(n)->density();
@@ -161,7 +161,7 @@ extern "C" {
         }
     }
 
-    status_t phase_setdensity_(const integer* n, double* rho)
+    status_t phase_setdensity_(const integer* n, CanteraDouble* rho)
     {
         try {
             _fph(n)->setDensity(*rho);
@@ -171,7 +171,7 @@ extern "C" {
         return 0;
     }
 
-    double phase_molardensity_(const integer* n)
+    CanteraDouble phase_molardensity_(const integer* n)
     {
         try {
             return _fph(n)->molarDensity();
@@ -180,7 +180,7 @@ extern "C" {
         }
     }
 
-    double phase_meanmolecularweight_(const integer* n)
+    CanteraDouble phase_meanmolecularweight_(const integer* n)
     {
         try {
             return _fph(n)->meanMolecularWeight();
@@ -209,18 +209,18 @@ extern "C" {
         }
     }
 
-    status_t phase_getmolefractions_(const integer* n, double* x)
+    status_t phase_getmolefractions_(const integer* n, CanteraDouble* x)
     {
         try {
             auto* phase = _fph(n);
-            phase->getMoleFractions(span<double>(x, phase->nSpecies()));
+            phase->getMoleFractions(span<CanteraDouble>(x, phase->nSpecies()));
         } catch (...) {
             return handleAllExceptions(-1, ERR);
         }
         return 0;
     }
 
-    double phase_molefraction_(const integer* n, integer* k)
+    CanteraDouble phase_molefraction_(const integer* n, integer* k)
     {
         try {
             return _fph(n)->moleFraction(*k-1);
@@ -230,18 +230,18 @@ extern "C" {
 
     }
 
-    status_t phase_getmassfractions_(const integer* n, double* y)
+    status_t phase_getmassfractions_(const integer* n, CanteraDouble* y)
     {
         try {
             ThermoPhase* p = _fph(n);
-            p->getMassFractions(span<double>(y, p->nSpecies()));
+            p->getMassFractions(span<CanteraDouble>(y, p->nSpecies()));
         } catch (...) {
             return handleAllExceptions(-1, ERR);
         }
         return 0;
     }
 
-    double phase_massfraction_(const integer* n, integer* k)
+    CanteraDouble phase_massfraction_(const integer* n, integer* k)
     {
         try {
             return _fph(n)->massFraction(*k-1);
@@ -250,14 +250,14 @@ extern "C" {
         }
     }
 
-    status_t phase_setmolefractions_(const integer* n, double* x, const integer* norm)
+    status_t phase_setmolefractions_(const integer* n, CanteraDouble* x, const integer* norm)
     {
         try {
             ThermoPhase* p = _fph(n);
             if (*norm) {
-                p->setMoleFractions(span<const double>(x, p->nSpecies()));
+                p->setMoleFractions(span<const CanteraDouble>(x, p->nSpecies()));
             } else {
-                p->setMoleFractions_NoNorm(span<const double>(x, p->nSpecies()));
+                p->setMoleFractions_NoNorm(span<const CanteraDouble>(x, p->nSpecies()));
             }
         } catch (...) {
             return handleAllExceptions(-1, ERR);
@@ -276,14 +276,14 @@ extern "C" {
         return 0;
     }
 
-    status_t phase_setmassfractions_(const integer* n, double* y, const integer* norm)
+    status_t phase_setmassfractions_(const integer* n, CanteraDouble* y, const integer* norm)
     {
         try {
             ThermoPhase* p = _fph(n);
             if (*norm) {
-                p->setMassFractions(span<const double>(y, p->nSpecies()));
+                p->setMassFractions(span<const CanteraDouble>(y, p->nSpecies()));
             } else {
-                p->setMassFractions_NoNorm(span<const double>(y, p->nSpecies()));
+                p->setMassFractions_NoNorm(span<const CanteraDouble>(y, p->nSpecies()));
             }
         } catch (...) {
             return handleAllExceptions(-1, ERR);
@@ -302,7 +302,7 @@ extern "C" {
         return 0;
     }
 
-    status_t phase_getatomicweights_(const integer* n, double* atw)
+    status_t phase_getatomicweights_(const integer* n, CanteraDouble* atw)
     {
         try {
             ThermoPhase* p = _fph(n);
@@ -314,7 +314,7 @@ extern "C" {
         return 0;
     }
 
-    status_t phase_getmolecularweights_(const integer* n, double* mw)
+    status_t phase_getmolecularweights_(const integer* n, CanteraDouble* mw)
     {
         try {
             ThermoPhase* p = _fph(n);
@@ -356,7 +356,7 @@ extern "C" {
         return 0;
     }
 
-    double phase_natoms_(const integer* n, integer* k, integer* m)
+    CanteraDouble phase_natoms_(const integer* n, integer* k, integer* m)
     {
         try {
             return _fph(n)->nAtoms(*k-1,*m-1);
@@ -387,7 +387,7 @@ extern "C" {
         }
     }
 
-    double th_enthalpy_mole_(const integer* n)
+    CanteraDouble th_enthalpy_mole_(const integer* n)
     {
         try {
             return _fth(n)->enthalpy_mole();
@@ -396,7 +396,7 @@ extern "C" {
         }
     }
 
-    double th_intenergy_mole_(const integer* n)
+    CanteraDouble th_intenergy_mole_(const integer* n)
     {
         try {
             return _fth(n)->intEnergy_mole();
@@ -405,7 +405,7 @@ extern "C" {
         }
     }
 
-    double th_entropy_mole_(const integer* n)
+    CanteraDouble th_entropy_mole_(const integer* n)
     {
         try {
             return _fth(n)->entropy_mole();
@@ -414,7 +414,7 @@ extern "C" {
         }
     }
 
-    double th_gibbs_mole_(const integer* n)
+    CanteraDouble th_gibbs_mole_(const integer* n)
     {
         try {
             return _fth(n)->gibbs_mole();
@@ -423,7 +423,7 @@ extern "C" {
         }
     }
 
-    double th_cp_mole_(const integer* n)
+    CanteraDouble th_cp_mole_(const integer* n)
     {
         try {
             return _fth(n)->cp_mole();
@@ -432,7 +432,7 @@ extern "C" {
         }
     }
 
-    double th_cv_mole_(const integer* n)
+    CanteraDouble th_cv_mole_(const integer* n)
     {
         try {
             return _fth(n)->cv_mole();
@@ -441,7 +441,7 @@ extern "C" {
         }
     }
 
-    double th_pressure_(const integer* n)
+    CanteraDouble th_pressure_(const integer* n)
     {
         try {
             return _fth(n)->pressure();
@@ -450,7 +450,7 @@ extern "C" {
         }
     }
 
-    double th_enthalpy_mass_(const integer* n)
+    CanteraDouble th_enthalpy_mass_(const integer* n)
     {
         try {
             return _fth(n)->enthalpy_mass();
@@ -459,7 +459,7 @@ extern "C" {
         }
     }
 
-    double th_intenergy_mass_(const integer* n)
+    CanteraDouble th_intenergy_mass_(const integer* n)
     {
         try {
             return _fth(n)->intEnergy_mass();
@@ -468,7 +468,7 @@ extern "C" {
         }
     }
 
-    double th_entropy_mass_(const integer* n)
+    CanteraDouble th_entropy_mass_(const integer* n)
     {
         try {
             return _fth(n)->entropy_mass();
@@ -477,7 +477,7 @@ extern "C" {
         }
     }
 
-    double th_gibbs_mass_(const integer* n)
+    CanteraDouble th_gibbs_mass_(const integer* n)
     {
         try {
             return _fth(n)->gibbs_mass();
@@ -486,7 +486,7 @@ extern "C" {
         }
     }
 
-    double th_cp_mass_(const integer* n)
+    CanteraDouble th_cp_mass_(const integer* n)
     {
         try {
             return _fth(n)->cp_mass();
@@ -495,7 +495,7 @@ extern "C" {
         }
     }
 
-    double th_cv_mass_(const integer* n)
+    CanteraDouble th_cv_mass_(const integer* n)
     {
         try {
             return _fth(n)->cv_mass();
@@ -504,18 +504,18 @@ extern "C" {
         }
     }
 
-    status_t th_chempotentials_(const integer* n, double* murt)
+    status_t th_chempotentials_(const integer* n, CanteraDouble* murt)
     {
         try {
             ThermoPhase* thrm = _fth(n);
-            thrm->getChemPotentials(span<double>(murt, thrm->nSpecies()));
+            thrm->getChemPotentials(span<CanteraDouble>(murt, thrm->nSpecies()));
         } catch (...) {
             return handleAllExceptions(-1, ERR);
         }
         return 0;
     }
 
-    status_t th_setpressure_(const integer* n, double* p)
+    status_t th_setpressure_(const integer* n, CanteraDouble* p)
     {
         try {
             _fth(n)->setPressure(*p);
@@ -525,7 +525,7 @@ extern "C" {
         return 0;
     }
 
-    status_t th_set_hp_(const integer* n, double* v1, double* v2)
+    status_t th_set_hp_(const integer* n, CanteraDouble* v1, CanteraDouble* v2)
     {
         try {
             _fth(n)->setState_HP(*v1, *v2);
@@ -535,7 +535,7 @@ extern "C" {
         return 0;
     }
 
-    status_t th_set_uv_(const integer* n, double* v1, double* v2)
+    status_t th_set_uv_(const integer* n, CanteraDouble* v1, CanteraDouble* v2)
     {
         try {
             _fth(n)->setState_UV(*v1, *v2);
@@ -545,7 +545,7 @@ extern "C" {
         return 0;
     }
 
-    status_t th_set_sv_(const integer* n, double* v1, double* v2)
+    status_t th_set_sv_(const integer* n, CanteraDouble* v1, CanteraDouble* v2)
     {
         try {
             _fth(n)->setState_SV(*v1, *v2);
@@ -555,7 +555,7 @@ extern "C" {
         return 0;
     }
 
-    status_t th_set_sp_(const integer* n, double* v1, double* v2)
+    status_t th_set_sp_(const integer* n, CanteraDouble* v1, CanteraDouble* v2)
     {
         try {
             _fth(n)->setState_SP(*v1, *v2);
@@ -565,7 +565,7 @@ extern "C" {
         return 0;
     }
 
-    status_t th_equil_(const integer* n, char* XY, char* solver, double* rtol, int* max_steps, int* max_iter, int* estimate_equil, int* log_level, ftnlen_t lenxy, ftnlen_t lensolver)
+    status_t th_equil_(const integer* n, char* XY, char* solver, CanteraDouble* rtol, int* max_steps, int* max_iter, int* estimate_equil, int* log_level, ftnlen_t lenxy, ftnlen_t lensolver)
     {
         try {
             _fth(n)->equilibrate(f2string(XY,lenxy), f2string(solver,lensolver), *rtol, *max_steps, *max_iter, *estimate_equil, *log_level);
@@ -575,7 +575,7 @@ extern "C" {
         return 0;
     }
 
-    double th_refpressure_(const integer* n)
+    CanteraDouble th_refpressure_(const integer* n)
     {
         try {
             return _fth(n)->refPressure();
@@ -584,7 +584,7 @@ extern "C" {
         }
     }
 
-    double th_mintemp_(const integer* n, integer* k)
+    CanteraDouble th_mintemp_(const integer* n, integer* k)
     {
         try {
             return _fth(n)->minTemp(*k-1);
@@ -593,7 +593,7 @@ extern "C" {
         }
     }
 
-    double th_maxtemp_(const integer* n, integer* k)
+    CanteraDouble th_maxtemp_(const integer* n, integer* k)
     {
         try {
             return _fth(n)->maxTemp(*k-1);
@@ -602,74 +602,74 @@ extern "C" {
         }
     }
 
-    status_t th_getenthalpies_rt_(const integer* n, double* h_rt)
+    status_t th_getenthalpies_rt_(const integer* n, CanteraDouble* h_rt)
     {
         try {
             ThermoPhase* thrm = _fth(n);
-            thrm->getEnthalpy_RT(span<double>(h_rt, thrm->nSpecies()));
+            thrm->getEnthalpy_RT(span<CanteraDouble>(h_rt, thrm->nSpecies()));
         } catch (...) {
             return handleAllExceptions(-1, ERR);
         }
         return 0;
     }
 
-    status_t th_getgibbs_rt_(const integer* n, double* g_rt) {
+    status_t th_getgibbs_rt_(const integer* n, CanteraDouble* g_rt) {
       try {
         ThermoPhase* thrm = _fth(n);
-        thrm->getGibbs_RT(span<double>(g_rt, thrm->nSpecies()));
+        thrm->getGibbs_RT(span<CanteraDouble>(g_rt, thrm->nSpecies()));
       } catch(...) {
         return handleAllExceptions(-1, ERR);
       }
       return 0;
     }
 
-    status_t th_getentropies_r_(const integer* n, double* s_r)
+    status_t th_getentropies_r_(const integer* n, CanteraDouble* s_r)
     {
         try {
             ThermoPhase* thrm = _fth(n);
-            thrm->getEntropy_R(span<double>(s_r, thrm->nSpecies()));
+            thrm->getEntropy_R(span<CanteraDouble>(s_r, thrm->nSpecies()));
         } catch (...) {
             return handleAllExceptions(-1, ERR);
         }
         return 0;
     }
 
-    status_t th_getcp_r_(const integer* n, integer* lenm, double* cp_r)
+    status_t th_getcp_r_(const integer* n, integer* lenm, CanteraDouble* cp_r)
     {
         try {
             ThermoPhase* thrm = _fth(n);
-            thrm->getCp_R(span<double>(cp_r, thrm->nSpecies()));
+            thrm->getCp_R(span<CanteraDouble>(cp_r, thrm->nSpecies()));
         } catch (...) {
             return handleAllExceptions(-1, ERR);
         }
         return 0;
     }
 
-    status_t th_getpartialmolarintenergies_r_(const integer* n, double* ie)
+    status_t th_getpartialmolarintenergies_r_(const integer* n, CanteraDouble* ie)
     {
         try {
             ThermoPhase* thrm = _fth(n);
-            thrm->getPartialMolarIntEnergies(span<double>(ie, thrm->nSpecies()));
+            thrm->getPartialMolarIntEnergies(span<CanteraDouble>(ie, thrm->nSpecies()));
         } catch (...) {
             return handleAllExceptions(-1, ERR);
         }
         return 0;
     }
 
-    status_t th_getpartialmolarenthalpies_(const integer* n, double* hbar) {
+    status_t th_getpartialmolarenthalpies_(const integer* n, CanteraDouble* hbar) {
       try {
         ThermoPhase* thrm = _fth(n);
-        thrm->getPartialMolarEnthalpies(span<double>(hbar, thrm->nSpecies()));
+        thrm->getPartialMolarEnthalpies(span<CanteraDouble>(hbar, thrm->nSpecies()));
       } catch(...) {
         return handleAllExceptions(-1, ERR);
       }
       return 0;
     }
 
-    status_t th_getpartialmolarcp_(const integer* n, double* cpbar) {
+    status_t th_getpartialmolarcp_(const integer* n, CanteraDouble* cpbar) {
       try {
         ThermoPhase* thrm = _fth(n);
-        thrm->getPartialMolarCp(span<double>(cpbar, thrm->nSpecies()));
+        thrm->getPartialMolarCp(span<CanteraDouble>(cpbar, thrm->nSpecies()));
       } catch(...) {
         return handleAllExceptions(-1, ERR);
       }
@@ -772,7 +772,7 @@ extern "C" {
         }
     }
 
-    double kin_reactantstoichcoeff_(const integer* n, integer* k, integer* i)
+    CanteraDouble kin_reactantstoichcoeff_(const integer* n, integer* k, integer* i)
     {
         try {
             return _fkin(n)->reactantStoichCoeff(*k-1,*i-1);
@@ -781,7 +781,7 @@ extern "C" {
         }
     }
 
-    double kin_productstoichcoeff_(const integer* n, integer* k, integer* i)
+    CanteraDouble kin_productstoichcoeff_(const integer* n, integer* k, integer* i)
     {
         try {
             return _fkin(n)->productStoichCoeff(*k-1,*i-1);
@@ -805,22 +805,22 @@ extern "C" {
         return 0;
     }
 
-    status_t kin_getfwdratesofprogress_(const integer* n, double* fwdROP)
+    status_t kin_getfwdratesofprogress_(const integer* n, CanteraDouble* fwdROP)
     {
         try {
             Kinetics* k = _fkin(n);
-            k->getFwdRatesOfProgress(span<double>(fwdROP, k->nReactions()));
+            k->getFwdRatesOfProgress(span<CanteraDouble>(fwdROP, k->nReactions()));
         } catch (...) {
             return handleAllExceptions(-1, ERR);
         }
         return 0;
     }
 
-    status_t kin_getrevratesofprogress_(const integer* n, double* revROP)
+    status_t kin_getrevratesofprogress_(const integer* n, CanteraDouble* revROP)
     {
         try {
             Kinetics* k = _fkin(n);
-            k->getRevRatesOfProgress(span<double>(revROP, k->nReactions()));
+            k->getRevRatesOfProgress(span<CanteraDouble>(revROP, k->nReactions()));
         } catch (...) {
             return handleAllExceptions(-1, ERR);
         }
@@ -836,51 +836,51 @@ extern "C" {
         }
     }
 
-    status_t kin_getnetratesofprogress_(const integer* n, double* netROP)
+    status_t kin_getnetratesofprogress_(const integer* n, CanteraDouble* netROP)
     {
         try {
             Kinetics* k = _fkin(n);
-            k->getNetRatesOfProgress(span<double>(netROP, k->nReactions()));
+            k->getNetRatesOfProgress(span<CanteraDouble>(netROP, k->nReactions()));
         } catch (...) {
             return handleAllExceptions(-1, ERR);
         }
         return 0;
     }
 
-    status_t kin_getcreationrates_(const integer* n, double* cdot)
+    status_t kin_getcreationrates_(const integer* n, CanteraDouble* cdot)
     {
         try {
             Kinetics* k = _fkin(n);
-            k->getCreationRates(span<double>(cdot, k->nTotalSpecies()));
+            k->getCreationRates(span<CanteraDouble>(cdot, k->nTotalSpecies()));
         } catch (...) {
             return handleAllExceptions(-1, ERR);
         }
         return 0;
     }
 
-    status_t kin_getdestructionrates_(const integer* n, double* ddot)
+    status_t kin_getdestructionrates_(const integer* n, CanteraDouble* ddot)
     {
         try {
             Kinetics* k = _fkin(n);
-            k->getDestructionRates(span<double>(ddot, k->nTotalSpecies()));
+            k->getDestructionRates(span<CanteraDouble>(ddot, k->nTotalSpecies()));
         } catch (...) {
             return handleAllExceptions(-1, ERR);
         }
         return 0;
     }
 
-    status_t kin_getnetproductionrates_(const integer* n, double* wdot)
+    status_t kin_getnetproductionrates_(const integer* n, CanteraDouble* wdot)
     {
         try {
             Kinetics* k = _fkin(n);
-            k->getNetProductionRates(span<double>(wdot, k->nTotalSpecies()));
+            k->getNetProductionRates(span<CanteraDouble>(wdot, k->nTotalSpecies()));
         } catch (...) {
             return handleAllExceptions(-1, ERR);
         }
         return 0;
     }
 
-    double kin_multiplier_(const integer* n, integer* i)
+    CanteraDouble kin_multiplier_(const integer* n, integer* i)
     {
         try {
             return _fkin(n)->multiplier(*i);
@@ -889,11 +889,11 @@ extern "C" {
         }
     }
 
-    status_t kin_getequilibriumconstants_(const integer* n, double* kc)
+    status_t kin_getequilibriumconstants_(const integer* n, CanteraDouble* kc)
     {
         try {
             Kinetics* k = _fkin(n);
-            k->getEquilibriumConstants(span<double>(kc, k->nReactions()));
+            k->getEquilibriumConstants(span<CanteraDouble>(kc, k->nReactions()));
         } catch (...) {
             return handleAllExceptions(-1, ERR);
         }
@@ -916,7 +916,7 @@ extern "C" {
         return 0;
     }
 
-    status_t kin_setmultiplier_(const integer* n, integer* i, double* v)
+    status_t kin_setmultiplier_(const integer* n, integer* i, CanteraDouble* v)
     {
         try {
             _fkin(n)->setMultiplier(*i-1,*v);
@@ -926,7 +926,7 @@ extern "C" {
         return 0;
     }
 
-    status_t kin_advancecoverages_(const integer* n, double* tstep)
+    status_t kin_advancecoverages_(const integer* n, CanteraDouble* tstep)
     {
         try {
             Kinetics* k = _fkin(n);
@@ -968,7 +968,7 @@ extern "C" {
         }
     }
 
-    double trans_viscosity_(const integer* n)
+    CanteraDouble trans_viscosity_(const integer* n)
     {
         try {
             return _ftrans(n)->viscosity();
@@ -977,7 +977,7 @@ extern "C" {
         }
     }
 
-    double trans_electricalconductivity_(const integer* n)
+    CanteraDouble trans_electricalconductivity_(const integer* n)
     {
         try {
             return _ftrans(n)->electricalConductivity();
@@ -986,7 +986,7 @@ extern "C" {
         }
     }
 
-    double trans_thermalconductivity_(const integer* n)
+    CanteraDouble trans_thermalconductivity_(const integer* n)
     {
         try {
             return _ftrans(n)->thermalConductivity();
@@ -995,66 +995,66 @@ extern "C" {
         }
     }
 
-    status_t trans_getthermaldiffcoeffs_(const integer* n, double* dt)
+    status_t trans_getthermaldiffcoeffs_(const integer* n, CanteraDouble* dt)
     {
         try {
             auto tr = _ftrans(n);
-            tr->getThermalDiffCoeffs(span<double>(dt, tr->thermo().nSpecies()));
+            tr->getThermalDiffCoeffs(span<CanteraDouble>(dt, tr->thermo().nSpecies()));
             return 0;
         } catch (...) {
             return handleAllExceptions(-1, ERR);
         }
     }
 
-    status_t trans_getmixdiffcoeffs_(const integer* n, double* d)
+    status_t trans_getmixdiffcoeffs_(const integer* n, CanteraDouble* d)
     {
         try {
             auto tr = _ftrans(n);
-            tr->getMixDiffCoeffs(span<double>(d, tr->thermo().nSpecies()));
+            tr->getMixDiffCoeffs(span<CanteraDouble>(d, tr->thermo().nSpecies()));
             return 0;
         } catch (...) {
             return handleAllExceptions(-1, ERR);
         }
     }
 
-    status_t trans_getmixdiffcoeffsmass_(const integer* n, double* d)
+    status_t trans_getmixdiffcoeffsmass_(const integer* n, CanteraDouble* d)
     {
         try {
             auto tr = _ftrans(n);
-            tr->getMixDiffCoeffsMass(span<double>(d, tr->thermo().nSpecies()));
+            tr->getMixDiffCoeffsMass(span<CanteraDouble>(d, tr->thermo().nSpecies()));
             return 0;
         } catch (...) {
             return handleAllExceptions(-1, ERR);
         }
     }
 
-    status_t trans_getmixdiffcoeffsmole_(const integer* n, double* d)
+    status_t trans_getmixdiffcoeffsmole_(const integer* n, CanteraDouble* d)
     {
         try {
             auto tr = _ftrans(n);
-            tr->getMixDiffCoeffsMole(span<double>(d, tr->thermo().nSpecies()));
+            tr->getMixDiffCoeffsMole(span<CanteraDouble>(d, tr->thermo().nSpecies()));
             return 0;
         } catch (...) {
             return handleAllExceptions(-1, ERR);
         }
     }
 
-    status_t trans_getbindiffcoeffs_(const integer* n, integer* ld, double* d)
+    status_t trans_getbindiffcoeffs_(const integer* n, integer* ld, CanteraDouble* d)
     {
         try {
             auto tr = _ftrans(n);
-            tr->getBinaryDiffCoeffs(*ld, span<double>(d, *ld * tr->thermo().nSpecies()));
+            tr->getBinaryDiffCoeffs(*ld, span<CanteraDouble>(d, *ld * tr->thermo().nSpecies()));
             return 0;
         } catch (...) {
             return handleAllExceptions(-1, ERR);
         }
     }
 
-    status_t trans_getmultidiffcoeffs_(const integer* n, integer* ld, double* d)
+    status_t trans_getmultidiffcoeffs_(const integer* n, integer* ld, CanteraDouble* d)
     {
         try {
             auto tr = _ftrans(n);
-            tr->getMultiDiffCoeffs(*ld, span<double>(d, *ld * tr->thermo().nSpecies()));
+            tr->getMultiDiffCoeffs(*ld, span<CanteraDouble>(d, *ld * tr->thermo().nSpecies()));
             return 0;
         } catch (...) {
             return handleAllExceptions(-1, ERR);

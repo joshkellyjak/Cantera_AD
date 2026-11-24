@@ -15,9 +15,9 @@
 namespace Cantera
 {
 
-const double RedlichKwongMFTP::omega_a = 4.27480233540E-01;
-const double RedlichKwongMFTP::omega_b = 8.66403499650E-02;
-const double RedlichKwongMFTP::omega_vc = 3.33333333333333E-01;
+const CanteraDouble RedlichKwongMFTP::omega_a = 4.27480233540E-01;
+const CanteraDouble RedlichKwongMFTP::omega_b = 8.66403499650E-02;
+const CanteraDouble RedlichKwongMFTP::omega_vc = 3.33333333333333E-01;
 
 RedlichKwongMFTP::RedlichKwongMFTP(const string& infile, const string& id_)
 {
@@ -25,7 +25,7 @@ RedlichKwongMFTP::RedlichKwongMFTP(const string& infile, const string& id_)
 }
 
 void RedlichKwongMFTP::setSpeciesCoeffs(const string& species,
-                                        double a0, double a1, double b)
+                                        CanteraDouble a0, CanteraDouble a1, CanteraDouble b)
 {
     size_t k = speciesIndex(species, true);
 
@@ -58,7 +58,7 @@ void RedlichKwongMFTP::setSpeciesCoeffs(const string& species,
 }
 
 void RedlichKwongMFTP::setBinaryCoeffs(const string& species_i, const string& species_j,
-                                       double a0, double a1)
+                                       CanteraDouble a0, CanteraDouble a1)
 {
     size_t ki = speciesIndex(species_i, true);
     size_t kj = speciesIndex(species_j, true);
@@ -76,61 +76,61 @@ void RedlichKwongMFTP::setBinaryCoeffs(const string& species_i, const string& sp
 
 // ------------Molar Thermodynamic Properties -------------------------
 
-double RedlichKwongMFTP::cp_mole() const
+CanteraDouble RedlichKwongMFTP::cp_mole() const
 {
     _updateReferenceStateThermo();
-    double cpref = GasConstant * mean_X(m_cp0_R);
+    CanteraDouble cpref = GasConstant * mean_X(m_cp0_R);
     if (m_bMix == 0.0) {
         return cpref;
     }
-    double T = temperature();
-    double sqt = sqrt(T);
-    double mv = molarVolume();
-    double vpb = mv + m_bMix;
+    CanteraDouble T = temperature();
+    CanteraDouble sqt = sqrt(T);
+    CanteraDouble mv = molarVolume();
+    CanteraDouble vpb = mv + m_bMix;
     pressureDerivatives();
-    double dadt = da_dt();
-    double fac = T * dadt - 3.0 * m_aMix / 2.0;
-    double dHdT_V = cpref - 0.5 * dadt * log(vpb/mv) / (m_bMix * sqt)
+    CanteraDouble dadt = da_dt();
+    CanteraDouble fac = T * dadt - 3.0 * m_aMix / 2.0;
+    CanteraDouble dHdT_V = cpref - 0.5 * dadt * log(vpb/mv) / (m_bMix * sqt)
         + mv * dpdT_ - GasConstant - log(vpb/mv) * fac / (2.0 * m_bMix * T * sqt);
     return dHdT_V - (mv + T * dpdT_ / dpdV_) * dpdT_;
 }
 
-double RedlichKwongMFTP::cv_mole() const
+CanteraDouble RedlichKwongMFTP::cv_mole() const
 {
     _updateReferenceStateThermo();
-    double cvref = GasConstant * (mean_X(m_cp0_R) - 1.0);
+    CanteraDouble cvref = GasConstant * (mean_X(m_cp0_R) - 1.0);
     if (m_bMix == 0.0) {
         return cvref;
     }
-    double T = temperature();
-    double sqt = sqrt(T);
-    double mv = molarVolume();
-    double vpb = mv + m_bMix;
-    double dadt = da_dt();
-    double fac = T * dadt - 3.0 * m_aMix / 2.0;
+    CanteraDouble T = temperature();
+    CanteraDouble sqt = sqrt(T);
+    CanteraDouble mv = molarVolume();
+    CanteraDouble vpb = mv + m_bMix;
+    CanteraDouble dadt = da_dt();
+    CanteraDouble fac = T * dadt - 3.0 * m_aMix / 2.0;
     return (cvref - 1.0/(2.0 * m_bMix * T * sqt) * log(vpb/mv)*fac
             +1.0/(m_bMix * sqt) * log(vpb/mv)*(-0.5*dadt));
 }
 
-double RedlichKwongMFTP::pressure() const
+CanteraDouble RedlichKwongMFTP::pressure() const
 {
     _updateReferenceStateThermo();
 
     //  Get a copy of the private variables stored in the State object
-    double T = temperature();
-    double molarV = meanMolecularWeight() / density();
-    double pp = GasConstant * T/(molarV - m_bMix)
+    CanteraDouble T = temperature();
+    CanteraDouble molarV = meanMolecularWeight() / density();
+    CanteraDouble pp = GasConstant * T/(molarV - m_bMix)
         - m_aMix/(sqrt(T) * molarV * (molarV + m_bMix));
     return pp;
 }
 
-double RedlichKwongMFTP::standardConcentration(size_t k) const
+CanteraDouble RedlichKwongMFTP::standardConcentration(size_t k) const
 {
     getStandardVolumes(m_workS);
     return 1.0 / m_workS[k];
 }
 
-void RedlichKwongMFTP::getActivityCoefficients(span<double> ac) const
+void RedlichKwongMFTP::getActivityCoefficients(span<CanteraDouble> ac) const
 {
     checkArraySize("RedlichKwongMFTP::getActivityCoefficients", ac.size(), m_kk);
     for (size_t k = 0; k < m_kk; k++) {
@@ -139,11 +139,11 @@ void RedlichKwongMFTP::getActivityCoefficients(span<double> ac) const
     if (m_bMix == 0.0) {
         return;
     }
-    double mv = molarVolume();
-    double sqt = sqrt(temperature());
-    double vpb = mv + m_bMix;
-    double vmb = mv - m_bMix;
-    double logv = log(vpb / mv);
+    CanteraDouble mv = molarVolume();
+    CanteraDouble sqt = sqrt(temperature());
+    CanteraDouble vpb = mv + m_bMix;
+    CanteraDouble vmb = mv - m_bMix;
+    CanteraDouble logv = log(vpb / mv);
     Eigen::ArrayXd g = RT() * (log(RT() / (vmb * pressure())) + m_b / vmb)
         - 2.0 * m_Ak / (m_bMix * sqt) * logv
         + m_aMix * m_b / (m_bMix * m_bMix * sqt) * logv
@@ -153,7 +153,7 @@ void RedlichKwongMFTP::getActivityCoefficients(span<double> ac) const
 
 // ---- Partial Molar Properties of the Solution -----------------
 
-void RedlichKwongMFTP::getChemPotentials(span<double> mu) const
+void RedlichKwongMFTP::getChemPotentials(span<CanteraDouble> mu) const
 {
     getStandardChemPotentials(mu);
     Eigen::Map<Eigen::ArrayXd> muVec(mu.data(), m_kk);
@@ -163,11 +163,11 @@ void RedlichKwongMFTP::getChemPotentials(span<double> mu) const
         return;
     }
 
-    double mv = molarVolume();
-    double sqt = sqrt(temperature());
-    double vpb = mv + m_bMix;
-    double vmb = mv - m_bMix;
-    double logv = log(vpb / mv);
+    CanteraDouble mv = molarVolume();
+    CanteraDouble sqt = sqrt(temperature());
+    CanteraDouble vpb = mv + m_bMix;
+    CanteraDouble vmb = mv - m_bMix;
+    CanteraDouble logv = log(vpb / mv);
     muVec += RT() * log(RT() / (vmb * pressure()))
         + RT() * m_b / vmb
         - 2.0 * m_Ak / (m_bMix * sqt) * logv
@@ -175,7 +175,7 @@ void RedlichKwongMFTP::getChemPotentials(span<double> mu) const
         - m_aMix * m_b / (m_bMix * sqt * vpb);
 }
 
-void RedlichKwongMFTP::getPartialMolarEnthalpies(span<double> hbar) const
+void RedlichKwongMFTP::getPartialMolarEnthalpies(span<CanteraDouble> hbar) const
 {
     // First we get the reference state contributions
     getEnthalpy_RT_ref(hbar);
@@ -185,21 +185,21 @@ void RedlichKwongMFTP::getPartialMolarEnthalpies(span<double> hbar) const
     }
 
     // We calculate m_dpdni
-    double T = temperature();
-    double mv = molarVolume();
-    double sqt = sqrt(T);
-    double vpb = mv + m_bMix;
-    double vmb = mv - m_bMix;
+    CanteraDouble T = temperature();
+    CanteraDouble mv = molarVolume();
+    CanteraDouble sqt = sqrt(T);
+    CanteraDouble vpb = mv + m_bMix;
+    CanteraDouble vmb = mv - m_bMix;
     m_dpdni = RT() / vmb * (1.0 + m_b / vmb)
         - 2.0 * m_Ak / (sqt * mv * vpb)
         + m_aMix * m_b / (sqt * mv * vpb * vpb);
-    double dadt = da_dt();
-    double fac = T * dadt - 3.0 * m_aMix / 2.0;
+    CanteraDouble dadt = da_dt();
+    CanteraDouble fac = T * dadt - 3.0 * m_aMix / 2.0;
     Eigen::ArrayXd Sk = 2.0 * T * m_dAkdT - 3.0 * m_Ak;
 
     pressureDerivatives();
-    double fac2 = mv + T * dpdT_ / dpdV_;
-    double logv = log(vpb / mv);
+    CanteraDouble fac2 = mv + T * dpdT_ / dpdV_;
+    CanteraDouble logv = log(vpb / mv);
     Eigen::ArrayXd hE_v = mv * m_dpdni
         - RT()
         - m_b / (m_bMix * m_bMix * sqt) * logv * fac
@@ -208,13 +208,13 @@ void RedlichKwongMFTP::getPartialMolarEnthalpies(span<double> hbar) const
     Eigen::Map<Eigen::ArrayXd>(hbar.data(), m_kk) += hE_v - fac2 * m_dpdni;
 }
 
-void RedlichKwongMFTP::getPartialMolarEntropies(span<double> sbar) const
+void RedlichKwongMFTP::getPartialMolarEntropies(span<CanteraDouble> sbar) const
 {
     getEntropy_R_ref(sbar);
-    double T = temperature();
-    double sqt = sqrt(T);
-    double mv = molarVolume();
-    double pres = pressure();
+    CanteraDouble T = temperature();
+    CanteraDouble sqt = sqrt(T);
+    CanteraDouble mv = molarVolume();
+    CanteraDouble pres = pressure();
 
     MappedVector sbarVec(sbar.data(), m_kk);
     sbarVec -= asVectorXd(moleFractions_).array().max(SmallNumber).log().matrix();
@@ -223,10 +223,10 @@ void RedlichKwongMFTP::getPartialMolarEntropies(span<double> sbar) const
     if (m_bMix == 0.0) {
         return;
     }
-    double fac = da_dt() - m_aMix / (2.0 * T);
-    double vmb = mv - m_bMix;
-    double vpb = mv + m_bMix;
-    double logv = log(vpb / mv);
+    CanteraDouble fac = da_dt() - m_aMix / (2.0 * T);
+    CanteraDouble vmb = mv - m_bMix;
+    CanteraDouble vpb = mv + m_bMix;
+    CanteraDouble logv = log(vpb / mv);
     Eigen::ArrayXd sdep = GasConstant * (log(RT() / (pres * vmb)) + 1)
         + GasConstant * m_b / vmb
         + m_Ak / (m_bMix * T * sqt) * logv
@@ -240,18 +240,18 @@ void RedlichKwongMFTP::getPartialMolarEntropies(span<double> sbar) const
     sbarVec += dpdT_ * asVectorXd(m_partialMolarVolumes);
 }
 
-void RedlichKwongMFTP::getPartialMolarIntEnergies(span<double> ubar) const
+void RedlichKwongMFTP::getPartialMolarIntEnergies(span<CanteraDouble> ubar) const
 {
     // u_k = h_k - P * v_k
     getPartialMolarVolumes(m_partialMolarVolumes);
     getPartialMolarEnthalpies(ubar);
-    double p = pressure();
+    CanteraDouble p = pressure();
     for (size_t k = 0; k < nSpecies(); k++) {
         ubar[k] -= p * m_partialMolarVolumes[k];
     }
 }
 
-void RedlichKwongMFTP::getPartialMolarIntEnergies_TV(span<double> utilde) const
+void RedlichKwongMFTP::getPartialMolarIntEnergies_TV(span<CanteraDouble> utilde) const
 {
     checkArraySize("RedlichKwongMFTP::getPartialMolarIntEnergies_TV", utilde.size(), m_kk);
     _updateReferenceStateThermo();
@@ -263,19 +263,19 @@ void RedlichKwongMFTP::getPartialMolarIntEnergies_TV(span<double> utilde) const
         return;
     }
 
-    double T = temperature();
-    double mv = molarVolume();
-    double vpb = mv + m_bMix;
-    double logv = log(vpb / mv);
-    double F = T * da_dt() - 1.5 * m_aMix;
-    double C = -logv / m_bMix + 1.0 / vpb;
-    double pref = 1.0 / (m_bMix * sqrt(T));
+    CanteraDouble T = temperature();
+    CanteraDouble mv = molarVolume();
+    CanteraDouble vpb = mv + m_bMix;
+    CanteraDouble logv = log(vpb / mv);
+    CanteraDouble F = T * da_dt() - 1.5 * m_aMix;
+    CanteraDouble C = -logv / m_bMix + 1.0 / vpb;
+    CanteraDouble pref = 1.0 / (m_bMix * sqrt(T));
 
     Eigen::ArrayXd Sk = 2.0 * T * m_dAkdT - 3.0 * m_Ak;
     utildeVec += pref * (logv * Sk + m_b * F * C);
 }
 
-void RedlichKwongMFTP::getPartialMolarCp(span<double> cpbar) const
+void RedlichKwongMFTP::getPartialMolarCp(span<CanteraDouble> cpbar) const
 {
     checkArraySize("RedlichKwongMFTP::getPartialMolarCp", cpbar.size(), m_kk);
     _updateReferenceStateThermo();
@@ -287,47 +287,47 @@ void RedlichKwongMFTP::getPartialMolarCp(span<double> cpbar) const
         return;
     }
 
-    double T = temperature();
-    double sqt = sqrt(T);
-    double v = molarVolume();
-    double dadt = da_dt();
-    double d2adt2 = 0.0; // current RK model uses a(T)=a0+a1*T
+    CanteraDouble T = temperature();
+    CanteraDouble sqt = sqrt(T);
+    CanteraDouble v = molarVolume();
+    CanteraDouble dadt = da_dt();
+    CanteraDouble d2adt2 = 0.0; // current RK model uses a(T)=a0+a1*T
 
     // Mixture pressure derivatives
     pressureDerivatives();
-    double dvdT_P = -dpdT_ / dpdV_;
-    double vpb = v + m_bMix;
-    double vmb = v - m_bMix;
+    CanteraDouble dvdT_P = -dpdT_ / dpdV_;
+    CanteraDouble vpb = v + m_bMix;
+    CanteraDouble vmb = v - m_bMix;
 
     // P_TT, P_TV and P_VV for v''(T)|P from EOS:
     // v'' = -(P_TT + 2 P_TV v' + P_VV v'^2) / P_V
-    double pTT = (-d2adt2 + dadt / T - 3.0 * m_aMix / (4.0 * T * T)) / (sqt * v * vpb);
-    double pTV = -GasConstant / (vmb * vmb)
+    CanteraDouble pTT = (-d2adt2 + dadt / T - 3.0 * m_aMix / (4.0 * T * T)) / (sqt * v * vpb);
+    CanteraDouble pTV = -GasConstant / (vmb * vmb)
         + (dadt - m_aMix / (2.0 * T)) * (2.0 * v + m_bMix) / (sqt * v * v * vpb * vpb);
-    double pVV = 2.0 * GasConstant * T / (vmb * vmb * vmb)
+    CanteraDouble pVV = 2.0 * GasConstant * T / (vmb * vmb * vmb)
         - 2.0 * m_aMix * (3.0 * v * v + 3.0 * m_bMix * v + m_bMix * m_bMix)
             / (sqt * v * v * v * vpb * vpb * vpb);
-    double d2vdT2_P = -(pTT + 2.0 * pTV * dvdT_P + pVV * dvdT_P * dvdT_P) / dpdV_;
+    CanteraDouble d2vdT2_P = -(pTT + 2.0 * pTV * dvdT_P + pVV * dvdT_P * dvdT_P) / dpdV_;
 
-    double F = T * dadt - 1.5 * m_aMix;
-    double dF_dT = -0.5 * dadt + T * d2adt2;
-    double logvpv = log(vpb / v);
-    double termLPrime = -m_bMix * dvdT_P / (v * vpb);
+    CanteraDouble F = T * dadt - 1.5 * m_aMix;
+    CanteraDouble dF_dT = -0.5 * dadt + T * d2adt2;
+    CanteraDouble logvpv = log(vpb / v);
+    CanteraDouble termLPrime = -m_bMix * dvdT_P / (v * vpb);
 
     for (size_t k = 0; k < m_kk; k++) {
-        double bk = m_b[k];
-        double Ak = m_Ak[k];
-        double dAk = m_dAkdT[k];
-        double Sk = 2.0 * T * dAk - 3.0 * Ak;
-        double dSk_dT = -dAk; // for linear a(T)
+        CanteraDouble bk = m_b[k];
+        CanteraDouble Ak = m_Ak[k];
+        CanteraDouble dAk = m_dAkdT[k];
+        CanteraDouble Sk = 2.0 * T * dAk - 3.0 * Ak;
+        CanteraDouble dSk_dT = -dAk; // for linear a(T)
 
         // dp/dn_k at constant T,V,n_j
-        double dpdni = RT() / vmb + RT() * bk / (vmb * vmb)
+        CanteraDouble dpdni = RT() / vmb + RT() * bk / (vmb * vmb)
             - 2.0 * Ak / (sqt * v * vpb)
             + m_aMix * bk / (sqt * v * vpb * vpb);
 
         // d/dT|P [dp/dn_k]
-        double d_dpdni_dT = GasConstant / vmb
+        CanteraDouble d_dpdni_dT = GasConstant / vmb
             - GasConstant * T * dvdT_P / (vmb * vmb)
             + GasConstant * bk / (vmb * vmb)
             - 2.0 * GasConstant * T * bk * dvdT_P / (vmb * vmb * vmb)
@@ -339,11 +339,11 @@ void RedlichKwongMFTP::getPartialMolarCp(span<double> cpbar) const
             - bk * m_aMix * (3.0 * v + m_bMix) * dvdT_P / (sqt * v * v * vpb * vpb * vpb);
 
         // d/dT|P of departure terms used in getPartialMolarEnthalpies
-        double dterm1 = -bk / (m_bMix * m_bMix * sqt)
+        CanteraDouble dterm1 = -bk / (m_bMix * m_bMix * sqt)
             * (termLPrime * F + logvpv * dF_dT - logvpv * F / (2.0 * T));
-        double dterm2 = 1.0 / (m_bMix * sqt)
+        CanteraDouble dterm2 = 1.0 / (m_bMix * sqt)
             * (termLPrime * Sk + logvpv * dSk_dT - logvpv * Sk / (2.0 * T));
-        double dterm3 = bk / (m_bMix * sqt)
+        CanteraDouble dterm3 = bk / (m_bMix * sqt)
             * (dF_dT / vpb - F * dvdT_P / (vpb * vpb) - F / (2.0 * T * vpb));
 
         // cp_k = d hbar_k / dT at constant P and composition
@@ -354,7 +354,7 @@ void RedlichKwongMFTP::getPartialMolarCp(span<double> cpbar) const
     }
 }
 
-void RedlichKwongMFTP::getPartialMolarCv_TV(span<double> cvtilde) const
+void RedlichKwongMFTP::getPartialMolarCv_TV(span<CanteraDouble> cvtilde) const
 {
     checkArraySize("RedlichKwongMFTP::getPartialMolarCv_TV", cvtilde.size(), m_kk);
     _updateReferenceStateThermo();
@@ -366,19 +366,19 @@ void RedlichKwongMFTP::getPartialMolarCv_TV(span<double> cvtilde) const
         return;
     }
 
-    double T = temperature();
-    double sqt = sqrt(T);
-    double mv = molarVolume();
-    double dadt = da_dt();
+    CanteraDouble T = temperature();
+    CanteraDouble sqt = sqrt(T);
+    CanteraDouble mv = molarVolume();
+    CanteraDouble dadt = da_dt();
 
     // Residual contribution for
     // \tilde{u}_k = (\partial U / \partial n_k)_{T,V,n_j}
     // with linear a(T): a_ij = a_ij,0 + a_ij,1 T
-    double vpb = mv + m_bMix;
-    double logv = log(vpb / mv);
-    double F = T * dadt - 1.5 * m_aMix;
-    double C = -logv / m_bMix + 1.0 / vpb;
-    double pref = 1.0 / (m_bMix * sqt);
+    CanteraDouble vpb = mv + m_bMix;
+    CanteraDouble logv = log(vpb / mv);
+    CanteraDouble F = T * dadt - 1.5 * m_aMix;
+    CanteraDouble C = -logv / m_bMix + 1.0 / vpb;
+    CanteraDouble pref = 1.0 / (m_bMix * sqt);
 
     Eigen::ArrayXd Sk = 2.0 * T * m_dAkdT - 3.0 * m_Ak;
     Eigen::ArrayXd ures = pref * (logv * Sk + m_b * F * C);
@@ -387,17 +387,17 @@ void RedlichKwongMFTP::getPartialMolarCv_TV(span<double> cvtilde) const
     cvtildeVec += dresdT;
 }
 
-void RedlichKwongMFTP::getPartialMolarVolumes(span<double> vbar) const
+void RedlichKwongMFTP::getPartialMolarVolumes(span<CanteraDouble> vbar) const
 {
     checkArraySize("RedlichKwongMFTP::getPartialMolarVolumes", vbar.size(), m_kk);
-    double sqt = sqrt(temperature());
-    double mv = molarVolume();
-    double vmb = mv - m_bMix;
-    double vpb = mv + m_bMix;
+    CanteraDouble sqt = sqrt(temperature());
+    CanteraDouble mv = molarVolume();
+    CanteraDouble vmb = mv - m_bMix;
+    CanteraDouble vpb = mv + m_bMix;
     Eigen::ArrayXd num = RT() * (1.0 + (m_bMix + m_b) / vmb + m_bMix * m_b / (vmb * vmb))
         - 2.0 * m_Ak / (sqt * vpb)
         + m_aMix * m_b / (sqt * vpb * vpb);
-    double denom = pressure() + RT() * m_bMix / (vmb * vmb) - m_aMix / (sqt * vpb * vpb);
+    CanteraDouble denom = pressure() + RT() * m_bMix / (vmb * vmb) - m_aMix / (sqt * vpb * vpb);
     MappedVector(vbar.data(), m_kk) = num / denom;
 }
 
@@ -454,7 +454,7 @@ void RedlichKwongMFTP::initThermo()
                 "model", "Redlich-Kwong");
 
             if (eos.hasKey("a") && eos.hasKey("b")) {
-                double a0 = 0, a1 = 0;
+                CanteraDouble a0 = 0, a1 = 0;
                 if (eos["a"].isScalar()) {
                     a0 = eos.convert("a", "Pa*m^6/kmol^2*K^0.5");
                 } else {
@@ -462,7 +462,7 @@ void RedlichKwongMFTP::initThermo()
                     a0 = eos.units().convert(avec[0], "Pa*m^6/kmol^2*K^0.5");
                     a1 = eos.units().convert(avec[1], "Pa*m^6/kmol^2/K^0.5");
                 }
-                double b = eos.convert("b", "m^3/kmol");
+                CanteraDouble b = eos.convert("b", "m^3/kmol");
                 foundCoeffs = true;
                 setSpeciesCoeffs(name, a0, a1, b);
                 m_coeffSource[k] = CoeffSource::EoS;
@@ -472,7 +472,7 @@ void RedlichKwongMFTP::initThermo()
                 AnyMap& binary_a = eos["binary-a"].as<AnyMap>();
                 const UnitSystem& units = binary_a.units();
                 for (auto& [name2, coeff] : binary_a) {
-                    double a0 = 0, a1 = 0;
+                    CanteraDouble a0 = 0, a1 = 0;
                     if (coeff.isScalar()) {
                         a0 = units.convert(coeff, "Pa*m^6/kmol^2*K^0.5");
                     } else {
@@ -490,7 +490,7 @@ void RedlichKwongMFTP::initThermo()
         }
 
         // Coefficients have not been populated from model-specific input
-        double Tc = NAN, Pc = NAN;
+        CanteraDouble Tc = NAN, Pc = NAN;
         if (data.hasKey("critical-parameters")) {
             // Use critical state information stored in the species entry to
             // calculate a and b
@@ -519,8 +519,8 @@ void RedlichKwongMFTP::initThermo()
         // Check if critical properties were found in either location
         if (!isnan(Tc)) {
             // Assuming no temperature dependence (that is, a1 = 0)
-            double a = omega_a * pow(GasConstant, 2) * pow(Tc, 2.5) / Pc;
-            double b = omega_b * GasConstant * Tc / Pc;
+            CanteraDouble a = omega_a * pow(GasConstant, 2) * pow(Tc, 2.5) / Pc;
+            CanteraDouble b = omega_b * GasConstant * Tc / Pc;
             setSpeciesCoeffs(name, a, 0.0, b);
         } else {
             throw InputFileError("RedlichKwongMFTP::initThermo", data,
@@ -551,10 +551,10 @@ void RedlichKwongMFTP::getSpeciesParameters(const string& name,
         eosNode["b"].setQuantity(m_b[k], "m^3/kmol");
     } else if (m_coeffSource[k] == CoeffSource::CritProps) {
         auto& critProps = speciesNode["critical-parameters"];
-        double a = m_a0(k, k);
-        double b = m_b[k];
-        double Tc = pow(a * omega_b / (b * omega_a * GasConstant), 2.0/3.0);
-        double Pc = omega_b * GasConstant * Tc / b;
+        CanteraDouble a = m_a0(k, k);
+        CanteraDouble b = m_b[k];
+        CanteraDouble Tc = pow(a * omega_b / (b * omega_a * GasConstant), 2.0/3.0);
+        CanteraDouble Pc = omega_b * GasConstant * Tc / b;
         critProps["critical-temperature"].setQuantity(Tc, "K");
         critProps["critical-pressure"].setQuantity(Pc, "Pa");
     }
@@ -577,48 +577,48 @@ void RedlichKwongMFTP::getSpeciesParameters(const string& name,
     }
 }
 
-double RedlichKwongMFTP::sresid() const
+CanteraDouble RedlichKwongMFTP::sresid() const
 {
     if (m_bMix == 0.0) {
         return 0.0;
     }
     // note this agrees with tpx
-    double hh = m_bMix / molarVolume();
-    double zz = z();
-    double T = temperature();
-    double fac = da_dt() - m_aMix / (2.0 * T);
-    double sresid_mol_R = log(zz*(1.0 - hh))
+    CanteraDouble hh = m_bMix / molarVolume();
+    CanteraDouble zz = z();
+    CanteraDouble T = temperature();
+    CanteraDouble fac = da_dt() - m_aMix / (2.0 * T);
+    CanteraDouble sresid_mol_R = log(zz*(1.0 - hh))
         + log(1.0 + hh) * fac / (sqrt(T) * GasConstant * m_bMix);
     return GasConstant * sresid_mol_R;
 }
 
-double RedlichKwongMFTP::hresid() const
+CanteraDouble RedlichKwongMFTP::hresid() const
 {
     if (m_bMix == 0.0) {
         return 0.0;
     }
     // note this agrees with tpx
-    double hh = m_bMix / molarVolume();
-    double zz = z();
-    double T = temperature();
-    double fac = T * da_dt() - 3.0 *m_aMix / (2.0);
+    CanteraDouble hh = m_bMix / molarVolume();
+    CanteraDouble zz = z();
+    CanteraDouble T = temperature();
+    CanteraDouble fac = T * da_dt() - 3.0 *m_aMix / (2.0);
     return GasConstant * T * (zz - 1.0) + fac * log(1.0 + hh) / (sqrt(T) * m_bMix);
 }
 
-double RedlichKwongMFTP::liquidVolEst(double T, double& presGuess) const
+CanteraDouble RedlichKwongMFTP::liquidVolEst(CanteraDouble T, CanteraDouble& presGuess) const
 {
-    double v = m_bMix * 1.1;
-    double atmp;
-    double btmp;
+    CanteraDouble v = m_bMix * 1.1;
+    CanteraDouble atmp;
+    CanteraDouble btmp;
     calculateAB(T, atmp, btmp);
-    double pres = std::max(psatEst(T), presGuess);
-    double Vroot[3];
+    CanteraDouble pres = std::max(psatEst(T), presGuess);
+    CanteraDouble Vroot[3];
     bool foundLiq = false;
     int m = 0;
     while (m < 100 && !foundLiq) {
         int nsol = solveCubic(T, pres, atmp, btmp, Vroot);
         if (nsol == 1 || nsol == 2) {
-            double pc = critPressure();
+            CanteraDouble pc = critPressure();
             if (pres > pc) {
                 foundLiq = true;
             }
@@ -637,16 +637,16 @@ double RedlichKwongMFTP::liquidVolEst(double T, double& presGuess) const
     return v;
 }
 
-double RedlichKwongMFTP::densityCalc(double T, double presPa, int phaseRequested,
-                                     double rhoguess)
+CanteraDouble RedlichKwongMFTP::densityCalc(CanteraDouble T, CanteraDouble presPa, int phaseRequested,
+                                     CanteraDouble rhoguess)
 {
     // It's necessary to set the temperature so that m_a_current is set correctly.
     setTemperature(T);
-    double tcrit = critTemperature();
-    double mmw = meanMolecularWeight();
+    CanteraDouble tcrit = critTemperature();
+    CanteraDouble mmw = meanMolecularWeight();
     if (rhoguess == -1.0) {
         if (phaseRequested >= FLUID_LIQUID_0) {
-                    double lqvol = liquidVolEst(T, presPa);
+                    CanteraDouble lqvol = liquidVolEst(T, presPa);
                     rhoguess = mmw / lqvol;
                 }
         } else {
@@ -655,13 +655,13 @@ double RedlichKwongMFTP::densityCalc(double T, double presPa, int phaseRequested
     }
 
 
-    double volguess = mmw / rhoguess;
+    CanteraDouble volguess = mmw / rhoguess;
     NSolns_ = solveCubic(T, presPa, m_aMix, m_bMix, Vroot_);
 
     // Ensure root ordering used for branch selection only contains physical roots.
-    double vmin = std::max(0.0, m_bMix * (1.0 + 1e-12));
-    vector<double> physicalRoots;
-    for (double root : Vroot_) {
+    CanteraDouble vmin = std::max(0.0, m_bMix * (1.0 + 1e-12));
+    vector<CanteraDouble> physicalRoots;
+    for (CanteraDouble root : Vroot_) {
         if (std::isfinite(root) && root > vmin) {
             physicalRoots.push_back(root);
         }
@@ -690,7 +690,7 @@ double RedlichKwongMFTP::densityCalc(double T, double presPa, int phaseRequested
         Vroot_[2] = physicalRoots[2];
     }
 
-    double molarVolLast = Vroot_[0];
+    CanteraDouble molarVolLast = Vroot_[0];
     if (NSolns_ >= 2) {
         if (phaseRequested >= FLUID_LIQUID_0) {
             molarVolLast = Vroot_[0];
@@ -724,37 +724,37 @@ double RedlichKwongMFTP::densityCalc(double T, double presPa, int phaseRequested
     return mmw / molarVolLast;
 }
 
-double RedlichKwongMFTP::dpdVCalc(double T, double molarVol, double& presCalc) const
+CanteraDouble RedlichKwongMFTP::dpdVCalc(CanteraDouble T, CanteraDouble molarVol, CanteraDouble& presCalc) const
 {
-    double sqt = sqrt(T);
+    CanteraDouble sqt = sqrt(T);
     presCalc = GasConstant * T / (molarVol - m_bMix)
                - m_aMix / (sqt * molarVol * (molarVol + m_bMix));
 
-    double vpb = molarVol + m_bMix;
-    double vmb = molarVol - m_bMix;
+    CanteraDouble vpb = molarVol + m_bMix;
+    CanteraDouble vmb = molarVol - m_bMix;
     return - GasConstant * T / (vmb * vmb)
         + m_aMix * (2 * molarVol + m_bMix) / (sqt * molarVol * molarVol * vpb * vpb);
 }
 
-double RedlichKwongMFTP::isothermalCompressibility() const
+CanteraDouble RedlichKwongMFTP::isothermalCompressibility() const
 {
     pressureDerivatives();
     return -1 / (molarVolume() * dpdV_);
 }
 
-double RedlichKwongMFTP::thermalExpansionCoeff() const
+CanteraDouble RedlichKwongMFTP::thermalExpansionCoeff() const
 {
     pressureDerivatives();
     return -dpdT_ / (molarVolume() * dpdV_);
 }
 
-double RedlichKwongMFTP::internalPressure() const
+CanteraDouble RedlichKwongMFTP::internalPressure() const
 {
     pressureDerivatives();
     return temperature() * dpdT_ - pressure();
 }
 
-double RedlichKwongMFTP::soundSpeed() const
+CanteraDouble RedlichKwongMFTP::soundSpeed() const
 {
     pressureDerivatives();
     return molarVolume() * sqrt(-cp_mole() / cv_mole() * dpdV_ / meanMolecularWeight());
@@ -762,18 +762,18 @@ double RedlichKwongMFTP::soundSpeed() const
 
 void RedlichKwongMFTP::pressureDerivatives() const
 {
-    double T = temperature();
-    double mv = molarVolume();
-    double pres;
+    CanteraDouble T = temperature();
+    CanteraDouble mv = molarVolume();
+    CanteraDouble pres;
 
     dpdV_ = dpdVCalc(T, mv, pres);
-    double fac = da_dt() - m_aMix/(2.0 * T);
+    CanteraDouble fac = da_dt() - m_aMix/(2.0 * T);
     dpdT_ = (GasConstant / (mv - m_bMix) - fac / (sqrt(T) * mv * (mv + m_bMix)));
 }
 
 void RedlichKwongMFTP::updateMixingExpressions()
 {
-    double T = temperature();
+    CanteraDouble T = temperature();
     auto x = asVectorXd(moleFractions_);
     if (m_formTempParam == 1) {
         m_a = m_a0 + T * m_a1;
@@ -800,7 +800,7 @@ void RedlichKwongMFTP::updateMixingExpressions()
     }
 }
 
-void RedlichKwongMFTP::calculateAB(double T, double& aCalc, double& bCalc) const
+void RedlichKwongMFTP::calculateAB(CanteraDouble T, CanteraDouble& aCalc, CanteraDouble& bCalc) const
 {
     auto x = asVectorXd(moleFractions_);
     bCalc = m_b.matrix().dot(x);
@@ -811,7 +811,7 @@ void RedlichKwongMFTP::calculateAB(double T, double& aCalc, double& bCalc) const
     }
 }
 
-double RedlichKwongMFTP::da_dt() const
+CanteraDouble RedlichKwongMFTP::da_dt() const
 {
     if (m_formTempParam == 0) {
         return 0.0;
@@ -820,12 +820,12 @@ double RedlichKwongMFTP::da_dt() const
     return x.dot(m_a1 * x);
 }
 
-void RedlichKwongMFTP::calcCriticalConditions(double& pc, double& tc, double& vc) const
+void RedlichKwongMFTP::calcCriticalConditions(CanteraDouble& pc, CanteraDouble& tc, CanteraDouble& vc) const
 {
     auto x = asVectorXd(moleFractions_);
-    double a0 = x.dot(m_a0 * x);
-    double aT = x.dot(m_a1 * x);
-    double a = m_aMix;
+    CanteraDouble a0 = x.dot(m_a0 * x);
+    CanteraDouble aT = x.dot(m_a1 * x);
+    CanteraDouble a = m_aMix;
     if (m_formTempParam != 0) {
         a = a0;
     }
@@ -841,9 +841,9 @@ void RedlichKwongMFTP::calcCriticalConditions(double& pc, double& tc, double& vc
         vc = 2.0 * m_bMix;
         return;
     }
-    double tmp = a * omega_b / (m_bMix * omega_a * GasConstant);
-    double pp = 2./3.;
-    double sqrttc, f, dfdt, deltatc;
+    CanteraDouble tmp = a * omega_b / (m_bMix * omega_a * GasConstant);
+    CanteraDouble pp = 2./3.;
+    CanteraDouble sqrttc, f, dfdt, deltatc;
 
     if (m_formTempParam == 0) {
         tc = pow(tmp, pp);
@@ -866,22 +866,22 @@ void RedlichKwongMFTP::calcCriticalConditions(double& pc, double& tc, double& vc
     vc = omega_vc * GasConstant * tc / pc;
 }
 
-int RedlichKwongMFTP::solveCubic(double T, double pres, double a, double b,
-                                 span<double> Vroot) const
+int RedlichKwongMFTP::solveCubic(CanteraDouble T, CanteraDouble pres, CanteraDouble a, CanteraDouble b,
+                                 span<CanteraDouble> Vroot) const
 {
 
     // Derive the coefficients of the cubic polynomial to solve.
-    double an = 1.0;
-    double bn = - GasConstant * T / pres;
-    double sqt = sqrt(T);
-    double cn = - (GasConstant * T * b / pres - a/(pres * sqt) + b * b);
-    double dn = - (a * b / (pres * sqt));
+    CanteraDouble an = 1.0;
+    CanteraDouble bn = - GasConstant * T / pres;
+    CanteraDouble sqt = sqrt(T);
+    CanteraDouble cn = - (GasConstant * T * b / pres - a/(pres * sqt) + b * b);
+    CanteraDouble dn = - (a * b / (pres * sqt));
 
-    double tmp = a * omega_b / (b * omega_a * GasConstant);
-    double pp = 2./3.;
-    double tc = pow(tmp, pp);
-    double pc = omega_b * GasConstant * tc / b;
-    double vc = omega_vc * GasConstant * tc / pc;
+    CanteraDouble tmp = a * omega_b / (b * omega_a * GasConstant);
+    CanteraDouble pp = 2./3.;
+    CanteraDouble tc = pow(tmp, pp);
+    CanteraDouble pc = omega_b * GasConstant * tc / b;
+    CanteraDouble vc = omega_vc * GasConstant * tc / pc;
 
     int nSolnValues = MixtureFugacityTP::solveCubic(T, pres, a, b, a, Vroot, an, bn, cn, dn, tc, vc);
 

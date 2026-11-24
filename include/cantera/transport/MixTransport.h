@@ -70,7 +70,7 @@ public:
      *
      * @param[out] dt  Vector of thermal diffusion coefficients
      */
-    void getThermalDiffCoeffs(span<double> dt) override;
+    void getThermalDiffCoeffs(span<CanteraDouble> dt) override;
 
     //! Returns the mixture thermal conductivity [W/m/K]
     /*!
@@ -85,7 +85,7 @@ public:
      *     \mathbf{q} =  - \lambda \nabla T
      * @f]
      */
-    double thermalConductivity() override;
+    CanteraDouble thermalConductivity() override;
 
     //! Get the electrical mobilities [m²/V/s]
     /*!
@@ -100,7 +100,7 @@ public:
      *               The array must be dimensioned at least as large as the
      *               number of species.
      */
-    void getMobilities(span<double> mobil) override;
+    void getMobilities(span<CanteraDouble> mobil) override;
 
     //! Update the internal parameters whenever the temperature has changed
     /*!
@@ -137,9 +137,9 @@ public:
      *     @f$ j_{kn} = \tt{ fluxes[n*ldf+k]} @f$ is the flux of species *k*
      *     in dimension *n*. Length is `ldf` * `ndim`.
      */
-    void getSpeciesFluxes(size_t ndim, span<const double> grad_T,
-                          size_t ldx, span<const double> grad_X,
-                          size_t ldf, span<double> fluxes) override;
+    void getSpeciesFluxes(size_t ndim, span<const CanteraDouble> grad_T,
+                          size_t ldx, span<const CanteraDouble> grad_X,
+                          size_t ldf, span<CanteraDouble> fluxes) override;
 
     void init(shared_ptr<ThermoPhase> thermo, int mode=0) override;
 
@@ -157,10 +157,10 @@ protected:
      * These are used in Wilke's rule to calculate the viscosity of the
      * solution. length = #m_nsp.
      */
-    vector<double> m_cond;
+    vector<CanteraDouble> m_cond;
 
     //! Internal storage for the calculated mixture thermal conductivity [W/m/K]
-    double m_lambda = 0.0;
+    CanteraDouble m_lambda = 0.0;
 
     //! Update boolean for the species thermal conductivities
     bool m_spcond_ok = false;

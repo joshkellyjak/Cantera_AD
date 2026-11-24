@@ -44,7 +44,7 @@ public:
      * @param n   Number of columns
      * @param v   Default fill value. The default is 0.0
      */
-    Array2D(const size_t m, const size_t n, const double v=0.0);
+    Array2D(const size_t m, const size_t n, const CanteraDouble v=0.0);
 
     //! Constructor.
     /*!
@@ -56,7 +56,7 @@ public:
      * @param values Initial values of the array. Must be of length m*n, and
      *     stored in column-major order.
      */
-    Array2D(const size_t m, const size_t n, span<const double> values);
+    Array2D(const size_t m, const size_t n, span<const CanteraDouble> values);
 
     Array2D(const Array2D& y);
 
@@ -70,7 +70,7 @@ public:
      * @param m  This is the number of columns in the new matrix
      * @param v  Default fill value -> defaults to zero.
      */
-    virtual void resize(size_t n, size_t m, double v=0.0);
+    virtual void resize(size_t n, size_t m, CanteraDouble v=0.0);
 
     //! Append a column to the existing matrix using a std vector
     /*!
@@ -79,14 +79,14 @@ public:
      * @param c  This vector is the entries in the column to be added. It must
      *           have a length equal to m_nrows or greater.
      */
-    void appendColumn(span<const double> c);
+    void appendColumn(span<const CanteraDouble> c);
 
     //! Set the nth row to array rw
     /*!
      * @param  n   Index of the row to be changed
      * @param  rw  Vector for the row. Must have a length of m_ncols.
      */
-    void setRow(size_t n, span<const double> rw);
+    void setRow(size_t n, span<const CanteraDouble> rw);
 
     //! Get the nth row and return it in a vector
     /*!
@@ -94,7 +94,7 @@ public:
      * @param rw   Return Vector for the operation. Must have a length of
      *             m_ncols.
      */
-    void getRow(size_t n, span<double> rw) const;
+    void getRow(size_t n, span<CanteraDouble> rw) const;
 
     //! Set the values in column m to those in array col
     /*!
@@ -103,7 +103,7 @@ public:
      * @param m   Column to set
      * @param col pointer to a col vector. Vector must have a length of m_nrows.
      */
-    void setColumn(size_t m, span<const double> col);
+    void setColumn(size_t m, span<const CanteraDouble> col);
 
     //! Get the values in column m
     /*!
@@ -112,7 +112,7 @@ public:
      * @param m    Column to set
      * @param col  pointer to a col vector that will be returned
      */
-    void getColumn(size_t m, span<double> col) const;
+    void getColumn(size_t m, span<CanteraDouble> col) const;
 
     //! Set all of the entries to zero
     void zero() {
@@ -125,7 +125,7 @@ public:
      *  @param  j            column index.
      *  @returns a reference to A(i,j) which may be assigned.
      */
-    double& operator()(size_t i, size_t j) {
+    CanteraDouble& operator()(size_t i, size_t j) {
         return value(i,j);
     }
 
@@ -135,7 +135,7 @@ public:
      * @param j   Index for the column to be retrieved.
      * @returns the value of the matrix entry
      */
-    double operator()(size_t i, size_t j) const {
+    CanteraDouble operator()(size_t i, size_t j) const {
         return value(i,j);
     }
 
@@ -148,7 +148,7 @@ public:
      * @param j   The column index
      * @returns a changeable reference to the matrix entry
      */
-    double& value(size_t i, size_t j) {
+    CanteraDouble& value(size_t i, size_t j) {
         return m_data[m_nrows*j + i];
     }
 
@@ -159,7 +159,7 @@ public:
      * @param i   The row index
      * @param j   The column index
      */
-    double value(size_t i, size_t j) const {
+    CanteraDouble value(size_t i, size_t j) const {
         return m_data[m_nrows*j + i];
     }
 
@@ -174,30 +174,30 @@ public:
     }
 
     //! Return a reference to the data vector
-    vector<double>& data() {
+    vector<CanteraDouble>& data() {
         return m_data;
     }
 
     //! Return a const reference to the data vector
-    const vector<double>& data() const {
+    const vector<CanteraDouble>& data() const {
         return m_data;
     }
 
-    void operator*=(double a);
+    void operator*=(CanteraDouble a);
 
     //! Return a writable span over column `j`.
-    span<double> col(size_t j) {
-        return span<double>(m_data.data() + m_nrows * j, m_nrows);
+    span<CanteraDouble> col(size_t j) {
+        return span<CanteraDouble>(m_data.data() + m_nrows * j, m_nrows);
     }
 
     //! Return a read-only span over column `j`.
-    span<const double> col(size_t j) const {
-        return span<const double>(m_data.data() + m_nrows * j, m_nrows);
+    span<const CanteraDouble> col(size_t j) const {
+        return span<const CanteraDouble>(m_data.data() + m_nrows * j, m_nrows);
     }
 
 protected:
     //! Data stored in a single array
-    vector<double> m_data;
+    vector<CanteraDouble> m_data;
 
     //! Number of rows
     size_t m_nrows = 0;
@@ -225,7 +225,7 @@ std::ostream& operator<<(std::ostream& s, const Array2D& m);
  * @param m   Matrix
  * @param a   scalar
  */
-void operator*=(Array2D& m, double a);
+void operator*=(Array2D& m, CanteraDouble a);
 
 }
 

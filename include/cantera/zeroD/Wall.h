@@ -38,7 +38,7 @@ public:
      * does nothing (that is, constant volume), but may be overloaded.
      * @since New in %Cantera 3.0.
      */
-    virtual double expansionRate() {
+    virtual CanteraDouble expansionRate() {
         return 0.0;
     }
 
@@ -48,17 +48,17 @@ public:
      * does nothing (that is, an adiabatic wall), but may be overloaded.
      * @since New in %Cantera 3.0.
      */
-    virtual double heatRate() {
+    virtual CanteraDouble heatRate() {
         return 0.0;
     }
 
     //! Area in (m^2).
-    double area() {
+    CanteraDouble area() {
         return m_area;
     }
 
     //! Set the area [m^2].
-    virtual void setArea(double a);
+    virtual void setArea(CanteraDouble a);
 
     //! Called just before the start of integration
     virtual void initialize() {}
@@ -82,7 +82,7 @@ public:
     /*!
      * @since New in %Cantera 3.0.
      */
-    void setSimTime(double time) {
+    void setSimTime(CanteraDouble time) {
         m_time = time;
     }
 
@@ -102,7 +102,7 @@ public:
     //!     may be dense and are controlled by preconditioner sparsity settings.
     //! @since New in %Cantera 4.0.
     virtual void addExpansionRateJacobian(SparseTriplets& trips, size_t row,
-        double coeff, bool includePressureSpecies=true) {};
+        CanteraDouble coeff, bool includePressureSpecies=true) {};
 
     //! Add Jacobian terms proportional to derivatives of the wall heat rate.
     //!
@@ -116,16 +116,16 @@ public:
     //! @param row  Global row index receiving these chain-rule terms.
     //! @param coeff  Multiplicative factor applied to `d(heatRate)/dy_j`.
     //! @since New in %Cantera 4.0.
-    virtual void addHeatRateJacobian(SparseTriplets& trips, size_t row, double coeff) {};
+    virtual void addHeatRateJacobian(SparseTriplets& trips, size_t row, CanteraDouble coeff) {};
 
 protected:
     ReactorBase* m_left = nullptr;
     ReactorBase* m_right = nullptr;
 
     //! current reactor network time
-    double m_time = 0.0;
+    CanteraDouble m_time = 0.0;
 
-    double m_area = 1.0;
+    CanteraDouble m_area = 1.0;
 };
 
 //! Represents a wall between between two ReactorBase objects.
@@ -147,7 +147,7 @@ public:
 
     //! Wall velocity @f$ v(t) @f$ at current reactor network time.
     //! @since New in %Cantera 3.0.
-    double velocity() const;
+    CanteraDouble velocity() const;
 
     //! Set the wall velocity to a specified function of time, @f$ v(t) @f$.
     //! @since  Changed in %Cantera 3.2. Previous version used a raw pointer.
@@ -169,11 +169,11 @@ public:
      * reactor on left, and decreases in the volume of the reactor on the right.
      * @since New in %Cantera 3.0.
      */
-    double expansionRate() override;
+    CanteraDouble expansionRate() override;
 
     //! Heat flux function @f$ q_0(t) @f$ evaluated at current reactor network time.
     //! @since New in %Cantera 3.0.
-    double heatFlux() const;
+    CanteraDouble heatFlux() const;
 
     //! Specify the heat flux function @f$ q_0(t) @f$.
     //! @since  Changed in %Cantera 3.2. Previous version used a raw pointer.
@@ -192,25 +192,25 @@ public:
      * time. Positive values denote a flux from left to right.
      * @since New in %Cantera 3.0.
      */
-    double heatRate() override;
+    CanteraDouble heatRate() override;
 
     //! Set the thermal resistance of the wall [K*m^2/W].
-    void setThermalResistance(double Rth) {
+    void setThermalResistance(CanteraDouble Rth) {
         m_rrth = 1.0/Rth;
     }
 
     //! Set the overall heat transfer coefficient [W/m^2/K].
-    void setHeatTransferCoeff(double U) {
+    void setHeatTransferCoeff(CanteraDouble U) {
         m_rrth = U;
     }
 
     //! Get the overall heat transfer coefficient [W/m^2/K].
-    double getHeatTransferCoeff() const {
+    CanteraDouble getHeatTransferCoeff() const {
         return m_rrth;
     }
 
     //! Set the emissivity.
-    void setEmissivity(double epsilon) {
+    void setEmissivity(CanteraDouble epsilon) {
         if (epsilon > 1.0 || epsilon < 0.0) {
             throw CanteraError("WallBase::setEmissivity",
                                "emissivity must be between 0.0 and 1.0");
@@ -219,34 +219,34 @@ public:
     }
 
     //! Get the emissivity.
-    double getEmissivity() const {
+    CanteraDouble getEmissivity() const {
         return m_emiss;
     }
 
     //! Set the expansion rate coefficient.
-    void setExpansionRateCoeff(double k) {
+    void setExpansionRateCoeff(CanteraDouble k) {
         m_k = k;
     }
 
     //! Get the expansion rate coefficient
-    double getExpansionRateCoeff() const {
+    CanteraDouble getExpansionRateCoeff() const {
         return m_k;
     }
 
-    void addExpansionRateJacobian(SparseTriplets& trips, size_t row, double coeff,
+    void addExpansionRateJacobian(SparseTriplets& trips, size_t row, CanteraDouble coeff,
                                   bool includePressureSpecies=true) override;
-    void addHeatRateJacobian(SparseTriplets& trips, size_t row, double coeff) override;
+    void addHeatRateJacobian(SparseTriplets& trips, size_t row, CanteraDouble coeff) override;
 
 protected:
 
     //! expansion rate coefficient
-    double m_k = 0.0;
+    CanteraDouble m_k = 0.0;
 
     //! heat transfer coefficient
-    double m_rrth = 0.0;
+    CanteraDouble m_rrth = 0.0;
 
     //! emissivity
-    double m_emiss = 0.0;
+    CanteraDouble m_emiss = 0.0;
 
     //! Velocity function
     Func1* m_vf = nullptr;

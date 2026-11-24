@@ -72,7 +72,7 @@ public:
      * @param moleFracVec      Vector of input mole fractions
      * @param vcsStateStatus   Status flag for this update
      */
-    void setMoleFractionsState(const double molNum, span<const double> moleFracVec,
+    void setMoleFractionsState(const CanteraDouble molNum, span<const CanteraDouble> moleFracVec,
                                const int vcsStateStatus);
 
     //! Set the moles within the phase
@@ -88,7 +88,7 @@ public:
      *     to gather the species into the local contiguous vector format.
      */
     void setMolesFromVCS(const int stateCalc,
-                         span<const double> molesSpeciesVCS = {});
+                         span<const CanteraDouble> molesSpeciesVCS = {});
 
     //! Set the moles within the phase
     /*!
@@ -108,8 +108,8 @@ public:
      * @param TPhMoles  VCS's array containing the number of moles in each phase.
      */
     void setMolesFromVCSCheck(const int vcsStateStatus,
-                              span<const double> molesSpeciesVCS,
-                              span<const double> TPhMoles);
+                              span<const CanteraDouble> molesSpeciesVCS,
+                              span<const CanteraDouble> TPhMoles);
 
     //! Update the moles within the phase, if necessary
     /*!
@@ -134,19 +134,19 @@ public:
      *     of the phases in a VCS problem. Only the entries for the current
      *     phase are filled in.
      */
-    void sendToVCS_ActCoeff(const int stateCalc, span<double> AC);
+    void sendToVCS_ActCoeff(const int stateCalc, span<CanteraDouble> AC);
 
     //! set the electric potential of the phase
     /*!
      * @param phi electric potential (volts)
      */
-    void setElectricPotential(const double phi);
+    void setElectricPotential(const CanteraDouble phi);
 
     //! Returns the electric field of the phase
     /*!
      *  Units are potential
      */
-    double electricPotential() const;
+    CanteraDouble electricPotential() const;
 
     //! Gibbs free energy calculation for standard state of one species
     /*!
@@ -156,7 +156,7 @@ public:
      * @param kspec   Species number (within the phase)
      * @returns the Gibbs free energy for the standard state of the kth species.
      */
-    double GStar_calc_one(size_t kspec) const;
+    CanteraDouble GStar_calc_one(size_t kspec) const;
 
     //! Gibbs free energy calculation at a temperature for the reference state
     //! of a species, return a value for one species
@@ -164,7 +164,7 @@ public:
      *  @param kspec   species index
      *  @returns       value of the Gibbs free energy
      */
-    double G0_calc_one(size_t kspec) const;
+    CanteraDouble G0_calc_one(size_t kspec) const;
 
     //! Fill in the partial molar volume vector for VCS
     /*!
@@ -176,7 +176,7 @@ public:
      *     all of the phases in a VCS problem. Only the entries for the current
      *     phase are filled in.
      */
-    double sendToVCS_VolPM(span<double> VolPM) const;
+    CanteraDouble sendToVCS_VolPM(span<CanteraDouble> VolPM) const;
 
     //! Fill in the standard state Gibbs free energy vector for VCS
     /*!
@@ -188,7 +188,7 @@ public:
      *     species in all of the phases in a VCS problem. Only the entries for the
      *     current phase are filled in.
      */
-    void sendToVCS_GStar(span<double> gstar) const;
+    void sendToVCS_GStar(span<CanteraDouble> gstar) const;
 
     //! Sets the temperature and pressure in this object and underlying
     //! ThermoPhase objects
@@ -196,7 +196,7 @@ public:
      * @param temperature_Kelvin    (Kelvin)
      * @param pressure_PA  Pressure (MKS units - Pascal)
      */
-    void setState_TP(const double temperature_Kelvin, const double pressure_PA);
+    void setState_TP(const CanteraDouble temperature_Kelvin, const CanteraDouble pressure_PA);
 
     //! Downloads the ln ActCoeff Jacobian into the VCS version of the
     //! ln ActCoeff Jacobian.
@@ -213,7 +213,7 @@ public:
     void sendToVCS_LnActCoeffJac(Array2D& LnACJac_VCS);
 
     //! Return the total moles in the phase
-    double totalMoles() const;
+    CanteraDouble totalMoles() const;
 
     //! Returns the mole fraction of the kspec species
     /*!
@@ -221,7 +221,7 @@ public:
      *
      * @return  Value of the mole fraction
      */
-    double molefraction(size_t kspec) const;
+    CanteraDouble molefraction(size_t kspec) const;
 
     //! Sets the total moles in the phase
     /*!
@@ -230,7 +230,7 @@ public:
      *
      * @param totalMols   Total moles in the phase (kmol)
      */
-    void setTotalMoles(const double totalMols);
+    void setTotalMoles(const CanteraDouble totalMols);
 
     //! Sets the mole flag within the object to out of date
     /*!
@@ -250,27 +250,27 @@ private:
      * @param xmol Value of the mole fractions for the species in the phase.
      *             These are contiguous.
      */
-    void setMoleFractions(span<const double> xmol);
+    void setMoleFractions(span<const CanteraDouble> xmol);
 
 public:
     //! Return a const reference to the mole fractions stored in the object.
-    span<const double> moleFractions() const;
+    span<const CanteraDouble> moleFractions() const;
 
-    double moleFraction(size_t klocal) const;
+    CanteraDouble moleFraction(size_t klocal) const;
 
     //! Sets the creationMoleNum's within the phase object
     /*!
      * @param n_k Pointer to a vector of n_k's
      * @param creationGlobalRxnNumbers  Vector of global creation reaction numbers
      */
-    void setCreationMoleNumbers(span<const double> n_k,
+    void setCreationMoleNumbers(span<const CanteraDouble> n_k,
                                 span<const size_t> creationGlobalRxnNumbers);
 
     //! Return a const reference to the creationMoleNumbers stored in the object.
     /*!
      * @returns a const reference to the vector of creationMoleNumbers
      */
-    span<const double> creationMoleNumbers(span<size_t> creationGlobalRxnNumbers) const;
+    span<const CanteraDouble> creationMoleNumbers(span<size_t> creationGlobalRxnNumbers) const;
 
     //! Returns whether the phase is an ideal solution phase
     bool isIdealSoln() const;
@@ -426,7 +426,7 @@ private:
      *
      * @return total volume [m^3]
      */
-    double _updateVolPM() const;
+    CanteraDouble _updateVolPM() const;
 
     //! Evaluation of Activity Coefficient Jacobians
     /*!
@@ -579,16 +579,16 @@ private:
     ThermoPhase* TP_ptr = nullptr;
 
     //!  Total mols in the phase. units are kmol
-    double v_totalMoles = 0.0;
+    CanteraDouble v_totalMoles = 0.0;
 
     //! Vector of the current mole fractions for species in the phase
-    vector<double> Xmol_;
+    vector<CanteraDouble> Xmol_;
 
     //! Vector of current creationMoleNumbers_
     /*!
      *  These are the actual unknowns in the phase stability problem
      */
-    vector<double> creationMoleNumbers_;
+    vector<CanteraDouble> creationMoleNumbers_;
 
     //! Vector of creation global reaction numbers for the phase stability problem
     /*!
@@ -612,7 +612,7 @@ private:
     size_t m_phiVarIndex = npos;
 
     //! Total Volume of the phase. Units are m**3.
-    mutable double m_totalVol = 0.0;
+    mutable CanteraDouble m_totalVol = 0.0;
 
     //! Vector of calculated SS0 chemical potentials for the
     //! current Temperature.
@@ -621,7 +621,7 @@ private:
      * in temperature. Pressure effects have to be added in to get to the
      * standard state. Units are J/kmol.
      */
-    mutable vector<double> SS0ChemicalPotential;
+    mutable vector<CanteraDouble> SS0ChemicalPotential;
 
     //! Vector of calculated Star chemical potentials for the
     //! current Temperature and pressure.
@@ -629,20 +629,20 @@ private:
      * Note, This is the chemical potential at unit activity. Thus, we can call
      * it the standard state chemical potential as well. Units are J/kmol.
      */
-    mutable vector<double> StarChemicalPotential;
+    mutable vector<CanteraDouble> StarChemicalPotential;
 
     //! Vector of the Star molar Volumes of the species. units  m3 / kmol
-    mutable vector<double> StarMolarVol;
+    mutable vector<CanteraDouble> StarMolarVol;
 
     //! Vector of the Partial molar Volumes of the species. units  m3 / kmol
-    mutable vector<double> PartialMolarVol;
+    mutable vector<CanteraDouble> PartialMolarVol;
 
     //! Vector of calculated activity coefficients for the current state
     /*!
      * Whether or not this vector is current is determined by the bool
      * #m_UpToDate_AC.
      */
-    mutable vector<double> ActCoeff;
+    mutable vector<CanteraDouble> ActCoeff;
 
     //! Vector of the derivatives of the ln activity coefficient wrt to the
     //! current mole number multiplied by the current phase moles
@@ -663,7 +663,7 @@ private:
     int m_vcsStateStatus = VCS_STATECALC_OLD;
 
     //! Value of the potential for the phase (Volts)
-    double m_phi = 0.0;
+    CanteraDouble m_phi = 0.0;
 
     //! Boolean indicating whether the object has an up-to-date mole number vector
     //! and potential with respect to the current vcs state calc status
@@ -708,10 +708,10 @@ private:
     mutable bool m_UpToDate_G0 = false;
 
     //! Current value of the temperature for this object, and underlying objects
-    double Temp_ = 273.15;
+    CanteraDouble Temp_ = 273.15;
 
     //! Current value of the pressure for this object, and underlying objects
-    double Pres_ = OneAtm;
+    CanteraDouble Pres_ = OneAtm;
 };
 
 }

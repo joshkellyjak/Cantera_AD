@@ -37,9 +37,9 @@ namespace Cantera
 {
 
 //! Access a SUNDIALS `N_Vector` as a `span<double>`
-inline span<double> asSpan(N_Vector v)
+inline span<CanteraDouble> asSpan(N_Vector v)
 {
-    return span<double>(NV_DATA_S(v), NV_LENGTH_S(v));
+    return span<CanteraDouble>(NV_DATA_S(v), NV_LENGTH_S(v));
 }
 
 }

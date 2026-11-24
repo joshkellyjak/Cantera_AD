@@ -26,14 +26,14 @@ public:
         return "IdealGasReactor";
     }
 
-    void getState(span<double> y) override;
+    void getState(span<CanteraDouble> y) override;
 
-    void initialize(double t0=0.0) override;
+    void initialize(CanteraDouble t0=0.0) override;
 
-    void eval(double t, span<double> LHS, span<double> RHS) override;
-    void evalSteady(double t, span<double> LHS, span<double> RHS) override;
+    void eval(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS) override;
+    void evalSteady(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS) override;
     vector<size_t> initializeSteady() override;
-    void updateState(span<const double> y) override;
+    void updateState(span<const CanteraDouble> y) override;
 
     //! Return the index in the solution vector for this reactor of the
     //! component named *nm*. Possible values for *nm* are "mass",
@@ -41,17 +41,17 @@ public:
     //! name of a surface species.
     size_t componentIndex(const string& nm) const override;
     string componentName(size_t k) override;
-    double upperBound(size_t k) const override;
-    double lowerBound(size_t k) const override;
+    CanteraDouble upperBound(size_t k) const override;
+    CanteraDouble lowerBound(size_t k) const override;
 
 protected:
-    vector<double> m_uk; //!< Species molar internal energies at constant T,V
+    vector<CanteraDouble> m_uk; //!< Species molar internal energies at constant T,V
 
     //! Initial volume [m³]; used for steady-state calculations
-    double m_initialVolume;
+    CanteraDouble m_initialVolume;
 
     //! Initial temperature [K]; used for steady-state calculations
-    double m_initialTemperature;
+    CanteraDouble m_initialTemperature;
 };
 
 }

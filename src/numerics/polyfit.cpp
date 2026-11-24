@@ -11,8 +11,8 @@
 namespace Cantera
 {
 
-double polyfit(size_t deg, span<const double> x, span<const double> y,
-               span<const double> w, span<double> p)
+CanteraDouble polyfit(size_t deg, span<const CanteraDouble> x, span<const CanteraDouble> y,
+               span<const CanteraDouble> w, span<CanteraDouble> p)
 {
     size_t n = x.size();
     checkArraySize("polyfit", y.size(), n);

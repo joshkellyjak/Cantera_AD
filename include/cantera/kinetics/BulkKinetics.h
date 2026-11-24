@@ -36,48 +36,48 @@ public:
     void modifyReaction(size_t i, shared_ptr<Reaction> rNew) override;
     void resizeSpecies() override;
     void resizeReactions() override;
-    void setMultiplier(size_t i, double f) override;
+    void setMultiplier(size_t i, CanteraDouble f) override;
     void invalidateCache() override;
     //! @}
 
     //! @name Reaction rate constants, rates of progress, and thermodynamic properties
     //! @{
-    void getFwdRateConstants(span<double> kfwd) override;
-    void getEquilibriumConstants(span<double> kc) override;
-    void getRevRateConstants(span<double> krev, bool doIrreversible=false) override;
+    void getFwdRateConstants(span<CanteraDouble> kfwd) override;
+    void getEquilibriumConstants(span<CanteraDouble> kc) override;
+    void getRevRateConstants(span<CanteraDouble> krev, bool doIrreversible=false) override;
 
-    void getDeltaGibbs(span<double> deltaG) override;
-    void getDeltaEnthalpy(span<double> deltaH) override;
-    void getDeltaEntropy(span<double> deltaS) override;
+    void getDeltaGibbs(span<CanteraDouble> deltaG) override;
+    void getDeltaEnthalpy(span<CanteraDouble> deltaH) override;
+    void getDeltaEntropy(span<CanteraDouble> deltaS) override;
 
-    void getDeltaSSGibbs(span<double> deltaG) override;
-    void getDeltaSSEnthalpy(span<double> deltaH) override;
-    void getDeltaSSEntropy(span<double> deltaS) override;
+    void getDeltaSSGibbs(span<CanteraDouble> deltaG) override;
+    void getDeltaSSEnthalpy(span<CanteraDouble> deltaH) override;
+    void getDeltaSSEntropy(span<CanteraDouble> deltaS) override;
     //! @}
 
     //! @name Derivatives of rate constants and rates of progress
     //! @{
     void getDerivativeSettings(AnyMap& settings) const override;
     void setDerivativeSettings(const AnyMap& settings) override;
-    void getFwdRateConstants_ddT(span<double> dkfwd) override;
-    void getFwdRatesOfProgress_ddT(span<double> drop) override;
-    void getRevRatesOfProgress_ddT(span<double> drop) override;
-    void getNetRatesOfProgress_ddT(span<double> drop) override;
-    void getFwdRateConstants_ddP(span<double> dkfwd) override;
-    void getFwdRatesOfProgress_ddP(span<double> drop) override;
-    void getRevRatesOfProgress_ddP(span<double> drop) override;
-    void getNetRatesOfProgress_ddP(span<double> drop) override;
-    void getFwdRateConstants_ddC(span<double> dkfwd) override;
-    void getFwdRatesOfProgress_ddC(span<double> drop) override;
-    void getRevRatesOfProgress_ddC(span<double> drop) override;
-    void getNetRatesOfProgress_ddC(span<double> drop) override;
-    Eigen::SparseMatrix<double> fwdRatesOfProgress_ddX() override;
-    Eigen::SparseMatrix<double> revRatesOfProgress_ddX() override;
-    Eigen::SparseMatrix<double> netRatesOfProgress_ddX() override;
-    Eigen::SparseMatrix<double> fwdRatesOfProgress_ddCi() override;
-    Eigen::SparseMatrix<double> revRatesOfProgress_ddCi() override;
-    Eigen::SparseMatrix<double> netRatesOfProgress_ddCi() override;
-    void netProductionRates_ddCi(Eigen::SparseMatrix<double>& jac) override;
+    void getFwdRateConstants_ddT(span<CanteraDouble> dkfwd) override;
+    void getFwdRatesOfProgress_ddT(span<CanteraDouble> drop) override;
+    void getRevRatesOfProgress_ddT(span<CanteraDouble> drop) override;
+    void getNetRatesOfProgress_ddT(span<CanteraDouble> drop) override;
+    void getFwdRateConstants_ddP(span<CanteraDouble> dkfwd) override;
+    void getFwdRatesOfProgress_ddP(span<CanteraDouble> drop) override;
+    void getRevRatesOfProgress_ddP(span<CanteraDouble> drop) override;
+    void getNetRatesOfProgress_ddP(span<CanteraDouble> drop) override;
+    void getFwdRateConstants_ddC(span<CanteraDouble> dkfwd) override;
+    void getFwdRatesOfProgress_ddC(span<CanteraDouble> drop) override;
+    void getRevRatesOfProgress_ddC(span<CanteraDouble> drop) override;
+    void getNetRatesOfProgress_ddC(span<CanteraDouble> drop) override;
+    Eigen::SparseMatrix<CanteraDouble> fwdRatesOfProgress_ddX() override;
+    Eigen::SparseMatrix<CanteraDouble> revRatesOfProgress_ddX() override;
+    Eigen::SparseMatrix<CanteraDouble> netRatesOfProgress_ddX() override;
+    Eigen::SparseMatrix<CanteraDouble> fwdRatesOfProgress_ddCi() override;
+    Eigen::SparseMatrix<CanteraDouble> revRatesOfProgress_ddCi() override;
+    Eigen::SparseMatrix<CanteraDouble> netRatesOfProgress_ddCi() override;
+    void netProductionRates_ddCi(Eigen::SparseMatrix<CanteraDouble>& jac) override;
     //! @}
 
     //! @name Rate calculation intermediate methods
@@ -85,8 +85,8 @@ public:
 
     void updateROP() override;
 
-    void getThirdBodyConcentrations(span<double> concm) override;
-    span<const double> thirdBodyConcentrations() const override {
+    void getThirdBodyConcentrations(span<CanteraDouble> concm) override;
+    span<const CanteraDouble> thirdBodyConcentrations() const override {
         return m_concm;
     }
 
@@ -101,35 +101,35 @@ protected:
     //! @{
 
     //! Multiply rate with third-body collider concentrations
-    void processThirdBodies(span<double> rop);
+    void processThirdBodies(span<CanteraDouble> rop);
 
     //! Multiply rate with inverse equilibrium constant
-    void applyEquilibriumConstants(span<double> rop);
+    void applyEquilibriumConstants(span<CanteraDouble> rop);
 
     //! Multiply rate with scaled temperature derivatives of the inverse
     //! equilibrium constant
     /*!
      *  This (scaled) derivative is handled by a finite difference.
      */
-    void applyEquilibriumConstants_ddT(span<double> drkcn);
+    void applyEquilibriumConstants_ddT(span<CanteraDouble> drkcn);
 
     //! Process temperature derivative
     //! @param in  rate expression used for the derivative calculation
     //! @param drop  pointer to output buffer
-    void process_ddT(const span<const double> in, span<double> drop);
+    void process_ddT(const span<const CanteraDouble> in, span<CanteraDouble> drop);
 
     //! Process pressure derivative
     //! @param in  rate expression used for the derivative calculation
     //! @param drop  pointer to output buffer
-    void process_ddP(const span<const double> in, span<double> drop);
+    void process_ddP(const span<const CanteraDouble> in, span<CanteraDouble> drop);
 
     //! Process concentration (molar density) derivative
     //! @param stoich  stoichiometry manager
     //! @param in  rate expression used for the derivative calculation
     //! @param drop  pointer to output buffer
     //! @param mass_action  boolean indicating whether law of mass action applies
-    void process_ddC(StoichManagerN& stoich, span<const double> in,
-                     span<double> drop, bool mass_action=true);
+    void process_ddC(StoichManagerN& stoich, span<const CanteraDouble> in,
+                     span<CanteraDouble> drop, bool mass_action=true);
 
     //! Process derivatives
     //! @param stoich  stoichiometry manager
@@ -137,8 +137,8 @@ protected:
     //! @param ddX true: w.r.t mole fractions false: w.r.t species concentrations
     //! @return a sparse matrix of derivative contributions for each reaction of
     //! dimensions nTotalReactions by nTotalSpecies
-    Eigen::SparseMatrix<double> calculateCompositionDerivatives(
-        StoichManagerN& stoich, span<const double> in, bool ddX=true);
+    Eigen::SparseMatrix<CanteraDouble> calculateCompositionDerivatives(
+        StoichManagerN& stoich, span<const CanteraDouble> in, bool ddX=true);
 
     //! Accumulate `sign * nu_net * d(rates-of-progress)/dC` into the
     //! already-patterned, compressed column-major sparse matrix `out`, mirroring
@@ -146,9 +146,9 @@ protected:
     //! product directly into `out` using a dense length-K workspace per column.
     //! `out`'s pattern must already cover every (k, m) the product can touch.
     void accumulateCompositionDerivatives(StoichManagerN& stoich,
-                                          span<const double> in,
-                                          Eigen::SparseMatrix<double>& out,
-                                          double sign);
+                                          span<const CanteraDouble> in,
+                                          Eigen::SparseMatrix<CanteraDouble>& out,
+                                          CanteraDouble sign);
 
     //! Helper function ensuring that all rate derivatives can be calculated
     //! @param name  method name used for error output
@@ -160,40 +160,40 @@ protected:
     //! Difference between the global reactants order and the global products
     //! order. Of type "double" to account for the fact that we can have real-
     //! valued stoichiometries.
-    vector<double> m_dn;
+    vector<CanteraDouble> m_dn;
 
     ThirdBodyCalc m_multi_concm; //!< used with MultiRate evaluator
 
     //! Third body concentrations
-    vector<double> m_concm;
+    vector<CanteraDouble> m_concm;
 
     //! Activity concentrations, as calculated by ThermoPhase::getActivityConcentrations
-    vector<double> m_act_conc;
+    vector<CanteraDouble> m_act_conc;
 
     //! Physical concentrations, as calculated by ThermoPhase::getConcentrations
-    vector<double> m_phys_conc;
+    vector<CanteraDouble> m_phys_conc;
 
     //! Derivative settings
     bool m_jac_skip_third_bodies;
     bool m_jac_skip_falloff;
     bool m_jac_skip_nonideal;
-    double m_jac_rtol_delta;
+    CanteraDouble m_jac_rtol_delta;
 
     bool m_ROP_ok = false;
 
     //! Buffers for partial rop results with length nReactions()
-    vector<double> m_rbuf0;
-    vector<double> m_rbuf1;
-    vector<double> m_rbuf2;
+    vector<CanteraDouble> m_rbuf0;
+    vector<CanteraDouble> m_rbuf1;
+    vector<CanteraDouble> m_rbuf2;
 
     //! Dense scatter column of length nTotalSpecies() used by
     //! accumulateCompositionDerivatives() to fold the stoichiometry-matrix product
     //! into the result column-by-column.
-    vector<double> m_rbuf3;
-    vector<double> m_kf0; //!< Forward rate constants without perturbation
-    vector<double> m_sbuf0;
-    vector<double> m_state;
-    vector<double> m_grt; //!< Standard chemical potentials for each species
+    vector<CanteraDouble> m_rbuf3;
+    vector<CanteraDouble> m_kf0; //!< Forward rate constants without perturbation
+    vector<CanteraDouble> m_sbuf0;
+    vector<CanteraDouble> m_state;
+    vector<CanteraDouble> m_grt; //!< Standard chemical potentials for each species
 };
 
 }

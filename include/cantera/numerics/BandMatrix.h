@@ -52,7 +52,7 @@ public:
      * @param ku  band size on the upper portion of the matrix
      * @param v   initial value of all matrix components.
      */
-    BandMatrix(size_t n, size_t kl, size_t ku, double v = 0.0);
+    BandMatrix(size_t n, size_t kl, size_t ku, CanteraDouble v = 0.0);
 
     BandMatrix(const BandMatrix& y);
     BandMatrix& operator=(const BandMatrix& y);
@@ -66,16 +66,16 @@ public:
      * @param ku  band size on the upper portion of the matrix
      * @param v   initial value of all matrix components.
      */
-    void resize(size_t n, size_t kl, size_t ku, double v = 0.0);
+    void resize(size_t n, size_t kl, size_t ku, CanteraDouble v = 0.0);
 
     //! Fill or zero the matrix
     /*!
      *  @param v  Fill value, defaults to zero.
      */
-    void bfill(double v = 0.0);
+    void bfill(CanteraDouble v = 0.0);
 
-    double& operator()(size_t i, size_t j) override;
-    double operator()(size_t i, size_t j) const override;
+    CanteraDouble& operator()(size_t i, size_t j) override;
+    CanteraDouble operator()(size_t i, size_t j) const override;
 
     //! Return a changeable reference to element (i,j).
     /*!
@@ -86,7 +86,7 @@ public:
      * @param j  column
      * @returns a reference to the value of the matrix entry
      */
-    double& value(size_t i, size_t j);
+    CanteraDouble& value(size_t i, size_t j);
 
     //! Return the value of element (i,j).
     /*!
@@ -95,7 +95,7 @@ public:
      * @param j  column
      * @returns the value of the matrix entry
      */
-    double value(size_t i, size_t j) const;
+    CanteraDouble value(size_t i, size_t j) const;
 
     //! Returns the location in the internal 1D array corresponding to the (i,j)
     //! element in the banded array
@@ -115,7 +115,7 @@ public:
      * @param j  column
      * @returns the value of the matrix entry
      */
-    double _value(size_t i, size_t j) const;
+    CanteraDouble _value(size_t i, size_t j) const;
 
     size_t nRows() const override;
 
@@ -132,8 +132,8 @@ public:
     size_t ldim() const;
 
     //! Multiply A*b and write result to @c prod.
-    void mult(span<const double> b, span<double> prod) const override;
-    void leftMult(span<const double> b, span<double> prod) const override;
+    void mult(span<const CanteraDouble> b, span<CanteraDouble> prod) const override;
+    void leftMult(span<const CanteraDouble> b, span<CanteraDouble> prod) const override;
 
     //! Perform an LU decomposition, the LAPACK routine DGBTRF is used.
     //! The factorization is saved in ludata.
@@ -144,7 +144,7 @@ public:
      * @param[in] b  RHS of the problem
      * @param[out] x  Solution to the problem
      */
-    void solve(span<const double> b, span<double> x);
+    void solve(span<const CanteraDouble> b, span<CanteraDouble> x);
 
     //! Solve the matrix problem Ax = b
     /*!
@@ -152,7 +152,7 @@ public:
      * @param nrhs  Number of right hand sides to solve
      * @param ldb   Leading dimension of `b`. Default is nColumns()
      */
-    void solve(span<double> b, size_t nrhs=1, size_t ldb=0) override;
+    void solve(span<CanteraDouble> b, size_t nrhs=1, size_t ldb=0) override;
 
     void zero() override;
 
@@ -163,14 +163,14 @@ public:
      * @param a1norm Norm of the matrix
      * @returns the inverse of the condition number
      */
-    double rcond(double a1norm) override;
+    CanteraDouble rcond(CanteraDouble a1norm) override;
 
     //! Returns the factor algorithm used.  This method will always return 0
     //! (LU) for band matrices.
     int factorAlgorithm() const override;
 
     //! Returns the one norm of the matrix
-    double oneNorm() const override;
+    CanteraDouble oneNorm() const override;
 
     //! Check to see if we have any zero rows in the Jacobian
     /*!
@@ -180,7 +180,7 @@ public:
      * @param valueSmall  OUTPUT value of the largest coefficient in the smallest row
      * @return index of the row that is most nearly zero
      */
-    size_t checkRows(double& valueSmall) const override;
+    size_t checkRows(CanteraDouble& valueSmall) const override;
 
     //! Check to see if we have any zero columns in the Jacobian
     /*!
@@ -190,19 +190,19 @@ public:
      * @param valueSmall  OUTPUT value of the largest coefficient in the smallest column
      * @return index of the column that is most nearly zero
      */
-    size_t checkColumns(double& valueSmall) const override;
+    size_t checkColumns(CanteraDouble& valueSmall) const override;
 
     //! LAPACK "info" flag after last factor/solve operation
     int info() const { return m_info; };
 
 protected:
     //! Matrix data
-    vector<double> data;
+    vector<CanteraDouble> data;
 
     //! Factorized data
-    vector<double> ludata;
+    vector<CanteraDouble> ludata;
     //! Pointers into #ludata used by the SUNDIALS solver
-    vector<double*> m_lu_col_ptrs;
+    vector<CanteraDouble*> m_lu_col_ptrs;
 
     //! Number of rows and columns of the matrix
     size_t m_n = 0;
@@ -214,7 +214,7 @@ protected:
     size_t m_ku = 0;
 
     //! value of zero
-    double m_zero = 0;
+    CanteraDouble m_zero = 0;
 
     struct PivData; // pImpl wrapper class
 
@@ -225,7 +225,7 @@ protected:
     vector<int> iwork_;
 
     //! Extra dp work array needed - size = 3n
-    vector<double> work_;
+    vector<CanteraDouble> work_;
 
 
     int m_info = 0;

@@ -27,7 +27,7 @@ ConstPressureReactor::ConstPressureReactor(shared_ptr<Solution> sol, bool clone,
     m_nv = 2 + m_nsp; // mass, enthalpy, and mass fractions of each species
 }
 
-void ConstPressureReactor::getState(span<double> y)
+void ConstPressureReactor::getState(span<CanteraDouble> y)
 {
     // set the first component to the total mass
     y[0] = m_thermo->density() * m_vol;
@@ -40,7 +40,7 @@ void ConstPressureReactor::getState(span<double> y)
 
 }
 
-void ConstPressureReactor::updateState(span<const double> y)
+void ConstPressureReactor::updateState(span<const CanteraDouble> y)
 {
     // The components of y are [0] the total mass, [1] the total enthalpy,
     // [2...K+2) are the mass fractions of each species, and [K+2...] are the
@@ -56,9 +56,9 @@ void ConstPressureReactor::updateState(span<const double> y)
     updateConnected(false);
 }
 
-void ConstPressureReactor::eval(double time, span<double> LHS, span<double> RHS)
+void ConstPressureReactor::eval(CanteraDouble time, span<CanteraDouble> LHS, span<CanteraDouble> RHS)
 {
-    double& dmdt = RHS[0];
+    CanteraDouble& dmdt = RHS[0];
     auto mdYdt = RHS.subspan(2); // mass * dY/dt
 
     dmdt = 0.0;
@@ -68,7 +68,7 @@ void ConstPressureReactor::eval(double time, span<double> LHS, span<double> RHS)
 
     auto mw = m_thermo->molecularWeights();
     auto Y = m_thermo->massFractions();
-    double mdot_surf = dot(m_sdot.begin(), m_sdot.end(), mw.begin());
+    CanteraDouble mdot_surf = dot(m_sdot.begin(), m_sdot.end(), mw.begin());
     dmdt += mdot_surf;
 
     if (m_chem) {
@@ -85,7 +85,7 @@ void ConstPressureReactor::eval(double time, span<double> LHS, span<double> RHS)
     }
 
     // external heat transfer
-    double dHdt = m_Qdot;
+    CanteraDouble dHdt = m_Qdot;
 
     if (m_energy) {
         dHdt += m_thermo->intrinsicHeating() * m_vol;
@@ -93,17 +93,17 @@ void ConstPressureReactor::eval(double time, span<double> LHS, span<double> RHS)
 
     // add terms for outlets
     for (auto outlet : m_outlet) {
-        double mdot = outlet->massFlowRate();
+        CanteraDouble mdot = outlet->massFlowRate();
         dmdt -= mdot;
         dHdt -= mdot * m_enthalpy;
     }
 
     // add terms for inlets
     for (auto inlet : m_inlet) {
-        double mdot = inlet->massFlowRate();
+        CanteraDouble mdot = inlet->massFlowRate();
         dmdt += mdot; // mass flow into system
         for (size_t n = 0; n < m_nsp; n++) {
-            double mdot_spec = inlet->outletSpeciesMassFlowRate(n);
+            CanteraDouble mdot_spec = inlet->outletSpeciesMassFlowRate(n);
             // flow of species into system and dilution by other species
             mdYdt[n] += mdot_spec - mdot * Y[n];
         }
@@ -117,7 +117,7 @@ void ConstPressureReactor::eval(double time, span<double> LHS, span<double> RHS)
     }
 }
 
-void ConstPressureReactor::evalSteady(double t, span<double> LHS, span<double> RHS)
+void ConstPressureReactor::evalSteady(CanteraDouble t, span<CanteraDouble> LHS, span<CanteraDouble> RHS)
 {
     eval(t, LHS, RHS);
     RHS[0] = m_mass - m_initialMass;
@@ -156,7 +156,7 @@ string ConstPressureReactor::componentName(size_t k) {
     throw IndexError("ConstPressureReactor::componentName", "component", k, m_nv);
 }
 
-double ConstPressureReactor::upperBound(size_t k) const {
+CanteraDouble ConstPressureReactor::upperBound(size_t k) const {
     if (k == 0) {
         return BigNumber; // mass
     } else if (k == 1) {
@@ -169,7 +169,7 @@ double ConstPressureReactor::upperBound(size_t k) const {
     }
 }
 
-double ConstPressureReactor::lowerBound(size_t k) const {
+CanteraDouble ConstPressureReactor::lowerBound(size_t k) const {
     if (k == 0) {
         return 0; // mass
     } else if (k == 1) {
@@ -182,7 +182,7 @@ double ConstPressureReactor::lowerBound(size_t k) const {
     }
 }
 
-void ConstPressureReactor::resetBadValues(span<double> y) {
+void ConstPressureReactor::resetBadValues(span<CanteraDouble> y) {
     for (size_t k = 2; k < m_nv; k++) {
         y[k] = std::max(y[k], 0.0);
     }

@@ -15,19 +15,19 @@ namespace Cantera
 {
 
 ConstCpPoly::ConstCpPoly()
-    : SpeciesThermoInterpType(0.0, std::numeric_limits<double>::infinity(), 0.0)
+    : SpeciesThermoInterpType(0.0, std::numeric_limits<CanteraDouble>::infinity(), 0.0)
 {
 }
 
-ConstCpPoly::ConstCpPoly(double tlow, double thigh, double pref,
-                         span<const double> coeffs) :
+ConstCpPoly::ConstCpPoly(CanteraDouble tlow, CanteraDouble thigh, CanteraDouble pref,
+                         span<const CanteraDouble> coeffs) :
     SpeciesThermoInterpType(tlow, thigh, pref)
 {
     checkArraySize("ConstCpPoly::ConstCpPoly", coeffs.size(), 4);
     setParameters(coeffs[0], coeffs[1], coeffs[2], coeffs[3]);
 }
 
-void ConstCpPoly::setParameters(double t0, double h0, double s0, double cp0)
+void ConstCpPoly::setParameters(CanteraDouble t0, CanteraDouble h0, CanteraDouble s0, CanteraDouble cp0)
 {
     m_t0 = t0;
     m_logt0 = log(m_t0);
@@ -36,29 +36,29 @@ void ConstCpPoly::setParameters(double t0, double h0, double s0, double cp0)
     m_s0_R = s0 / GasConstant;
 }
 
-void ConstCpPoly::updateProperties(span<const double> tt, double& cp_R,
-                                   double& h_RT, double& s_R) const
+void ConstCpPoly::updateProperties(span<const CanteraDouble> tt, CanteraDouble& cp_R,
+                                   CanteraDouble& h_RT, CanteraDouble& s_R) const
 {
-    double t = tt[0];
-    double logt = log(t);
-    double rt = 1.0/t;
+    CanteraDouble t = tt[0];
+    CanteraDouble logt = log(t);
+    CanteraDouble rt = 1.0/t;
     cp_R = m_cp0_R;
     h_RT = rt*(m_h0_R + (t - m_t0) * m_cp0_R);
     s_R = m_s0_R + m_cp0_R * (logt - m_logt0);
 }
 
-void ConstCpPoly::updatePropertiesTemp(const double temp, double& cp_R,
-                                       double& h_RT, double& s_R) const
+void ConstCpPoly::updatePropertiesTemp(const CanteraDouble temp, CanteraDouble& cp_R,
+                                       CanteraDouble& h_RT, CanteraDouble& s_R) const
 {
-    double logt = log(temp);
-    double rt = 1.0/temp;
+    CanteraDouble logt = log(temp);
+    CanteraDouble rt = 1.0/temp;
     cp_R = m_cp0_R;
     h_RT = rt*(m_h0_R + (temp - m_t0) * m_cp0_R);
     s_R = m_s0_R + m_cp0_R * (logt - m_logt0);
 }
 
-void ConstCpPoly::reportParameters(size_t& n, int& type, double& tlow, double& thigh,
-                                   double& pref, span<double> coeffs) const
+void ConstCpPoly::reportParameters(size_t& n, int& type, CanteraDouble& tlow, CanteraDouble& thigh,
+                                   CanteraDouble& pref, span<CanteraDouble> coeffs) const
 {
     checkArraySize("ConstCpPoly::reportParameters", coeffs.size(), 4);
     n = 0;
@@ -82,16 +82,16 @@ void ConstCpPoly::getParameters(AnyMap& thermo) const
     thermo["cp0"].setQuantity(m_cp0_R * GasConstant, "J/kmol/K");
 }
 
-double ConstCpPoly::reportHf298() const
+CanteraDouble ConstCpPoly::reportHf298() const
 {
-    double temp = 298.15;
+    CanteraDouble temp = 298.15;
     return GasConstant * (m_h0_R + (temp - m_t0) * m_cp0_R);
 }
 
-void ConstCpPoly::modifyOneHf298(const size_t k, const double Hf298New)
+void ConstCpPoly::modifyOneHf298(const size_t k, const CanteraDouble Hf298New)
 {
-    double hnow = reportHf298();
-    double delH = Hf298New - hnow;
+    CanteraDouble hnow = reportHf298();
+    CanteraDouble delH = Hf298New - hnow;
     m_h0_R += delH / GasConstant;
 }
 

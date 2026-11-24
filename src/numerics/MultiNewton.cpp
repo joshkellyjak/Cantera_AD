@@ -27,7 +27,7 @@ void MultiNewton::resize(size_t sz)
     m_stp1.resize(m_n);
 }
 
-void MultiNewton::step(span<const double> x, span<double> step,
+void MultiNewton::step(span<const CanteraDouble> x, span<CanteraDouble> step,
                        SteadyStateSystem& r, int loglevel)
 {
     r.eval(x, step);
@@ -39,7 +39,7 @@ void MultiNewton::step(span<const double> x, span<double> step,
     try {
         auto ts0 = std::chrono::steady_clock::now();
         jac->solve(step, step);
-        r.recordLinearSolve(std::chrono::duration<double>(
+        r.recordLinearSolve(std::chrono::duration<CanteraDouble>(
             std::chrono::steady_clock::now() - ts0).count());
     } catch (CanteraError&) {
         if (jac->info() > 0) {
@@ -53,25 +53,25 @@ void MultiNewton::step(span<const double> x, span<double> step,
     }
 }
 
-double MultiNewton::boundStep(span<const double> x0, span<const double> step0,
+CanteraDouble MultiNewton::boundStep(span<const CanteraDouble> x0, span<const CanteraDouble> step0,
                               const SteadyStateSystem& r, int loglevel)
 {
     const static string separator = fmt::format("\n     {:=>71}", ""); // equals sign separator
-    double fbound = 1.0;
+    CanteraDouble fbound = 1.0;
     bool wroteTitle = false;
 
     for (size_t i = 0; i < size(); i++) {
-        double above = r.upperBound(i);
-        double below = r.lowerBound(i);
+        CanteraDouble above = r.upperBound(i);
+        CanteraDouble below = r.lowerBound(i);
 
-        double val = x0[i];
+        CanteraDouble val = x0[i];
         if (loglevel > 0 && (val > above + 1.0e-12 || val < below - 1.0e-12)) {
             writelog("\nERROR: solution component {} out of bounds.\n", i);
             writelog("{}: value = {:10.3e} (lower = {:10.3e}, upper = {:10.3e})\n",
                      r.componentName(i), val, below, above);
         }
 
-        double newval = val + step0[i];
+        CanteraDouble newval = val + step0[i];
 
         if (newval > above) {
             fbound = std::max(0.0, std::min(fbound,
@@ -107,8 +107,8 @@ double MultiNewton::boundStep(span<const double> x0, span<const double> step0,
     return fbound;
 }
 
-int MultiNewton::dampStep(span<const double> x0, span<const double> step0,
-                          span<double> x1, span<double> step1, double& s1,
+int MultiNewton::dampStep(span<const CanteraDouble> x0, span<const CanteraDouble> step0,
+                          span<CanteraDouble> x1, span<CanteraDouble> step1, CanteraDouble& s1,
                           SteadyStateSystem& r, int loglevel, bool writetitle)
 {
     // write header
@@ -121,10 +121,10 @@ int MultiNewton::dampStep(span<const double> x0, span<const double> step0,
     }
 
     // compute the weighted norm of the undamped step size step0
-    double s0 = r.weightedNorm(step0);
+    CanteraDouble s0 = r.weightedNorm(step0);
 
     // compute the multiplier to keep all components in bounds
-    double fbound = boundStep(x0, step0, r, loglevel-1);
+    CanteraDouble fbound = boundStep(x0, step0, r, loglevel-1);
 
     // if fbound is very small, then x0 is already close to the boundary and
     // step0 points out of the allowed domain. In this case, the Newton
@@ -138,7 +138,7 @@ int MultiNewton::dampStep(span<const double> x0, span<const double> step0,
 
     // damping coefficient starts at 1.0, but must be scaled by the
     // fbound factor to ensure that the solution remains within bounds.
-    double alpha = fbound*1.0;
+    CanteraDouble alpha = fbound*1.0;
     size_t m;
     auto jac = r.linearSolver();
     for (m = 0; m < m_maxDampIter; m++) {
@@ -168,7 +168,7 @@ int MultiNewton::dampStep(span<const double> x0, span<const double> step0,
         s1 = r.weightedNorm(step1);
 
         if (loglevel > 0) {
-            double ss = r.ssnorm(x1, step1);
+            CanteraDouble ss = r.ssnorm(x1, step1);
             writelog("\n  {:<4d}  {:<9.3e}   {:<9.3e}   {:>6.3f}   {:>6.3f}   {:>6.3f}    {:<5d}  {:d}/{:d}",
                      m, alpha, fbound, log10(ss+SmallNumber),
                      log10(s0+SmallNumber), log10(s1+SmallNumber),
@@ -202,19 +202,19 @@ int MultiNewton::dampStep(span<const double> x0, span<const double> step0,
     }
 }
 
-int MultiNewton::solve(span<const double> x0, span<double> x1,
+int MultiNewton::solve(span<const CanteraDouble> x0, span<CanteraDouble> x1,
                        SteadyStateSystem& r, int loglevel)
 {
     clock_t t0 = clock();
     int status = 0;
     bool forceNewJac = false;
     bool write_header = true;
-    double s1=1.e30;
+    CanteraDouble s1=1.e30;
 
     copy(x0.begin(), x0.end(), m_x.begin());
     m_lastIterations = 0;
 
-    double rdt = r.rdt();
+    CanteraDouble rdt = r.rdt();
     int nJacReeval = 0;
     auto jac = r.linearSolver();
     while (true) {

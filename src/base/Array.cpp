@@ -13,14 +13,14 @@
 namespace Cantera
 {
 
-Array2D::Array2D(const size_t m, const size_t n, const double v)
+Array2D::Array2D(const size_t m, const size_t n, const CanteraDouble v)
     : m_nrows(m)
     , m_ncols(n)
 {
     m_data.assign(n*m, v);
 }
 
-Array2D::Array2D(const size_t m, const size_t n, span<const double> values)
+Array2D::Array2D(const size_t m, const size_t n, span<const CanteraDouble> values)
     : m_nrows(m)
     , m_ncols(n)
 {
@@ -49,14 +49,14 @@ Array2D& Array2D::operator=(const Array2D& y)
     return *this;
 }
 
-void Array2D::resize(size_t n, size_t m, double v)
+void Array2D::resize(size_t n, size_t m, CanteraDouble v)
 {
     m_nrows = n;
     m_ncols = m;
     m_data.resize(n*m, v);
 }
 
-void Array2D::appendColumn(span<const double> c)
+void Array2D::appendColumn(span<const CanteraDouble> c)
 {
     checkArraySize("Array2D::appendColumn", c.size(), m_nrows);
     m_ncols++;
@@ -66,7 +66,7 @@ void Array2D::appendColumn(span<const double> c)
     }
 }
 
-void Array2D::setRow(size_t n, span<const double> rw)
+void Array2D::setRow(size_t n, span<const CanteraDouble> rw)
 {
     checkArraySize("Array2D::setRow", rw.size(), m_ncols);
     for (size_t j = 0; j < m_ncols; j++) {
@@ -74,7 +74,7 @@ void Array2D::setRow(size_t n, span<const double> rw)
     }
 }
 
-void Array2D::getRow(size_t n, span<double> rw) const
+void Array2D::getRow(size_t n, span<CanteraDouble> rw) const
 {
     checkArraySize("Array2D::getRow", rw.size(), m_ncols);
     for (size_t j = 0; j < m_ncols; j++) {
@@ -82,7 +82,7 @@ void Array2D::getRow(size_t n, span<double> rw) const
     }
 }
 
-void Array2D::setColumn(size_t m, span<const double> col)
+void Array2D::setColumn(size_t m, span<const CanteraDouble> col)
 {
     checkArraySize("Array2D::setColumn", col.size(), m_nrows);
     for (size_t i = 0; i < m_nrows; i++) {
@@ -90,7 +90,7 @@ void Array2D::setColumn(size_t m, span<const double> col)
     }
 }
 
-void Array2D::getColumn(size_t m, span<double> col) const
+void Array2D::getColumn(size_t m, span<CanteraDouble> col) const
 {
     checkArraySize("Array2D::getColumn", col.size(), m_nrows);
     for (size_t i = 0; i < m_nrows; i++) {
@@ -112,7 +112,7 @@ std::ostream& operator<<(std::ostream& s, const Array2D& m)
     return s;
 }
 
-void operator*=(Array2D& m, double a)
+void operator*=(Array2D& m, CanteraDouble a)
 {
     scale(m.data().begin(), m.data().end(), m.data().begin(), a);
 }

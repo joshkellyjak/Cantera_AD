@@ -200,6 +200,13 @@ public:
 
     explicit AnyValue(CanteraDouble value);
     AnyValue& operator=(CanteraDouble value);
+#if AD_ENABLED
+    //! Store a plain double (as CanteraDouble). Without these, constructing or
+    //! assigning from a double would be ambiguous between the bool, int and
+    //! CanteraDouble overloads.
+    explicit AnyValue(CanteraDoublePassive value);
+    AnyValue& operator=(CanteraDoublePassive value);
+#endif
     //! Return the held value as a `double`, if it is a `double` or a `long int`.
     CanteraDouble& asDouble();
     const CanteraDouble& asDouble() const;

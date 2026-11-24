@@ -326,7 +326,7 @@ CanteraDouble Units::dimension(const string& primary) const
 Units UnitStack::standardUnits() const
 {
     if (!stack.size()) {
-        return Units(0);
+        return Units(0.0);
     }
     return stack[0].first;
 }

@@ -220,7 +220,8 @@ void checkFinite(const string& name, span<const CanteraDouble> values);
  * found instead of throwing an exception.
  */
 template <class T, class U>
-const U& getValue(const map<T, U>& m, const T& key, const U& default_val) {
+const U& getValue(const map<T, U>& m, const T& key,
+                  const std::type_identity_t<U>& default_val) {
     typename map<T,U>::const_iterator iter = m.find(key);
     return (iter == m.end()) ? default_val : iter->second;
 }

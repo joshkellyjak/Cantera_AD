@@ -523,7 +523,7 @@ struct convert<Cantera::AnyValue> {
                     // This exception is raised if the value doesn't fit in a
                     // long int, in which case we would rather store it
                     // (possibly inexactly) as a double.
-                    target = node.as<CanteraDouble>();
+                    target = node.as<CanteraDoublePassive>();
                 }
             } else if (isFloat(nodestr)) {
                 target = fpValue(nodestr);
@@ -863,6 +863,16 @@ AnyValue &AnyValue::operator=(CanteraDouble value) {
     m_equals = eq_comparer<CanteraDouble>;
     return *this;
 }
+
+#if AD_ENABLED
+AnyValue::AnyValue(CanteraDoublePassive value)
+    : AnyValue(CanteraDouble(value))
+{}
+
+AnyValue &AnyValue::operator=(CanteraDoublePassive value) {
+    return *this = CanteraDouble(value);
+}
+#endif
 
 CanteraDouble& AnyValue::asDouble() {
     return as<CanteraDouble>();

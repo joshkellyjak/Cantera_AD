@@ -29,7 +29,7 @@ void SteadyStateSystem::factorizeJacobian()
 {
     auto t0 = std::chrono::steady_clock::now();
     m_jac->updateTransient(m_rdt, m_mask);
-    recordFactorization(std::chrono::duration<CanteraDouble>(
+    recordFactorization(std::chrono::duration<CanteraDoublePassive>(
         std::chrono::steady_clock::now() - t0).count());
 }
 
@@ -141,7 +141,7 @@ void SteadyStateSystem::solve(int loglevel)
             *m_state = m_xnew;
             writeDebugInfo("NewtonSuccess", "After successful Newton solve",
                            loglevel, m_attempt_counter);
-            m_gridTime += std::chrono::duration<CanteraDouble>(
+            m_gridTime += std::chrono::duration<CanteraDoublePassive>(
                 std::chrono::steady_clock::now() - tStart).count();
             return;
         } else {

@@ -39,7 +39,7 @@ void MultiNewton::step(span<const CanteraDouble> x, span<CanteraDouble> step,
     try {
         auto ts0 = std::chrono::steady_clock::now();
         jac->solve(step, step);
-        r.recordLinearSolve(std::chrono::duration<CanteraDouble>(
+        r.recordLinearSolve(std::chrono::duration<CanteraDoublePassive>(
             std::chrono::steady_clock::now() - ts0).count());
     } catch (CanteraError&) {
         if (jac->info() > 0) {

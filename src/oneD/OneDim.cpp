@@ -242,7 +242,7 @@ void OneDim::eval(size_t j, span<const CanteraDouble> x, span<CanteraDouble> r, 
 
     // increment counter and time
     if (count) {
-        m_evaltime += std::chrono::duration<CanteraDouble>(
+        m_evaltime += std::chrono::duration<CanteraDoublePassive>(
             std::chrono::steady_clock::now() - t0).count();
         m_nevals++;
     }
@@ -309,7 +309,7 @@ void OneDim::evalJacobian(span<const CanteraDouble> x0)
         dom->evalJacobianAnalytic(x0, *m_jac);
     }
 
-    m_jac->updateElapsed(std::chrono::duration<CanteraDouble>(
+    m_jac->updateElapsed(std::chrono::duration<CanteraDoublePassive>(
         std::chrono::steady_clock::now() - t0).count());
     m_jac->incrementEvals();
     m_jac->setAge(0);

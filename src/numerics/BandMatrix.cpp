@@ -225,6 +225,12 @@ void BandMatrix::factor()
 #if CT_USE_LAPACK
     ct_dgbtrf(nRows(), nColumns(), nSubDiagonals(), nSuperDiagonals(),
               ludata.data(), ldim(), m_ipiv->data.data(), m_info);
+#elif AD_ENABLED
+    // AD: SUNDIALS' band LU (sunrealtype = double) cannot factor AD types
+    throw NotImplementedError("BandMatrix::factor",
+        "Banded LU factorization uses SUNDIALS, which only works with plain doubles, "
+        "and is not available in AD builds of Cantera (ad_mode=forward/reverse). "
+        "For steady-state problems, use the 'eigen-sparse-direct' linear solver.");
 #else
     long int nu = static_cast<long int>(nSuperDiagonals());
     long int nl = static_cast<long int>(nSubDiagonals());
@@ -265,6 +271,12 @@ void BandMatrix::solve(span<CanteraDouble> b, size_t nrhs, size_t ldb)
         throw Cantera::CanteraError("BandMatrix::solve",
             "Linear solve failed with DGBTRS error code {}.", m_info);
     }
+#elif AD_ENABLED
+    // AD: SUNDIALS' band LU (sunrealtype = double) cannot solve with AD types
+    throw NotImplementedError("BandMatrix::solve",
+        "Banded LU solves use SUNDIALS, which only works with plain doubles, "
+        "and are not available in AD builds of Cantera (ad_mode=forward/reverse). "
+        "For steady-state problems, use the 'eigen-sparse-direct' linear solver.");
 #else
     long int nu = static_cast<long int>(nSuperDiagonals());
     long int nl = static_cast<long int>(nSubDiagonals());

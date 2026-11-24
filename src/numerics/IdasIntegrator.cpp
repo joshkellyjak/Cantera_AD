@@ -4,6 +4,10 @@
 // at http://www.cantera.org/license.txt for license and copyright information.
 
 #include "cantera/numerics/IdasIntegrator.h"
+
+// AD: SUNDIALS (sunrealtype = double) cannot integrate AD types, so this class
+// is not compiled in AD builds; newIntegrator() throws NotImplementedError.
+#if !AD_ENABLED
 #include "cantera/base/stringUtils.h"
 
 #include "cantera/numerics/sundials_headers.h"
@@ -575,3 +579,5 @@ void IdasIntegrator::setMethod(MethodType t)
 }
 
 }
+
+#endif // !AD_ENABLED

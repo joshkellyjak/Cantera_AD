@@ -123,13 +123,13 @@ CanteraDouble methane::Cprime(int i, CanteraDouble rt, CanteraDouble rt2, Canter
 
 CanteraDouble methane::W(int n, CanteraDouble egrho)
 {
-    return (n == 0 ? (1.0 - egrho)/(2.0*Gamma) :
+    return (n == 0 ? CanteraDouble((1.0 - egrho)/(2.0*Gamma)) :
             (n*W(n-1, egrho) - 0.5*pow(Rho,2*n)*egrho)/Gamma);
 }
 
 CanteraDouble methane::H(int i, CanteraDouble egrho)
 {
-    return (i < 8 ? pow(Rho,i+2) : pow(Rho,2*i-13)*egrho);
+    return (i < 8 ? CanteraDouble(pow(Rho,i+2)) : pow(Rho,2*i-13)*egrho);
 }
 
 CanteraDouble methane::I(int i, CanteraDouble egrho)

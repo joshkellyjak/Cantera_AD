@@ -2753,7 +2753,7 @@ void VCS_SOLVE::vcs_dfe(const int stateCalc,
         m_phasePhi[iphase] = Vphase->electricPotential();
     }
 
-    auto updateSpecies = [&](size_t kspec) {
+    auto updateSpecies = [&](size_t kspec) -> CanteraDouble {
         size_t iphase = m_phaseID[kspec];
         if (m_speciesUnknownType[kspec] == VCS_SPECIES_TYPE_INTERFACIALVOLTAGE) {
             AssertThrowMsg(molNum[kspec] == m_phasePhi[iphase], "VCS_SOLVE::vcs_dfe",

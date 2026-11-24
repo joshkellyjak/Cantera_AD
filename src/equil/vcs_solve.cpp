@@ -744,7 +744,7 @@ size_t VCS_SOLVE::vcs_RxnStepSizes(int& forceComponentCalc, size_t& kSpecial)
                 }
 
                 // Start of the regular processing
-                CanteraDouble s = (m_SSPhase[kspec]) ? 0.0 : 1.0 / m_molNumSpecies_old[kspec];
+                CanteraDouble s = (m_SSPhase[kspec]) ? 0.0 : CanteraDouble(1.0 / m_molNumSpecies_old[kspec]);
                 for (size_t j = 0; j < m_numComponents; ++j) {
                     if (!m_SSPhase[j] && m_molNumSpecies_old[j] > 0.0) {
                         s += pow(m_stoichCoeffRxnMatrix(j,irxn), 2) / m_molNumSpecies_old[j];

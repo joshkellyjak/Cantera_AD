@@ -360,9 +360,9 @@ void ThermoPhase::setState_HPorUV(CanteraDouble Htarget, CanteraDouble p,
         }
         setPressure(p);
     }
-    CanteraDouble Tmax = temperatureLimitsEnforced() ? maxTemp() + 0.1 :
-        std::max(maxTemp() + 1000.0, 10.0 * maxTemp());
-    CanteraDouble Tmin = temperatureLimitsEnforced() ? minTemp() - 0.1
+    CanteraDouble Tmax = temperatureLimitsEnforced() ? CanteraDouble(maxTemp() + 0.1) :
+        std::max<CanteraDouble>(maxTemp() + 1000.0, 10.0 * maxTemp());
+    CanteraDouble Tmin = temperatureLimitsEnforced() ? CanteraDouble(minTemp() - 0.1)
                                               : clip(minTemp(), SmallNumber, 100.0);
     if (Tmax <= Tmin) {
         Tmax = Tmin + 20.0;
@@ -601,9 +601,9 @@ void ThermoPhase::setState_SPorSV(CanteraDouble Starget, CanteraDouble p,
         }
         setPressure(p);
     }
-    CanteraDouble Tmax = temperatureLimitsEnforced() ? maxTemp() + 0.1 :
-        std::max(maxTemp() + 1000.0, 10.0 * maxTemp());
-    CanteraDouble Tmin = temperatureLimitsEnforced() ? minTemp() - 0.1
+    CanteraDouble Tmax = temperatureLimitsEnforced() ? CanteraDouble(maxTemp() + 0.1) :
+        std::max<CanteraDouble>(maxTemp() + 1000.0, 10.0 * maxTemp());
+    CanteraDouble Tmin = temperatureLimitsEnforced() ? CanteraDouble(minTemp() - 0.1)
                                               : clip(minTemp(), SmallNumber, 100.0);
     if (Tmax <= Tmin) {
         Tmax = Tmin + 20.0;

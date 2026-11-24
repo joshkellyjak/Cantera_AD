@@ -1593,7 +1593,7 @@ void Flow1D::fluxJacobian(span<const CanteraDouble> x, size_t q, span<CanteraDou
         } else {
             for (size_t m = 0; m < K; m++) {
                 for (size_t k = 0; k < K; k++) {
-                    out[m * K + k] = (k == m ? -d[k] / dz : 0.0)
+                    out[m * K + k] = (k == m ? CanteraDouble(-d[k] / dz) : 0.0)
                                      + Y(x, k, q) * d[m] / dz;
                 }
             }

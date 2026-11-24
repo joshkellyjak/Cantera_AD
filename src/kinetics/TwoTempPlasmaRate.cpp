@@ -148,7 +148,7 @@ void TwoTempPlasmaRate::setParameters(const AnyMap& node, const UnitStack& rate_
     // Option 3c: the vector has the T-inv parameter
     if (rate.size() == 6) {
         CanteraDouble Tinv = node.units().convert(rate[5], "K");
-        m_recip_Tinv = Tinv != 0.0 ? 1.0 / Tinv : 0.0;
+        m_recip_Tinv = Tinv != 0.0 ? CanteraDouble(1.0 / Tinv) : 0.0;
     }
 }
 

@@ -6,6 +6,7 @@
 #include "cantera/thermo/PlasmaPhase.h"
 #include "cantera/thermo/EEDFTwoTermApproximation.h"
 #include <boost/math/special_functions/gamma.hpp>
+#include <boost/math/special_functions/digamma.hpp>
 #include "cantera/thermo/Species.h"
 #include "cantera/base/global.h"
 #include "cantera/numerics/eigen_dense.h"
@@ -19,6 +20,20 @@ namespace Cantera {
 
 namespace {
     const CanteraDouble gamma = sqrt(2 * ElectronCharge / ElectronMass);
+
+    //! Gamma function. Boost.Math does not support AD types, so for those the
+    //! value is computed on the passive value and the derivative is added using
+    //! d/dx Gamma(x) = Gamma(x) psi(x).
+    CanteraDouble gammaFunction(const CanteraDouble& x)
+    {
+#if AD_ENABLED
+        const CanteraDoublePassive v = x.getValue();
+        const CanteraDoublePassive g = boost::math::tgamma(v);
+        return g + g * boost::math::digamma(v) * (x - v);
+#else
+        return boost::math::tgamma(x);
+#endif
+    }
 }
 
 PlasmaPhase::PlasmaPhase(const string& inputFile, const string& id_)
@@ -399,8 +414,8 @@ void PlasmaPhase::setIsotropicElectronEnergyDistribution()
 {
     m_electronEnergyDist.resize(m_nPoints);
     CanteraDouble x = m_isotropicShapeFactor;
-    CanteraDouble gamma1 = boost::math::tgamma(3.0 / 2.0 / x);
-    CanteraDouble gamma2 = boost::math::tgamma(5.0 / 2.0 / x);
+    CanteraDouble gamma1 = gammaFunction(3.0 / 2.0 / x);
+    CanteraDouble gamma2 = gammaFunction(5.0 / 2.0 / x);
     CanteraDouble c1 = x * std::pow(gamma2, 1.5) / std::pow(gamma1, 2.5);
     CanteraDouble c2 = std::pow(gamma2 / gamma1, x);
     m_electronEnergyDist =

@@ -90,18 +90,24 @@ void MoleReactor::updateState(span<const CanteraDouble> y)
             m_thermo->setState_TD(T, m_mass / m_vol);
             return m_thermo->intEnergy_mass() * m_mass - U;
         };
+        // Boost's root finders work on plain doubles
+        auto u_err_passive = [&u_err](CanteraDoublePassive T) {
+            return castToPassiveDouble(u_err(T));
+        };
         CanteraDouble T = m_thermo->temperature();
         boost::uintmax_t maxiter = 100;
-        pair<CanteraDouble, CanteraDouble> TT;
+        pair<CanteraDoublePassive, CanteraDoublePassive> TT;
         try {
             TT = bmt::bracket_and_solve_root(
-                u_err, T, 1.2, true, bmt::eps_tolerance<CanteraDouble>(48), maxiter);
+                u_err_passive, castToPassiveDouble(T), 1.2, true,
+                bmt::eps_tolerance<CanteraDoublePassive>(48), maxiter);
         } catch (std::exception&) {
             // Try full-range bisection if bracketing fails (for example, near
             // temperature limits for the phase's equation of state)
             try {
-                TT = bmt::bisect(u_err, m_thermo->minTemp(), m_thermo->maxTemp(),
-                    bmt::eps_tolerance<CanteraDouble>(48), maxiter);
+                TT = bmt::bisect(u_err_passive, castToPassiveDouble(m_thermo->minTemp()),
+                    castToPassiveDouble(m_thermo->maxTemp()),
+                    bmt::eps_tolerance<CanteraDoublePassive>(48), maxiter);
             } catch (std::exception& err2) {
                 // Set m_thermo back to a reasonable state if root finding fails
                 m_thermo->setState_TD(T, m_mass / m_vol);
@@ -112,7 +118,19 @@ void MoleReactor::updateState(span<const CanteraDouble> y)
         if (fabs(TT.first - TT.second) > 1e-7*TT.first) {
             throw CanteraError("MoleReactor::updateState", "root finding failed");
         }
+#if AD_ENABLED
+        // The root was found on plain doubles. One Newton step with active values
+        // gives T its derivative with respect to the state (implicit function
+        // theorem: dT = -d(u_err) / (d(u_err)/dT), with u_err = 0 at the root).
+        CanteraDouble resid = u_err(TT.second);
+        CanteraDouble dUdT = m_thermo->cv_mass() * m_mass;
+        // The corrected T has the same value as the last (passive) evaluation, so
+        // drop the value-keyed property caches to recompute them with the active T
+        m_thermo->invalidateCache();
+        m_thermo->setState_TD(TT.second - resid / dUdT, m_mass / m_vol);
+#else
         m_thermo->setState_TD(TT.second, m_mass / m_vol);
+#endif
     } else {
         m_thermo->setDensity(m_mass / m_vol);
     }

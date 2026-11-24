@@ -460,7 +460,7 @@ Eigen::SparseMatrix<CanteraDouble> ReactorNet::steadyJacobian(CanteraDouble rdt)
     getState(y0);
     SteadyReactorSolver solver(this, y0);
     solver.evalJacobian(y0);
-    if (rdt) {
+    if (rdt != 0.0) {
         solver.linearSolver()->updateTransient(rdt, solver.transientMask());
     }
     return std::dynamic_pointer_cast<EigenSparseJacobian>(solver.linearSolver())->jacobian();

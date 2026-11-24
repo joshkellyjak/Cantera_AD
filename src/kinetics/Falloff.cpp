@@ -283,7 +283,7 @@ void TroeRate::getFalloffCoeffs(span<CanteraDouble> c) const
 void TroeRate::updateTemp(CanteraDouble T, span<CanteraDouble> work) const
 {
     CanteraDouble Fcent = (1.0 - m_a) * exp(-T*m_rt3) + m_a * exp(-T*m_rt1);
-    if (m_t2) {
+    if (m_t2 != 0.0) {
         Fcent += exp(- m_t2 / T);
     }
     work[0] = log10(std::max(Fcent, SmallNumber));

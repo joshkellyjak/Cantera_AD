@@ -39,7 +39,7 @@ void AdaptivePreconditioner::initialize(size_t networkSize)
 
 void AdaptivePreconditioner::factorize()
 {
-    if (m_prune_precon) {
+    if (m_prune_precon != 0.0) {
         prunePreconditioner();
     }
     // compress sparse matrix structure

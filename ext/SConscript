@@ -162,6 +162,15 @@ if env['googletest'] == 'submodule':
     gmock = build(localenv.Library('../lib/gmock',
                                    source=['googletest/googlemock/src/gmock-all.cc']))
 
+if env["ad_mode"] != "none" and not env["codipack_include"]:
+    # Install the bundled CoDiPack headers, which code using an AD build of Cantera
+    # needs (CanteraDouble is a CoDiPack type)
+    license_files["CoDiPack"] = File("#ext/codipack/LICENSE")
+    h = build(copyenv.Command('#include/cantera/ext/codipack', '#ext/codipack/include',
+                              Copy('$TARGET', '$SOURCE')))
+    copyenv.Depends(copyenv['config_h_target'], h)
+    ext_copies.extend(h)
+
 env["ext_include_copies_target"] = build(ext_copies)
 
 

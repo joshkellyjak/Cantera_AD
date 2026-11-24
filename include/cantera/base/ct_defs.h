@@ -15,6 +15,7 @@
 #define CT_DEFS_H
 
 #include "config.h"
+#include "ct_typedefs.h"
 
 #include <cmath>
 

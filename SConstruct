@@ -370,6 +370,16 @@ config_options = [
            Python is running SCons if the required prerequisites (NumPy and
            Cython) are installed.""",
         "default", ("n", "y", "default")),
+    EnumOption(
+        "ad_mode",
+        """Select the AD mode.""",
+        "none", ("none", "forward", "reverse")),
+    PathOption(
+        "codipack_include",
+        """The directory where the CoDiPack header files are installed. Not needed
+           if 'ad_mode=none' or if the default CoDiPack in 'ext/codipack' should be
+           used.""",
+        "", PathVariable.PathAccept),
     PathOption(
         "python_cmd",
         """Cantera needs to know where to find the Python interpreter. If
@@ -1376,6 +1386,58 @@ if env['googletest'] in ('submodule', 'default'):
 if env['googletest'] == 'none':
     logger.info("Not using GoogleTest -- unable to run complete test suite")
 
+if env['ad_mode'] != 'none':
+    env.Append(CPPDEFINES=['AD_ENABLED'])
+    if env['ad_mode'] == 'forward':
+      env.Append(CPPDEFINES=['AD_FORWARD'])
+    if env['ad_mode'] == 'reverse':
+      env.Append(CPPDEFINES=['AD_REVERSE'])
+
+    if env["codipack_include"]:
+        env["codipack_include"] = Path(env["codipack_include"]).as_posix()
+        codi_include = env["codipack_include"]
+        # Code using the installed Cantera headers needs the same CoDiPack
+        env["codipack_pc_include"] = codi_include
+    else:
+        if not os.path.exists("ext/codipack/include/codi.hpp"):
+            if not os.path.exists(".git"):
+                config_error("CoDiPack is missing. Install CoDiPack in ext/codipack or specify 'codipack_include' .")
+
+            try:
+                code = subprocess.call(["git","submodule","update","--init",
+                                        "--recursive","ext/codipack"])
+            except Exception:
+                code = -1
+            if code:
+                config_error("CoDipack not found and submodule checkout failed.\n"
+                             "Try manually checking out the submodule with:\n\n"
+                             "    git submodule update --init --recursive ext/codipack\n"
+                             " or by providing 'codipack_include=<...>'")
+        codi_include = "ext/codipack/include"
+        # The bundled CoDiPack headers are copied to include/cantera/ext/codipack
+        # (see ext/SConscript) and installed along with Cantera's headers
+        env["codipack_pc_include"] = "${includedir}/cantera/ext/codipack"
+
+    # BLAS/LAPACK routines only accept plain doubles, so AD builds must use the
+    # built-in (templated) linear algebra instead.
+    if env["system_blas_lapack"] == "y" or env["blas_lapack_libs"]:
+        config_error("'system_blas_lapack=y' / 'blas_lapack_libs' are not supported "
+                     f"with AD (ad_mode={env['ad_mode']}).")
+    env["system_blas_lapack"] = "n"
+    env["use_lapack"] = False
+
+    # The Python and Fortran interfaces exchange plain doubles with the C++ library
+    for iface in ("python_package", "f90_interface"):
+        if env[iface] == "y":
+            config_error(f"'{iface}=y' is not supported with AD "
+                         f"(ad_mode={env['ad_mode']}).")
+        env[iface] = "n"
+
+    logger.status(F"Using AD mode: {env['ad_mode']}", print_level=False)
+    logger.info(F"Using CoDiPack include '{codi_include}'")
+    add_system_include(env, codi_include)
+    env["codipack_build_include"] = Dir(codi_include).abspath
+
 # Check for Eigen and checkout submodule if needed
 if env["system_eigen"] in ("y", "default"):
     if conf.CheckCXXHeader("eigen3/Eigen/Dense", "<>"):
@@ -1903,6 +1965,9 @@ cdefine("CT_USE_SYSTEM_EIGEN", "system_eigen")
 cdefine("CT_USE_SYSTEM_EIGEN_PREFIXED", "system_eigen_prefixed")
 cdefine('CT_USE_SYSTEM_FMT', 'system_fmt')
 cdefine('CT_USE_SYSTEM_YAMLCPP', 'system_yamlcpp')
+configh['AD_ENABLED'] = 1 if env['ad_mode'] != 'none' else None
+configh['AD_FORWARD'] = 1 if env['ad_mode'] == 'forward' else None
+configh['AD_REVERSE'] = 1 if env['ad_mode'] == 'reverse' else None
 
 config_h_build = env.Command('build/src/config.h.build',
                              'include/cantera/base/config.h.in',
@@ -2031,9 +2096,10 @@ if env['f90_interface'] == 'y':
 # CLib needs to come before src so generated code is available but we don't want
 # to run this for scons doxygen and scons sphinx
 if not {"doxygen", "sphinx"} & set(COMMAND_LINE_TARGETS):
-    SConscript("interfaces/clib/SConscript")
-    # The Julia bindings are scaffolded from the same CLib specifications
-    SConscript("interfaces/julia/SConscript")
+    # Do not generate CLib (or the Julia bindings scaffolded from it) for ad mode
+    if env['ad_mode'] == 'none':
+        SConscript("interfaces/clib/SConscript")
+        SConscript("interfaces/julia/SConscript")
 
 VariantDir('build/src', 'src', duplicate=0)
 SConscript('build/src/SConscript')
@@ -2059,10 +2125,12 @@ SConscript('build/samples/cxx/SConscript')
 install(env.RecursiveInstall, '$inst_sampledir/cxx',
         'samples/cxx', exclude=sampledir_excludes)
 
-# Install C samples
-SConscript("build/samples/clib/SConscript")
-install(env.RecursiveInstall, "$inst_sampledir/clib",
-        "samples/clib", exclude=sampledir_excludes)
+# Do not generate clib for ad mode
+if env['ad_mode'] == 'none':
+    # Install C samples
+    SConscript("build/samples/clib/SConscript")
+    install(env.RecursiveInstall, "$inst_sampledir/clib",
+            "samples/clib", exclude=sampledir_excludes)
 
 if env['f90_interface'] == 'y':
     SConscript('build/samples/f77/SConscript')

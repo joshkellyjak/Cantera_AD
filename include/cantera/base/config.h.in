@@ -59,4 +59,13 @@ typedef size_t ftnlen_t;  // Cantera Fortran hidden CHARACTER length type
 {CT_USE_HDF5!s}
 {CT_USE_SYSTEM_HIGHFIVE!s}
 
+//-------------- Algorithmic differentiation ------------------------
+
+// Defined when Cantera is built with 'ad_mode=forward' or 'ad_mode=reverse'.
+// CanteraDouble is then a CoDiPack type (see ct_typedefs.h), so any code that
+// uses the installed headers must see these same definitions.
+{AD_ENABLED!s}
+{AD_FORWARD!s}
+{AD_REVERSE!s}
+
 #endif

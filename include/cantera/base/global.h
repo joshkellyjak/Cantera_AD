@@ -16,6 +16,7 @@
 #define CT_GLOBAL_H
 
 #include "ct_defs.h"
+#include "ct_ad_functionality.h"
 #include "cantera/base/fmt.h"
 
 namespace Cantera

@@ -1,3 +1,4 @@
+import re
 from buildutils import multi_glob, compiler_flag_list
 
 Import('env', 'build', 'install')
@@ -39,6 +40,11 @@ else:
 
     if localenv["use_hdf5"]:
         pc_incdirs.append(localenv["hdf_include"])
+
+if localenv["ad_mode"] != "none":
+    # Replace the CoDiPack include used for building with the installed location
+    flag_excludes.append(re.escape(f"-isystem {localenv['codipack_build_include']}"))
+    pc_incdirs.append(localenv["codipack_pc_include"])
 
 pc_cflags.extend(f"-isystem {dir}" for dir in pc_incdirs if dir)
 

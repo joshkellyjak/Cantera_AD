@@ -101,7 +101,7 @@ void Reactor::updateState(span<const CanteraDouble> y)
     if (m_energy) {
         CanteraDouble U = y[2];
         // Residual function: error in internal energy as a function of T
-        auto u_err = [this, U](CanteraDouble T) {
+        auto u_err = [this, U](CanteraDouble T) -> CanteraDouble {
             m_thermo->setState_TD(T, m_mass / m_vol);
             return m_thermo->intEnergy_mass() * m_mass - U;
         };

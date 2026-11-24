@@ -119,7 +119,7 @@ inline void scale(InputIter begin, InputIter end,
                   OutputIter out, S scale_factor)
 {
     std::transform(begin, end, out,
-        [scale_factor](CanteraDouble x) { return x * scale_factor; });
+        [scale_factor](CanteraDouble x) -> CanteraDouble { return x * scale_factor; });
 }
 
 //! Templated evaluation of a polynomial of order 6

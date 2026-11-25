@@ -182,7 +182,8 @@ void MixTransport::update_C()
 
     // add an offset to avoid a pure species condition
     for (size_t k = 0; k < m_nsp; k++) {
-        m_molefracs[k] = std::max(Tiny, m_molefracs[k]);
+        CanteraDouble xk = m_molefracs[k];
+        m_molefracs[k] = (xk < 0.0) ? Tiny : (xk < Tiny) ? xk + Tiny : xk;
     }
 }
 

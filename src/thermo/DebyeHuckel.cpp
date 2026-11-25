@@ -694,7 +694,7 @@ CanteraDouble DebyeHuckel::_lnactivityWaterHelgesonFixedForm() const
     CanteraDouble oc = _osmoticCoeffHelgesonFixedForm();
     CanteraDouble sum = 0.0;
     for (size_t k = 1; k < m_kk; k++) {
-        sum += std::max(m_molalities[k], 0.0);
+        sum += (m_molalities[k] < 0.0) ? 0.0 : m_molalities[k];
     }
     if (sum > 2.0 * m_maxIionicStrength) {
         sum = 2.0 * m_maxIionicStrength;

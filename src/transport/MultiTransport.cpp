@@ -436,7 +436,8 @@ void MultiTransport::update_C()
 
     for (size_t k = 0; k < m_nsp; k++) {
         // add an offset to avoid a pure species condition
-        m_molefracs[k] = std::max(Tiny, m_molefracs[k]);
+        CanteraDouble xk = m_molefracs[k];
+        m_molefracs[k] = (xk < 0.0) ? Tiny : (xk < Tiny) ? xk + Tiny : xk;
         if (!sameCacheState(m_molefracs_last[k], m_molefracs[k])) {
             // If any mole fractions have changed, signal that concentration-
             // dependent quantities will need to be recomputed before use.

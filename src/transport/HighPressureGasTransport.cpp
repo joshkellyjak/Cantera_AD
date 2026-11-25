@@ -190,8 +190,10 @@ void HighPressureGasTransportBase::updateCorrectionFactors() {
         for (size_t j = 0; j < m_nsp; j++) {
             // Add an offset to avoid a condition where x_i and x_j both equal
             // zero (this would lead to Pr_ij = Inf).
-            CanteraDouble x_i = std::max(Tiny, m_molefracs[i]);
-            CanteraDouble x_j = std::max(Tiny, m_molefracs[j]);
+            CanteraDouble x_i = m_molefracs[i];
+            x_i = (x_i < 0.0) ? Tiny : (x_i < Tiny) ? x_i + Tiny : x_i;
+            CanteraDouble x_j = m_molefracs[j];
+            x_j = (x_j < 0.0) ? Tiny : (x_j < Tiny) ? x_j + Tiny : x_j;
 
             // Weight mole fractions of i and j so that X_i + X_j = 1.0.
             CanteraDouble sum_x_ij = x_i + x_j;

@@ -224,7 +224,7 @@ CanteraDouble MolalityVPSSTP::osmoticCoefficient() const
     // Then, we calculate the sum of the solvent molalities
     CanteraDouble sum = 0;
     for (size_t k = 1; k < m_kk; k++) {
-        sum += std::max(m_molalities[k], 0.0);
+        sum += (m_molalities[k] < 0.0) ? 0.0 : m_molalities[k];
     }
     CanteraDouble oc = 1.0;
     if (sum > 1.0E-200) {

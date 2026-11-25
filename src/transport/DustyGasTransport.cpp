@@ -199,7 +199,8 @@ void DustyGasTransport::updateTransport_C()
     // add an offset to avoid a pure species condition
     // (check - this may be unnecessary)
     for (size_t k = 0; k < m_nsp; k++) {
-        m_x[k] = std::max(Tiny, m_x[k]);
+        CanteraDouble xk = m_x[k];
+        m_x[k] = (xk < 0.0) ? Tiny : (xk < Tiny) ? xk + Tiny : xk;
     }
     // diffusion coeffs depend on Pressure
     m_bulk_ok = false;

@@ -288,7 +288,7 @@ void Phase::setMoleFractions(span<const CanteraDouble> x)
     // sum is calculated below as the unnormalized molecular weight
     CanteraDouble sum = 0;
     for (size_t k = 0; k < m_kk; k++) {
-        CanteraDouble xk = std::max(x[k], 0.0); // Ignore negative mole fractions
+        CanteraDouble xk = (x[k] < 0.0) ? 0.0 : x[k];
         m_y[k] = xk;
         norm += xk;
         sum += m_molwts[k] * xk;
@@ -343,7 +343,7 @@ void Phase::setMassFractions(span<const CanteraDouble> y)
 {
     checkArraySize("Phase::setMassFractions", y.size(), m_kk);
     for (size_t k = 0; k < m_kk; k++) {
-        m_y[k] = std::max(y[k], 0.0); // Ignore negative mass fractions
+        m_y[k] = (y[k] < 0.0) ? 0.0 : y[k];
     }
     CanteraDouble invSum = 1.0 / accumulate(m_y.begin(), m_y.end(), CanteraDouble(0.0));
     if (!std::isfinite(invSum) && m_kk != 0) {
@@ -512,7 +512,7 @@ void Phase::setConcentrations(span<const CanteraDouble> conc)
     // Use m_y as temporary storage for non-negative concentrations
     CanteraDouble sum = 0.0, norm = 0.0;
     for (size_t k = 0; k != m_kk; ++k) {
-        CanteraDouble ck = std::max(conc[k], 0.0); // Ignore negative concentrations
+        CanteraDouble ck = (conc[k] < 0.0) ? 0.0 : conc[k];
         m_y[k] = ck;
         sum += ck * m_molwts[k];
         norm += ck;

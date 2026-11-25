@@ -66,6 +66,10 @@ public:
         m_shared.invalidateCache();
     }
 
+    void invalidateCache() override {
+        m_shared.invalidateCache();
+    }
+
     void getRateConstants(span<CanteraDouble> kf) override {
         for (auto& [iRxn, rate] : m_rxn_rates) {
             kf[iRxn] = rate.evalFromStruct(m_shared);

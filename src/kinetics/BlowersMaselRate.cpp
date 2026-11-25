@@ -23,11 +23,11 @@ bool BlowersMaselData::update(const ThermoPhase& phase, const Kinetics& kin)
     int mf = phase.stateMFNumber();
     CanteraDouble T = phase.temperature();
     bool changed = false;
-    if (T != temperature) {
+    if (!sameCacheState(temperature, T)) {
         ReactionData::update(T);
         changed = true;
     }
-    if (changed || rho != density || mf != m_state_mf_number) {
+    if (changed || !sameCacheState(density, rho) || mf != m_state_mf_number) {
         density = rho;
         m_state_mf_number = mf;
         phase.getPartialMolarEnthalpies(partialMolarEnthalpies);

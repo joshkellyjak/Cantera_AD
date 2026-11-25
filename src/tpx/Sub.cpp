@@ -513,7 +513,7 @@ CanteraDouble Substance::Ps()
 
 void Substance::update_sat()
 {
-    if (T != Tslast) {
+    if (!sameCacheState(Tslast, T)) {
         CanteraDouble Rho_save = Rho;
         CanteraDouble pp = Psat(); // illegal temperatures are caught by Psat()
         CanteraDouble lps = log(pp);

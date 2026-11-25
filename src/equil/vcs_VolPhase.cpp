@@ -374,7 +374,7 @@ CanteraDouble vcs_VolPhase::electricPotential() const
 
 void vcs_VolPhase::setState_TP(const CanteraDouble temp, const CanteraDouble pres)
 {
-    if (Temp_ == temp && Pres_ == pres) {
+    if (sameCacheState(Temp_, temp) && sameCacheState(Pres_, pres)) {
         return;
     }
     TP_ptr->setElectricPotential(m_phi);

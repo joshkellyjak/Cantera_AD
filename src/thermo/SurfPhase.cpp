@@ -316,7 +316,7 @@ void SurfPhase::compositionChanged()
 void SurfPhase::_updateThermo(bool force) const
 {
     CanteraDouble tnow = temperature();
-    if (m_tlast != tnow || force) {
+    if (!sameCacheState(m_tlast, tnow) || force) {
         m_spthermo.update(tnow, m_cp0, m_h0, m_s0);
         m_tlast = tnow;
         for (size_t k = 0; k < m_kk; k++) {

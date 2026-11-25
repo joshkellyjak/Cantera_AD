@@ -184,7 +184,7 @@ void DustyGasTransport::getMultiDiffCoeffs(const size_t ld, span<CanteraDouble> 
 
 void DustyGasTransport::updateTransport_T()
 {
-    if (m_temp == m_thermo->temperature()) {
+    if (sameCacheState(m_temp, m_thermo->temperature())) {
         return;
     }
     m_temp = m_thermo->temperature();

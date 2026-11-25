@@ -1402,6 +1402,9 @@ public:
 
     virtual void invalidateCache() {
         m_cache.clear();
+        for (auto& rates : m_rateHandlers) {
+            rates->invalidateCache();
+        }
     };
 
     //! @}

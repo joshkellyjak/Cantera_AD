@@ -15,11 +15,11 @@ bool TwoTempPlasmaData::update(const ThermoPhase& phase, const Kinetics& kin)
     CanteraDouble T = phase.temperature();
     CanteraDouble Te = phase.electronTemperature();
     bool changed = false;
-    if (T != temperature) {
+    if (!sameCacheState(temperature, T)) {
         ReactionData::update(T);
         changed = true;
     }
-    if (Te != electronTemp) {
+    if (!sameCacheState(electronTemp, Te)) {
         updateTe(Te);
         changed = true;
     }

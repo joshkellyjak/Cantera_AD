@@ -27,7 +27,7 @@ bool VibrationalRelaxationData::update(const ThermoPhase& phase, const Kinetics&
 {
     const CanteraDouble T = phase.temperature();
 
-    if (T == temperature) {
+    if (sameCacheState(temperature, T)) {
         return false;
     }
 

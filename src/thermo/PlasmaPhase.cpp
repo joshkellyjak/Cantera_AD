@@ -91,7 +91,8 @@ void PlasmaPhase::updateThermo() const
     size_t k = m_electronSpeciesIndex;
     // If the electron temperature has changed since the last time these
     // properties were computed, recompute them.
-    if (cached.state1 != tempNow || cached.state2 != electronTempNow) {
+    if (!sameCacheState(cached.state1, tempNow)
+        || !sameCacheState(cached.state2, electronTempNow)) {
         // Evaluate the electron species thermodynamic properties
         // at the electron temperature.
         m_spthermo.update_single(k, electronTemperature(),

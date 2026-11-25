@@ -50,6 +50,40 @@ using std::function;
 using std::pair;
 using std::span;
 
+//! Check whether a value cached for the state variable value `cached` can
+//! be reused at the current value `current`.
+//!
+//! Use this instead of `cached == current` in every cache keyed on the *value* of a
+//! CanteraDouble state variable.
+//!
+//! - Without AD this is `cached == current`.
+//! - In forward-mode AD builds, two states can have equal values but different
+//!   tangents (for example, the same temperature seeded for different inputs).
+//!   The cache is valid only if the tangents are equal as well: a result that
+//!   depends only on the cache keys then has the same value and tangent.
+//! - In reverse-mode AD builds, the cached results of an active (recorded) state
+//!   refer to tape entries that belong to the recording of that state. Tape
+//!   identifiers cannot tell two states apart reliably (copies get new identifiers,
+//!   and identifiers are reused after a tape reset), so the cache is valid only if
+//!   both values are equal and passive, which is always the case while the tape is
+//!   not recording.
+//!
+//! Composition changes are tracked separately with Phase::stateMFNumber().
+inline bool sameCacheState(const CanteraDouble& cached, const CanteraDouble& current)
+{
+#if !AD_ENABLED
+    return cached == current;
+#elif defined(AD_FORWARD)
+    return cached.getValue() == current.getValue()
+        && cached.getGradient() == current.getGradient();
+#else
+    auto& tape = CanteraDouble::getTape();
+    return cached.getValue() == current.getValue()
+        && !tape.isIdentifierActive(cached.getIdentifier())
+        && !tape.isIdentifierActive(current.getIdentifier());
+#endif
+}
+
 /**
  * @defgroup physConstants Physical Constants
  * @brief Physical constants used by %Cantera.

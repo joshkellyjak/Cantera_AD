@@ -418,7 +418,8 @@ void MultiTransport::getMultiDiffCoeffs(const size_t ld, span<CanteraDouble> d)
 
 void MultiTransport::update_T()
 {
-    if (m_temp == m_thermo->temperature() && m_nsp == m_thermo->nSpecies()) {
+    if (sameCacheState(m_temp, m_thermo->temperature())
+        && m_nsp == m_thermo->nSpecies()) {
         return;
     }
     GasTransport::update_T();
@@ -436,7 +437,7 @@ void MultiTransport::update_C()
     for (size_t k = 0; k < m_nsp; k++) {
         // add an offset to avoid a pure species condition
         m_molefracs[k] = std::max(Tiny, m_molefracs[k]);
-        if (m_molefracs[k] != m_molefracs_last[k]) {
+        if (!sameCacheState(m_molefracs_last[k], m_molefracs[k])) {
             // If any mole fractions have changed, signal that concentration-
             // dependent quantities will need to be recomputed before use.
             m_l0000_ok = false;
@@ -447,7 +448,7 @@ void MultiTransport::update_C()
 
 void MultiTransport::updateThermal_T()
 {
-    if (m_thermal_tlast == m_thermo->temperature()) {
+    if (sameCacheState(m_thermal_tlast, m_thermo->temperature())) {
         return;
     }
     // we need species viscosities and binary diffusion coefficients

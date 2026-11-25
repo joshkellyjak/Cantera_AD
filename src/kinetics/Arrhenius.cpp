@@ -146,7 +146,7 @@ void ArrheniusBase::validate(const string& equation, const Kinetics& kin)
 bool ArrheniusData::update(const ThermoPhase& phase, const Kinetics& kin)
 {
     CanteraDouble T = phase.temperature();
-    if (T == temperature) {
+    if (sameCacheState(temperature, T)) {
         return false;
     }
     update(T);

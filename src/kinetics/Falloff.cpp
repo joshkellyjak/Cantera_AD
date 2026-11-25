@@ -41,11 +41,11 @@ bool FalloffData::update(const ThermoPhase& phase, const Kinetics& kin)
     int mf = phase.stateMFNumber();
     CanteraDouble T = phase.temperature();
     bool changed = false;
-    if (T != temperature) {
+    if (!sameCacheState(temperature, T)) {
         ReactionData::update(T);
         changed = true;
     }
-    if (rho_m != molar_density || mf != m_state_mf_number) {
+    if (!sameCacheState(molar_density, rho_m) || mf != m_state_mf_number) {
         molar_density = rho_m;
         m_state_mf_number = mf;
         auto concm = kin.thirdBodyConcentrations();

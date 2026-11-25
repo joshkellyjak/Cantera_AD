@@ -52,11 +52,11 @@ bool InterfaceData::update(const ThermoPhase& phase, const Kinetics& kin)
     bool changed = false;
     const auto& surf = dynamic_cast<const SurfPhase&>(kin.thermo(0));
     CanteraDouble site_density = surf.siteDensity();
-    if (density != site_density) {
+    if (!sameCacheState(density, site_density)) {
         density = surf.siteDensity();
         changed = true;
     }
-    if (T != temperature) {
+    if (!sameCacheState(temperature, T)) {
         ReactionData::update(T);
         sqrtT = sqrt(T);
         changed = true;

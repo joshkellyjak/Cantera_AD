@@ -131,7 +131,7 @@ public:
      *  @param shared_data  data shared by all reactions of a given type
      */
     void updateFromStruct(const ChebyshevData& shared_data) {
-        if (shared_data.log10P != m_log10P) {
+        if (!sameCacheState(m_log10P, shared_data.log10P)) {
             m_log10P = shared_data.log10P;
             CanteraDouble Pr = (2 * shared_data.log10P + PrNum_) * PrDen_;
             CanteraDouble Cnm1 = Pr;

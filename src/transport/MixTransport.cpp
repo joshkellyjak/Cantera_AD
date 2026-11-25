@@ -162,7 +162,7 @@ void MixTransport::getSpeciesFluxes(size_t ndim, span<const CanteraDouble> grad_
 void MixTransport::update_T()
 {
     CanteraDouble t = m_thermo->temperature();
-    if (t == m_temp && m_nsp == m_thermo->nSpecies()) {
+    if (sameCacheState(m_temp, t) && m_nsp == m_thermo->nSpecies()) {
         return;
     }
     GasTransport::update_T();

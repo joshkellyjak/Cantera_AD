@@ -33,7 +33,7 @@ void GasTransport::update_T()
     }
 
     CanteraDouble T = m_thermo->temperature();
-    if (T == m_temp) {
+    if (sameCacheState(m_temp, T)) {
         return;
     }
 

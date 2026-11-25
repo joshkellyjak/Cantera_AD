@@ -3798,7 +3798,7 @@ void HMWSoln::s_updatePitzer_dlnMolalityActCoeff_dP() const
 
 void HMWSoln::calc_lambdas(CanteraDouble is) const
 {
-    if( m_last_is == is ) {
+    if (sameCacheState(m_last_is, is)) {
       return;
     }
     m_last_is = is;

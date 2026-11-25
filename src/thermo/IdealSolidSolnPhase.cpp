@@ -448,7 +448,7 @@ void IdealSolidSolnPhase::getSpeciesMolarVolumes(span<CanteraDouble> smv) const
 void IdealSolidSolnPhase::_updateThermo() const
 {
     CanteraDouble tnow = temperature();
-    if (m_tlast != tnow) {
+    if (!sameCacheState(m_tlast, tnow)) {
 
         // Update the thermodynamic functions of the reference state.
         m_spthermo.update(tnow, m_cp0_R, m_h0_RT, m_s0_R);

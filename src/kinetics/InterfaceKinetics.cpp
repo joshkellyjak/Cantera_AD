@@ -54,7 +54,7 @@ void InterfaceKinetics::_update_rates_T()
     // Go find the temperature from the surface
     CanteraDouble T = thermo(0).temperature();
     m_redo_rates = true;
-    if (T != m_temp || m_redo_rates) {
+    if (!sameCacheState(m_temp, T) || m_redo_rates) {
         //  Calculate the forward rate constant by calling m_rates and store it in m_rfn[]
         for (size_t n = 0; n < nPhases(); n++) {
             thermo(n).getPartialMolarEnthalpies(
@@ -88,7 +88,7 @@ void InterfaceKinetics::_update_rates_phi()
 {
     // Store electric potentials for each phase in the array m_phi[].
     for (size_t n = 0; n < nPhases(); n++) {
-        if (thermo(n).electricPotential() != m_phi[n]) {
+        if (!sameCacheState(m_phi[n], thermo(n).electricPotential())) {
             m_phi[n] = thermo(n).electricPotential();
             m_redo_rates = true;
         }

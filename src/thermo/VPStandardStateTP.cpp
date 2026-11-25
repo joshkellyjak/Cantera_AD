@@ -268,7 +268,7 @@ void VPStandardStateTP::_updateStandardStateThermo() const
         PDSS* kPDSS = m_PDSS_storage[k].get();
         kPDSS->setState_TP(Tnow, m_Pcurrent);
         // reference state thermo
-        if (Tnow != m_tlast) {
+        if (!sameCacheState(m_tlast, Tnow)) {
             m_h0_RT[k] = kPDSS->enthalpy_RT_ref();
             m_s0_R[k] = kPDSS->entropy_R_ref();
             m_g0_RT[k] = m_h0_RT[k] - m_s0_R[k];
@@ -290,7 +290,8 @@ void VPStandardStateTP::_updateStandardStateThermo() const
 void VPStandardStateTP::updateStandardStateThermo() const
 {
     CanteraDouble Tnow = temperature();
-    if (Tnow != m_Tlast_ss || Tnow != m_tlast || m_Pcurrent != m_Plast_ss) {
+    if (!sameCacheState(m_Tlast_ss, Tnow) || !sameCacheState(m_tlast, Tnow)
+        || !sameCacheState(m_Plast_ss, m_Pcurrent)) {
         _updateStandardStateThermo();
     }
 }

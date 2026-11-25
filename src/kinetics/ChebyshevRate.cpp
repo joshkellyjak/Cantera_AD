@@ -19,7 +19,7 @@ bool ChebyshevData::update(const ThermoPhase& phase, const Kinetics& kin)
 {
     CanteraDouble T = phase.temperature();
     CanteraDouble P = phase.pressure();
-    if (P != pressure || T != temperature) {
+    if (!sameCacheState(pressure, P) || !sameCacheState(temperature, T)) {
         update(T, P);
         return true;
     }

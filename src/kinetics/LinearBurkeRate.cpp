@@ -24,7 +24,8 @@ bool LinearBurkeData::update(const ThermoPhase& phase, const Kinetics& kin)
     if (moleFractions.empty()) {
         moleFractions.resize(kin.nTotalSpecies());
     }
-    if (P != pressure || T != temperature || X != mf_number) {
+    if (!sameCacheState(pressure, P) || !sameCacheState(temperature, T)
+        || X != mf_number) {
         ReactionData::update(T);
         pressure = P;
         logP = std::log(P);

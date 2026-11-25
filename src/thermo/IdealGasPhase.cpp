@@ -294,7 +294,7 @@ void IdealGasPhase::updateThermo() const
 
     // If the temperature has changed since the last time these
     // properties were computed, recompute them.
-    if (cached.state1 != tnow) {
+    if (!sameCacheState(cached.state1, tnow)) {
         m_spthermo.update(tnow, m_cp0_R, m_h0_RT, m_s0_R);
         cached.state1 = tnow;
 

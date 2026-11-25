@@ -462,7 +462,7 @@ void BulkKinetics::updateROP()
     CanteraDouble rho = thermo().density();
     int statenum = thermo().stateMFNumber();
 
-    if (last.state1 != T || last.state2 != rho) {
+    if (!sameCacheState(last.state1, T) || !sameCacheState(last.state2, rho)) {
         // Update properties that are independent of the composition
         thermo().getStandardChemPotentials(m_grt);
         fill(m_delta_gibbs0.begin(), m_delta_gibbs0.end(), 0.0);

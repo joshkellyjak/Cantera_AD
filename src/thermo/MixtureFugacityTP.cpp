@@ -714,7 +714,7 @@ void MixtureFugacityTP::_updateReferenceStateThermo() const
 
     // If the temperature has changed since the last time these
     // properties were computed, recompute them.
-    if (m_tlast != Tnow) {
+    if (!sameCacheState(m_tlast, Tnow)) {
         m_spthermo.update(Tnow, m_cp0_R, m_h0_RT, m_s0_R);
         m_tlast = Tnow;
 

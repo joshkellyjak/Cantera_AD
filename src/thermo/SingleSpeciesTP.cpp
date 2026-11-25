@@ -172,7 +172,7 @@ bool SingleSpeciesTP::addSpecies(shared_ptr<Species> spec)
 void SingleSpeciesTP::_updateThermo() const
 {
     CanteraDouble tnow = temperature();
-    if (m_tlast != tnow) {
+    if (!sameCacheState(m_tlast, tnow)) {
         m_spthermo.update_single(0, tnow, m_cp0_R, m_h0_RT, m_s0_R);
         m_tlast = tnow;
     }

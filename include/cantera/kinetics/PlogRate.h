@@ -108,7 +108,7 @@ public:
      *  @param shared_data  data shared by all reactions of a given type
      */
     void updateFromStruct(const PlogData& shared_data) {
-        if (shared_data.logP != logP_) {
+        if (!sameCacheState(logP_, shared_data.logP)) {
             logP_ = shared_data.logP;
             if (logP_ > logP1_ && logP_ < logP2_) {
                 return;

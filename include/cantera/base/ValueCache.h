@@ -37,7 +37,7 @@ struct CachedValue {
     //! a single state variable. If it is not valid it updates the stored
     //! state to the new state in addition to returning false.
     bool validate(CanteraDouble state1New) {
-      if(state1 == state1New) {
+      if(sameCacheState(state1, state1New)) {
         return true;
       } else {
         state1 = state1New;
@@ -49,7 +49,7 @@ struct CachedValue {
     //! state1 and state2. If it is not valid it updates the stored
     //! state to the new state in addition to returning false.
     bool validate(CanteraDouble state1New, CanteraDouble state2New) {
-      if(state1 == state1New && state2 == state2New) {
+      if(sameCacheState(state1, state1New) && sameCacheState(state2, state2New)) {
         return true;
       } else {
         state1 = state1New;
@@ -62,7 +62,7 @@ struct CachedValue {
     //! state1 and stateNum. If it is not valid it updates the stored
     //! state to the new state in addition to returning false.
     bool validate(CanteraDouble state1New, int stateNumNew) {
-      if(state1 == state1New && stateNum == stateNumNew) {
+      if(sameCacheState(state1, state1New) && stateNum == stateNumNew) {
         return true;
       } else {
         state1 = state1New;
@@ -87,7 +87,8 @@ struct CachedValue {
     //! state1, state2, and stateNum. If it is not valid it updates the stored
     //! state to the new state in addition to returning false.
     bool validate(CanteraDouble state1New, CanteraDouble state2New, int stateNumNew) {
-      if(state1 == state1New && state2 == state2New && stateNum == stateNumNew) {
+      if(sameCacheState(state1, state1New) && sameCacheState(state2, state2New)
+         && stateNum == stateNumNew) {
         return true;
       } else {
         state1 = state1New;
@@ -139,7 +140,7 @@ typedef CachedValue<vector<CanteraDouble>>& CachedArray;
  *     double get_property(double T, double P) {
  *         const static int cacheId = m_cache.getId();
  *         CachedScalar cached = m_cache.getScalar(cacheId);
- *         if (T != cached.state1 || P != cached.state2) {
+ *         if (!sameCacheState(cached.state1, T) || !sameCacheState(cached.state2, P)) {
  *             cached.value = some_expensive_function(T,P);
  *             cached.state1 = T;
  *             cached.state2 = P;

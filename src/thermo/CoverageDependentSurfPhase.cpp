@@ -465,7 +465,7 @@ void CoverageDependentSurfPhase::_updateCovDepThermo() const
 {
     int stateNumnow = stateMFNumber();
     CanteraDouble tnow = temperature();
-    if (m_stateNumlast != stateNumnow || m_tlast != tnow) {
+    if (m_stateNumlast != stateNumnow || !sameCacheState(m_tlast, tnow)) {
         for (size_t k = 0; k < m_kk; k++) {
             m_h_cov[k] = 0.0;
             m_s_cov[k] = 0.0;

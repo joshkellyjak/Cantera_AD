@@ -49,7 +49,7 @@ void BinarySolutionTabulatedThermo::_updateThermo() const
     }
 
     CanteraDouble tnow = temperature();
-    if (x_changed || m_tlast != tnow) {
+    if (x_changed || !sameCacheState(m_tlast, tnow)) {
         // Update the thermodynamic functions of the reference state.
         m_spthermo.update(tnow, m_cp0_R, m_h0_RT, m_s0_R);
         CanteraDouble rrt = 1.0 / RT();

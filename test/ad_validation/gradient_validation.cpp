@@ -22,11 +22,14 @@
 //!   1. AD Jacobian vs. 4th-order central finite differences (FD), with a fresh
 //!      Cantera Solution for every AD evaluation ("clean" protocol).
 //!   2. Forward vs. reverse AD Jacobians (when given the other mode's output file).
-//!   3. Known issue: Cantera caches properties keyed on the *value* of T. Re-using a
-//!      Solution object (as SU2 does: one object for every cell) can therefore give
-//!      wrong derivatives, and in reverse mode re-recording after a tape reset reads
-//!      stale tape indices. Run last and reported separately; it does not affect the
-//!      exit code.
+//!   3. Re-use of one Solution object. Cantera caches properties keyed on the *value*
+//!      of T (and density, pressure). In AD builds these caches must also distinguish
+//!      states with equal values but different derivative information 
+//!      (see Cantera::sameCacheState): two cells at the same T 
+//!      (all outputs, including the chemical source terms), and the full Jacobian with
+//!      a re-seeded (forward) or re-recorded (reverse, after a tape reset) Solution.
+//!      Run last: if the caches were wrong, reverse mode would read stale tape indices,
+//!      which can corrupt later recordings.
 //!
 //! The AD mode is taken from the installed cantera/base/config.h. Build and run
 //! with run_validation.sh.
@@ -441,19 +444,30 @@ static void zeroSpeciesCheck(const CaseDef& c)
 }
 
 // Two "cells" with the same temperature, evaluated one after the other with the
-// same Solution, as SU2 does for neighbouring cells in a uniform region. The
-// second evaluation hits the T-keyed caches filled by the first, so dh_b/dT_b
-// misses the species-enthalpy part (and in reverse mode it goes to T_a instead).
-static void twoCellCheck(const CaseDef& c)
+// same Solution, as SU2 does for neighbouring cells in a uniform region. Before
+// value-keyed caches were made AD-aware (sameCacheState), the second evaluation hit
+// the caches filled by the first, so d(y_b)/dT_b missed every T-dependent part
+// (thermo, transport, rate constants), and in reverse mode it went to T_a instead.
+// Checks d(y_b)/dT_b for every F_T output against a clean AD evaluation, per output
+// group (including the chemical source terms), and in reverse mode that
+// d(y_b)/dT_a = 0. Returns the number of failed groups.
+static int twoCellCheck(const CaseDef& c)
 {
     vector<double> xT = stateInputs(makeStates(c)[1]);
+    Matrix Jclean = adJacobian(c, evalT, xT, nullptr);
+    Model probe(c);
+    Outputs ref = evalT(probe, toActive(xT));
+    size_t nOut = ref.v.size();
+    vector<double> got(nOut), leak(nOut, 0.0);
     Model m(c);
     vector<CanteraDouble> xa = toActive(xT), xb = toActive(xT);
-    double got, leak = 0.0;
 #if defined(AD_FORWARD)
     xb[0].setGradient(1.0);
     evalT(m, xa);
-    got = evalT(m, xb).v[1].getGradient();
+    Outputs ob = evalT(m, xb);
+    for (size_t i = 0; i < nOut; i++) {
+        got[i] = ob.v[i].getGradient();
+    }
 #else
     auto& tape = CanteraDouble::getTape();
     tape.reset();
@@ -461,31 +475,64 @@ static void twoCellCheck(const CaseDef& c)
     tape.registerInput(xa[0]);
     tape.registerInput(xb[0]);
     evalT(m, xa);
-    CanteraDouble hb = evalT(m, xb).v[1];
-    tape.registerOutput(hb);
+    Outputs ob = evalT(m, xb);
+    for (auto& y : ob.v) {
+        tape.registerOutput(y);
+    }
     tape.setPassive();
-    hb.setGradient(1.0);
-    tape.evaluate();
-    got = xb[0].getGradient();
-    leak = xa[0].getGradient();
+    for (size_t i = 0; i < nOut; i++) {
+        tape.clearAdjoints();
+        ob.v[i].setGradient(1.0);
+        tape.evaluate();
+        got[i] = xb[0].getGradient();
+        leak[i] = xa[0].getGradient();
+    }
     tape.reset();
 #endif
-    Model ref(c);
-    double cp = evalT(ref, toActive(xT)).v[2].getValue();
-    bool ok = std::abs(got - cp) / cp < TOL_FD && leak == 0.0;
-    printf("  %-8s two cells, equal T: dh_b/dT_b = % .6e (expected cp = %.6e)", c.name.c_str(),
-           got, cp);
+    // Same error measure as the main check, restricted to the T column
+    std::map<string, double> worst;
+    vector<string> order;
+    double maxLeak = 0.0;
+    for (size_t i = 0; i < nOut; i++) {
+        const string& g = ref.group[i];
+        if (!worst.count(g)) {
+            order.push_back(g);
+            worst[g] = 0.0;
+        }
+        double rowMax = 0.0;
+        for (size_t j = 0; j < xT.size(); j++) {
+            rowMax = std::max(rowMax, std::abs(Jclean[i][j]) * (j == 0 ? xT[0] : 1.0));
+        }
+        double denom = std::max({std::abs(Jclean[i][0]) * xT[0], 1e-3 * rowMax,
+                                 1e-4 * std::abs(ref.v[i].getValue())});
+        double diff = std::abs(got[i] - Jclean[i][0]) * xT[0];
+        if (diff > 0) {
+            worst[g] = std::max(worst[g], denom > 0 ? diff / denom : HUGE_VAL);
+        }
+        maxLeak = std::max(maxLeak, std::abs(leak[i]));
+    }
+    int failed = 0;
+    printf("  %-8s two cells, equal T: d(y_b)/dT_b vs clean AD\n", c.name.c_str());
+    for (auto& g : order) {
+        bool ok = worst[g] < TOL_FD;
+        failed += !ok;
+        printf("    %-15s max err %.2e  %s\n", g.c_str(), worst[g], ok ? "OK" : "FAIL");
+    }
+    printf("    e.g. dh_b/dT_b = % .6e (c_p = %.6e)\n", got[1], ref.v[2].getValue());
 #if !defined(AD_FORWARD)
-    printf(", dh_b/dT_a = % .6e (expected 0)", leak);
+    bool ok = maxLeak == 0.0;
+    failed += !ok;
+    printf("    max |d(y_b)/dT_a| = %.2e (expected 0)  %s\n", maxLeak, ok ? "OK" : "FAIL");
 #endif
-    printf("  %s\n", ok ? "OK" : "KNOWN ISSUE");
+    return failed;
 }
 
 // Full F_T Jacobian with one Solution re-used for every AD evaluation. Forward
 // mode: the same object is re-seeded for each input. Reverse mode: the tape is
-// recorded, reset and recorded again, so cached values keep indices from the
-// discarded recording (undefined behaviour: stale indices can exceed the new tape).
-static void reuseCheck(const CaseDef& c)
+// recorded, reset and recorded again; any value served from a cache filled during
+// the first recording would keep indices from the discarded recording (undefined
+// behaviour: stale indices can exceed the new tape). Returns 1 on failure.
+static int reuseCheck(const CaseDef& c)
 {
     vector<double> xT = stateInputs(makeStates(c)[1]);
     vector<double> xs(xT.size(), 1.0);
@@ -505,7 +552,8 @@ static void reuseCheck(const CaseDef& c)
     printf("  %-8s F_T Jacobian, one Solution re-used (%s): max err vs clean AD %.2e  %s\n",
            c.name.c_str(), strcmp(MODE, "forward") ? "re-recorded after tape reset"
                                                      : "re-seeded",
-           e, e < TOL_FD ? "OK" : "KNOWN ISSUE");
+           e, e < TOL_FD ? "OK" : "FAIL");
+    return e < TOL_FD ? 0 : 1;
 }
 
 int main(int argc, char** argv)
@@ -620,24 +668,26 @@ int main(int argc, char** argv)
                comparedFwdRev, worstFwdRev, ok ? "OK" : "FAIL");
     }
 
-    // Known issue, run last: in reverse mode the re-use check reads stale tape
-    // indices, which can corrupt later recordings.
-    printf("\n=== Known issue: value-keyed caches when one Solution is re-used "
-           "(as SU2 does) ===\n");
+    // Re-use checks, run last: if value-keyed caches were not AD-aware, the reverse
+    // mode re-use check would read stale tape indices and could corrupt later
+    // recordings.
+    int reuseFailures = 0;
+    printf("\n=== Value-keyed caches when one Solution is re-used (as SU2 does) ===\n");
     for (auto& c : cases) {
-        twoCellCheck(c);
+        reuseFailures += twoCellCheck(c);
     }
     printf("\n=== Known issue: derivative w.r.t. a species at Y = 0 (setMassFractions "
            "clips with std::max(y, 0), slope 0 at y = 0) ===\n");
     for (auto& c : cases) {
         zeroSpeciesCheck(c);
     }
-    printf("\n=== Known issue (run last): full Jacobian with one re-used Solution ===\n");
+    printf("\n=== Full Jacobian with one re-used Solution (run last) ===\n");
     for (auto& c : cases) {
-        reuseCheck(c);
+        reuseFailures += reuseCheck(c);
     }
     printf("\n");
-    printf("%s: %d failure(s) in AD vs FD%s\n", failures ? "FAILED" : "PASSED", failures,
-           compareFile.empty() ? "" : " / forward vs reverse");
-    return failures ? 1 : 0;
+    printf("%s: %d failure(s) in AD vs FD%s, %d in Solution re-use\n",
+           (failures || reuseFailures) ? "FAILED" : "PASSED", failures,
+           compareFile.empty() ? "" : " / forward vs reverse", reuseFailures);
+    return (failures || reuseFailures) ? 1 : 0;
 }

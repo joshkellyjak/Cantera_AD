@@ -47,6 +47,10 @@ public:
     //!     specific array sizes.
     virtual void resize(Kinetics& kin) = 0;
 
+    //! Force the shared data of the rate evaluator to be updated the next time it
+    //! is used, see ReactionData::invalidateCache().
+    virtual void invalidateCache() {}
+
     //! Evaluate all rate constants handled by the evaluator
     //! @param kf  array of rate constants
     virtual void getRateConstants(span<CanteraDouble> kf) = 0;
